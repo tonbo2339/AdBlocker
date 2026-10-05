@@ -2,6 +2,7 @@ package io.github.tonbo2339.adblocker
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
 import android.widget.LinearLayout
 
 /**
@@ -15,4 +16,16 @@ class CardLayout @JvmOverloads constructor(
     init {
         clipToOutline = true
     }
+}
+
+/** iOS の inset grouped リストのように、一覧の先頭と末尾の行だけ角を丸めた背景にする。 */
+fun View.setGroupedRowBackground(first: Boolean, last: Boolean) {
+    setBackgroundResource(
+        when {
+            first && last -> R.drawable.bg_row_single
+            first -> R.drawable.bg_row_top
+            last -> R.drawable.bg_row_bottom
+            else -> R.drawable.bg_row_middle
+        }
+    )
 }

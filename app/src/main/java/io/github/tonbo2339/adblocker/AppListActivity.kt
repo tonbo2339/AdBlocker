@@ -177,17 +177,8 @@ class AppListActivity : AppCompatActivity() {
             b.excludedSwitch.isChecked = app.packageName in excluded
             b.excludedSwitch.jumpDrawablesToCurrentState() // 再利用時にアニメーションさせない
 
-            // iOS の inset grouped リストのように、先頭と末尾だけ角を丸める
-            val first = position == 0
             val last = position == items.lastIndex
-            b.root.setBackgroundResource(
-                when {
-                    first && last -> R.drawable.bg_row_single
-                    first -> R.drawable.bg_row_top
-                    last -> R.drawable.bg_row_bottom
-                    else -> R.drawable.bg_row_middle
-                }
-            )
+            b.root.setGroupedRowBackground(first = position == 0, last = last)
             b.separator.isVisible = !last
         }
     }

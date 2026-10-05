@@ -13,6 +13,7 @@ object Prefs {
     private const val KEY_WIFI_ONLY = "update_on_wifi_only"
     private const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
     private const val KEY_QUERY_LOG = "query_log"
+    private const val KEY_PAUSED_UNTIL = "paused_until"
     private const val KEY_ETAG = "etag_"
     private const val KEY_LAST_MODIFIED = "last_modified_"
 
@@ -42,6 +43,13 @@ object Prefs {
 
     fun setNotificationPermissionAsked(context: Context) {
         prefs(context).edit { putBoolean(KEY_NOTIFICATION_PERMISSION_ASKED, true) }
+    }
+
+    /** 一時停止の期限 (ミリ秒)。一時停止していなければ 0。普段は Pause を通して使う。 */
+    fun pausedUntil(context: Context): Long = prefs(context).getLong(KEY_PAUSED_UNTIL, 0)
+
+    fun setPausedUntil(context: Context, time: Long) {
+        prefs(context).edit { putLong(KEY_PAUSED_UNTIL, time) }
     }
 
     /** 問い合わせのログ (メモリ上だけ) を取るか。 */

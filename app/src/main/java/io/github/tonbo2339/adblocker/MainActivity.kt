@@ -14,8 +14,6 @@ import android.os.Looper
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.text.format.DateUtils
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,13 +24,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.ActivityMainBinding
-import io.github.tonbo2339.adblocker.databinding.ItemLogBinding
-import io.github.tonbo2339.adblocker.databinding.ItemLogHeaderBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -69,7 +64,6 @@ class MainActivity : AppCompatActivity() {
     /** 日付は端末の言語に関係なく 年/月/日 の順で表示する (作者の希望)。 */
     private val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
     private val weekdayFormat = SimpleDateFormat("EEE", Locale.getDefault())
-    private val logTimeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
     private var tab = Tab.HOME
     private var shownStatus: StatusLook? = null
@@ -80,7 +74,7 @@ class MainActivity : AppCompatActivity() {
     /** よくブロックしたドメインの表示中の内容 (変わったときだけ作り直す)。 */
     private var shownTopDomains: List<Pair<String, Int>>? = null
 
-    private val logAdapter = LogAdapter()
+    private val logAdapter = LogAdapter(this)
 
     private val refresher = object : Runnable {
         override fun run() {
@@ -465,133 +459,5 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateLog() {
         logAdapter.refresh()
-    }
-
-    /** 1 行目が見出し (タイトル・検索・絞り込み)、2 行目以降が問い合わせ (新しい順)。 */
-    private inner class LogAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        private val typeHeader = 0
-        private val typeEntry = 1
-
-        var header: ItemLogHeaderBinding? = null
-            private set
-        private var entries: List<QueryLog.Entry> = emptyList()
-        private var shownVersion = -1L
-        private var query = ""
-        private var blockedOnly = false
-
-        fun refresh(force: Boolean = false) {
-            val version = QueryLog.version
-            if (!force && version == shownVersion) return
-            shownVersion = version
-            val q = query
-            val list = QueryLog.snapshot().filter { e ->
-                (!blockedOnly || e.verdict.blocked) && (q.isEmpty() || e.domain.contains(q))
-            }
-            val old = entries.size
-            entries = list
-            // 見出しは作り直さない (検索欄の入力中にフォーカスやキーボードが外れないように)
-            val new = list.size
-            if (new > old) notifyItemRangeInserted(1 + old, new - old)
-            if (new < old) notifyItemRangeRemoved(1 + new, old - new)
-            if (minOf(old, new) > 0) notifyItemRangeChanged(1, minOf(old, new))
-            updateHeaderTexts()
-        }
-
-        private fun updateHeaderTexts() {
-            val h = header ?: return
-            h.filterAll.isSelected = !blockedOnly
-            h.filterBlocked.isSelected = blockedOnly
-            val enabled = QueryLog.enabled
-            h.logFooter.isVisible = enabled
-            h.logFooter.text = getString(R.string.log_footer, numberFormat.format(QueryLog.CAPACITY))
-            h.emptyText.isVisible = entries.isEmpty()
-            h.emptyText.setText(
-                when {
-                    !enabled -> R.string.log_disabled
-                    query.isNotEmpty() || blockedOnly -> R.string.log_no_results
-                    else -> R.string.log_empty
-                }
-            )
-        }
-
-        override fun getItemCount() = 1 + entries.size
-
-        override fun getItemViewType(position: Int) = if (position == 0) typeHeader else typeEntry
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            val inflater = LayoutInflater.from(parent.context)
-            if (viewType == typeHeader) {
-                val h = ItemLogHeaderBinding.inflate(inflater, parent, false)
-                header = h
-                h.searchBox.doAfterTextChanged {
-                    query = it.toString().trim().lowercase()
-                    refresh(force = true)
-                }
-                h.filterAll.setOnClickListener {
-                    blockedOnly = false
-                    refresh(force = true)
-                }
-                h.filterBlocked.setOnClickListener {
-                    blockedOnly = true
-                    refresh(force = true)
-                }
-                updateHeaderTexts()
-                return object : RecyclerView.ViewHolder(h.root) {}
-            }
-            return EntryHolder(ItemLogBinding.inflate(inflater, parent, false))
-        }
-
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            if (holder !is EntryHolder) return
-            val index = position - 1
-            val e = entries[index]
-            val b = holder.b
-            b.domain.text = e.domain
-            val verdict = getString(
-                when (e.verdict) {
-                    Verdict.LIST -> R.string.verdict_list
-                    Verdict.USER_BLOCK -> R.string.verdict_user_block
-                    Verdict.USER_ALLOW -> R.string.verdict_user_allow
-                    Verdict.PAUSED -> R.string.verdict_paused
-                    Verdict.PASS -> R.string.verdict_pass
-                }
-            )
-            b.detail.text = if (e.count > 1) getString(R.string.log_detail_count, verdict, e.count) else verdict
-            b.time.text = logTimeFormat.format(Date(e.time))
-            b.dot.backgroundTintList = ColorStateList.valueOf(
-                getColor(
-                    when (e.verdict) {
-                        Verdict.LIST, Verdict.USER_BLOCK -> R.color.sys_red
-                        Verdict.USER_ALLOW -> R.color.sys_green
-                        Verdict.PAUSED -> R.color.sys_orange
-                        Verdict.PASS -> R.color.status_off
-                    }
-                )
-            )
-            // iOS の inset grouped リストのように、先頭と末尾だけ角を丸める
-            val first = index == 0
-            val last = index == entries.lastIndex
-            b.root.setBackgroundResource(
-                when {
-                    first && last -> R.drawable.bg_row_single
-                    first -> R.drawable.bg_row_top
-                    last -> R.drawable.bg_row_bottom
-                    else -> R.drawable.bg_row_middle
-                }
-            )
-            b.separator.isVisible = !last
-        }
-
-        inner class EntryHolder(val b: ItemLogBinding) : RecyclerView.ViewHolder(b.root) {
-            init {
-                // 押したときのハイライトを、先頭・末尾の行の角丸で切り抜く
-                b.root.clipToOutline = true
-                b.root.setOnClickListener {
-                    val index = bindingAdapterPosition - 1
-                    val entry = entries.getOrNull(index) ?: return@setOnClickListener
-                    DomainActions.show(this@MainActivity, entry.domain)
-                }
-            }
-        }
     }
 }
