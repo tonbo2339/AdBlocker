@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  iOS の設定アプリ風の画面。
+  スクロールすると大きなタイトルが隠れ、上部のナビゲーションバーに小さなタイトルが出る。
+-->
+<!-- 行頭アイコンは装飾なので読み上げない (IconBadge スタイルで importantForAccessibility="no")。
+     設定画面なのでビューが多いのは許容する -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    tools:ignore="ContentDescription,TooManyViews"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="40dp">
+
+            <TextView
+                android:id="@+id/largeTitle"
+                style="@style/LargeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="52dp"
+                android:text="@string/app_name" />
+
+            <!-- 状態 -->
+            <io.github.tonbo2339.adblocker.CardLayout
+                style="@style/Card"
+                android:layout_marginTop="12dp"
+                android:gravity="center_horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="28dp"
+                android:paddingBottom="24dp">
+
+                <ImageView
+                    android:id="@+id/statusIcon"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_shield_off" />
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:textColor="@color/label"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/statusDetail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:textColor="@color/label_secondary"
+                    android:textSize="15sp" />
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <io.github.tonbo2339.adblocker.CardLayout
+                style="@style/Card"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_green"
+                        android:src="@drawable/ic_g_shield" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_adblock" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/vpnSwitch"
+                        style="@style/IosSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <!-- 統計 -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_stats" />
+
+            <io.github.tonbo2339.adblocker.CardLayout
+                style="@style/Card"
+                android:orientation="horizontal"
+                android:paddingVertical="14dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/blockedCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFeatureSettings="tnum"
+                        android:textColor="@color/sys_green"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stat_blocked"
+                        android:textColor="@color/label_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0.5dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/separator" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/queryCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFeatureSettings="tnum"
+                        android:textColor="@color/label"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stat_queries"
+                        android:textColor="@color/label_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <!-- 設定 -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_settings" />
+
+            <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+                <LinearLayout
+                    android:id="@+id/exclusionsRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/accent_blue"
+                        android:src="@drawable/ic_g_apps" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/title_exclusions" />
+
+                    <TextView
+                        android:id="@+id/exclusionValue"
+                        style="@style/RowValue" />
+
+                    <ImageView style="@style/Chevron" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout
+                    android:id="@+id/alwaysOnRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_indigo"
+                        android:src="@drawable/ic_g_lock" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_always_on" />
+
+                    <ImageView style="@style/Chevron" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/always_on_footer" />
+
+            <!-- ブロックリスト -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/row_blocklist" />
+
+            <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_red"
+                        android:src="@drawable/ic_g_list" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_domains" />
+
+                    <TextView
+                        android:id="@+id/blocklistValue"
+                        style="@style/RowValue"
+                        android:fontFeatureSettings="tnum" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_gray"
+                        android:src="@drawable/ic_g_clock" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_last_checked" />
+
+                    <TextView
+                        android:id="@+id/lastCheckedValue"
+                        style="@style/RowValue" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout
+                    android:id="@+id/updateRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/accent_blue"
+                        android:src="@drawable/ic_g_refresh" />
+
+                    <TextView
+                        android:id="@+id/updateText"
+                        style="@style/RowTitle"
+                        android:text="@string/row_update_now"
+                        android:textColor="@color/accent_blue" />
+
+                    <ProgressBar
+                        android:id="@+id/updateProgress"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                android:id="@+id/sourcesFooter"
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- アプリ -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_app" />
+
+            <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_gray"
+                        android:src="@drawable/ic_g_info" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_version" />
+
+                    <TextView
+                        android:id="@+id/versionValue"
+                        style="@style/RowValue" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/accent_blue"
+                        android:src="@drawable/ic_g_download" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_auto_install" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/autoInstallSwitch"
+                        style="@style/IosSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout
+                    android:id="@+id/checkUpdateRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/accent_blue"
+                        android:src="@drawable/ic_g_refresh" />
+
+                    <TextView
+                        android:id="@+id/checkUpdateText"
+                        style="@style/RowTitle"
+                        android:text="@string/row_check_update"
+                        android:textColor="@color/accent_blue" />
+
+                    <ProgressBar
+                        android:id="@+id/checkUpdateProgress"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/app_update_footer" />
+
+            <!-- 通知 -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_notifications" />
+
+            <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_red"
+                        android:src="@drawable/ic_g_bell" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/notify_app_update" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/notifyAppUpdateSwitch"
+                        style="@style/IosSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_orange"
+                        android:src="@drawable/ic_g_list" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/notify_blocklist_update" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/notifyBlocklistSwitch"
+                        style="@style/IosSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_green"
+                        android:src="@drawable/ic_g_shield" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/notify_running" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/notifyRunningSwitch"
+                        style="@style/IosSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/notifications_footer" />
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/note" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ナビゲーションバー (スクロールすると背景と小さなタイトルが出る) -->
+    <LinearLayout
+        android:id="@+id/navBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/navTitle"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:alpha="0"
+            android:gravity="center"
+            android:text="@string/app_name"
+            android:textColor="@color/label"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/navDivider"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:alpha="0"
+            android:background="@color/separator" />
+    </LinearLayout>
+</FrameLayout>

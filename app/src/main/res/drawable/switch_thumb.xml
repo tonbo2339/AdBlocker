@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 白い丸。inset で track との間に 2dp の余白を作る -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="2dp">
+    <shape android:shape="oval">
+        <solid android:color="#FFFFFF" />
+        <size android:width="27dp" android:height="27dp" />
+        <stroke android:width="0.5dp" android:color="#1F000000" />
+    </shape>
+</inset>

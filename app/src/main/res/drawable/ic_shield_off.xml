@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 停止中の盾 (斜線)。色は ImageView の tint で付ける -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M32,4 L54,12 L54,30 C54,44.5 44.6,55.2 32,60 C19.4,55.2 10,44.5 10,30 L10,12 Z M21.2,20.2 L23.8,17.6 L43.8,37.6 L41.2,40.2 Z" />
+</vector>

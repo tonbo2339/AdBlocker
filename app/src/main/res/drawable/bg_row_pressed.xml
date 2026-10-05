@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- iOS と同じく、押している間だけ灰色にする (波紋は出さない) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:exitFadeDuration="@android:integer/config_shortAnimTime">
+    <item android:state_pressed="true">
+        <color android:color="@color/row_pressed" />
+    </item>
+    <item>
+        <color android:color="@android:color/transparent" />
+    </item>
+</selector>

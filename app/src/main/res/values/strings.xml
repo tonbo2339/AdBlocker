@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AdBlocker</string>
+    <string name="title_exclusions">例外アプリ</string>
+
+    <string name="status_on">保護されています</string>
+    <string name="status_off">停止中</string>
+    <string name="status_detail_on">広告とトラッカーをブロックしています</string>
+    <string name="status_starting">開始しています…</string>
+    <string name="status_detail_starting">ブロックリストを読み込んでいます</string>
+    <string name="status_detail_off">スイッチをオンにすると広告をブロックします</string>
+    <string name="row_adblock">広告ブロック</string>
+    <string name="section_stats">今回の統計</string>
+    <string name="stat_blocked">ブロック</string>
+    <string name="stat_queries">問い合わせ</string>
+    <string name="section_settings">設定</string>
+    <string name="row_blocklist">ブロックリスト</string>
+    <string name="row_domains">ドメイン数</string>
+    <string name="blocklist_value">%1$s 件</string>
+    <string name="row_last_checked">最終確認</string>
+    <string name="last_checked_never">未確認 (同梱リストを使用中)</string>
+    <string name="row_update_now">今すぐ更新</string>
+    <string name="updating">更新しています…</string>
+    <string name="update_done">ブロックリストを更新しました</string>
+    <string name="update_failed">更新に失敗しました。あとで自動的に再試行します</string>
+    <string name="update_waiting_network">ネットワークに接続すると更新します</string>
+    <string name="sources_footer">1 日 1 回、自動で最新のリストに更新します。取得元: %1$s</string>
+    <string name="row_always_on">常時接続 VPN を設定</string>
+    <string name="always_on_footer">VPN の設定で「常時接続 VPN」をオンにすると、アプリが終了させられても自動で再開します。</string>
+    <string name="exclusion_value">%1$d 個</string>
+    <string name="vpn_denied">VPN の許可がないため開始できません</string>
+    <string name="note">端末内のローカル VPN で、広告ドメインへの DNS 問い合わせを止めます。通信内容を外部に送ることはありません。
+
+設定の「プライベート DNS」が「ホスト名を指定」になっていると、ブロックが効きません。</string>
+
+    <string name="search_hint">検索</string>
+    <string name="show_system_apps">システムアプリを表示</string>
+    <string name="exclusions_footer">オンにしたアプリは広告ブロックを通さず、通常どおり通信します。広告ブロックで動かなくなるアプリに使ってください。</string>
+    <string name="exclusions_applied">例外設定を反映しました</string>
+
+    <string name="section_app">アプリ</string>
+    <string name="row_version">バージョン</string>
+    <string name="version_value">v%1$s</string>
+    <string name="row_auto_install">自動でインストール</string>
+    <string name="row_check_update">アップデートを確認</string>
+    <string name="checking_update">確認しています…</string>
+    <string name="update_up_to_date">最新のバージョンです</string>
+    <string name="update_installing">v%1$s をインストールしています</string>
+    <string name="update_check_failed">アップデートを確認できませんでした</string>
+    <string name="app_update_footer">1 日 1 回、GitHub で新しいバージョンを確認します。「自動でインストール」をオフにすると、通知だけします。</string>
+    <string name="notif_channel_updates">アップデート</string>
+    <string name="notif_update_available">AdBlocker v%1$s があります</string>
+    <string name="notif_update_available_text">タップしてインストール</string>
+    <string name="notif_update_confirm">アップデートの準備ができました</string>
+    <string name="notif_update_confirm_text">タップしてインストールを許可してください</string>
+    <string name="notif_update_failed">アップデートに失敗しました</string>
+    <string name="notif_update_failed_text">次回の確認で再試行します</string>
+    <string name="notif_updated">AdBlocker を v%1$s に更新しました</string>
+
+    <string name="section_notifications">通知</string>
+    <string name="notify_app_update">アプリのアップデート</string>
+    <string name="notify_blocklist_update">ブロックリストの更新</string>
+    <string name="notify_running">動作中の表示</string>
+    <string name="notifications_footer">「動作中の表示」をオフにしても広告ブロックは動き続けます。Android の仕様で、通知パネルの下の方に小さく残ります。</string>
+    <string name="notif_channel_blocklist">ブロックリストの更新</string>
+    <string name="notif_channel_hidden">広告ブロック (控えめ)</string>
+    <string name="notif_blocklist_updated">ブロックリストを更新しました</string>
+    <string name="notif_blocklist_updated_text">%1$s 件のドメインをブロックしています</string>
+
+    <string name="tile_on">オン</string>
+    <string name="tile_off">オフ</string>
+
+    <string name="notif_channel">広告ブロック</string>
+    <string name="notif_text">広告ブロック中</string>
+</resources>

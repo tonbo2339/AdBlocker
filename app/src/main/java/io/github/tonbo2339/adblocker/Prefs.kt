@@ -1,0 +1,81 @@
+package io.github.tonbo2339.adblocker
+
+import android.content.Context
+import androidx.core.content.edit
+
+/** 設定の保存先。 */
+object Prefs {
+    private const val NAME = "settings"
+    private const val KEY_EXCLUDED = "excluded_packages"
+    private const val KEY_ENABLED = "enabled"
+    private const val KEY_BLOCKLIST_CHECKED_AT = "blocklist_checked_at"
+    private const val KEY_AUTO_INSTALL = "auto_install_updates"
+    private const val KEY_ETAG = "etag_"
+    private const val KEY_LAST_MODIFIED = "last_modified_"
+
+    /** 例外アプリ (VPN を通さないアプリ) のパッケージ名。 */
+    fun excluded(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_EXCLUDED, null)?.toSet() ?: emptySet()
+
+    fun setExcluded(context: Context, packages: Set<String>) {
+        prefs(context).edit { putStringSet(KEY_EXCLUDED, HashSet(packages)) }
+    }
+
+    /** ユーザーが広告ブロックを ON にしているか (実際に動作中かどうかは AdBlockVpnService.state)。 */
+    fun isEnabled(context: Context): Boolean = prefs(context).getBoolean(KEY_ENABLED, false)
+
+    fun setEnabled(context: Context, enabled: Boolean) {
+        val prefs = prefs(context)
+        if (prefs.getBoolean(KEY_ENABLED, false) == enabled) return
+        prefs.edit { putBoolean(KEY_ENABLED, enabled) }
+        AdBlockTileService.refresh(context)
+    }
+
+    /** 新しいバージョンを見つけたら自動でインストールするか (false なら通知だけ)。 */
+    fun autoInstallUpdates(context: Context): Boolean = prefs(context).getBoolean(KEY_AUTO_INSTALL, true)
+
+    fun setAutoInstallUpdates(context: Context, enabled: Boolean) {
+        prefs(context).edit { putBoolean(KEY_AUTO_INSTALL, enabled) }
+    }
+
+    /** 通知の種類ごとのオン / オフ (既定はすべてオン)。 */
+    enum class NotificationKind(val key: String, val default: Boolean = true) {
+        APP_UPDATE("notify_app_update"),
+        BLOCKLIST_UPDATE("notify_blocklist_update"),
+        RUNNING("notify_running"),
+    }
+
+    fun isNotificationEnabled(context: Context, kind: NotificationKind): Boolean =
+        prefs(context).getBoolean(kind.key, kind.default)
+
+    fun setNotificationEnabled(context: Context, kind: NotificationKind, enabled: Boolean) {
+        prefs(context).edit { putBoolean(kind.key, enabled) }
+    }
+
+    /** ブロックリストをすべての取得元で最後に確認できた日時 (ミリ秒)。未確認なら 0。 */
+    fun blocklistCheckedAt(context: Context): Long = prefs(context).getLong(KEY_BLOCKLIST_CHECKED_AT, 0)
+
+    fun setBlocklistCheckedAt(context: Context, time: Long) {
+        prefs(context).edit { putLong(KEY_BLOCKLIST_CHECKED_AT, time) }
+    }
+
+    /** 条件付きリクエスト (変更が無ければダウンロードしない) に使う、前回の応答ヘッダー。 */
+    class SourceCache(val etag: String?, val lastModified: String?)
+
+    fun sourceCache(context: Context, id: String): SourceCache? {
+        val prefs = prefs(context)
+        val etag = prefs.getString(KEY_ETAG + id, null)
+        val lastModified = prefs.getString(KEY_LAST_MODIFIED + id, null)
+        return if (etag == null && lastModified == null) null else SourceCache(etag, lastModified)
+    }
+
+    fun setSourceCache(context: Context, id: String, cache: SourceCache) {
+        prefs(context).edit {
+            putString(KEY_ETAG + id, cache.etag)
+            putString(KEY_LAST_MODIFIED + id, cache.lastModified)
+        }
+    }
+
+    private fun prefs(context: Context) =
+        context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+}

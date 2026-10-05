@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 白い盾 + 禁止マーク。108dp キャンバスの中央 (半径 33dp) がセーフゾーン -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 影 -->
+    <path
+        android:fillColor="#26000000"
+        android:pathData="M54,33 L76,40.5 L76,57 C76,70 66.5,79 54,83 C41.5,79 32,70 32,57 L32,40.5 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,31 L76,38.5 L76,55 C76,68 66.5,77 54,81 C41.5,77 32,68 32,55 L32,38.5 Z" />
+    <path
+        android:pathData="M43,55 a11,11 0 1,1 22,0 a11,11 0 1,1 -22,0 M46.2,47.2 L61.8,62.8"
+        android:strokeWidth="4"
+        android:strokeColor="#FF1FAE4E"
+        android:strokeLineCap="round" />
+</vector>

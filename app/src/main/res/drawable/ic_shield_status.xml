@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 状態表示用の盾。色は ImageView の tint で ON (緑) / OFF (灰) を切り替える -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M32,4 L54,12 L54,30 C54,44.5 44.6,55.2 32,60 C19.4,55.2 10,44.5 10,30 L10,12 Z M22.5,31.5 L29,38 L42.5,24.5 L45.5,27.5 L29,44 L19.5,34.5 Z" />
+</vector>

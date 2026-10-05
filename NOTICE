@@ -1,0 +1,13 @@
+Third-party filter lists
+========================
+
+The MIT License in LICENSE applies to the source code of this repository.
+Filter lists are third-party works and remain under their original licenses:
+
+- app/src/main/assets/blocklist.txt (bundled)
+    StevenBlack/hosts (MIT License) — https://github.com/StevenBlack/hosts
+
+Downloaded by the app at runtime (not included in this repository):
+
+- StevenBlack/hosts (MIT License) — https://github.com/StevenBlack/hosts
+- AdGuard DNS filter (GPL-3.0) — https://github.com/AdguardTeam/AdGuardSDNSFilter
