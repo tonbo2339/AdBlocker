@@ -13,16 +13,13 @@ import io.github.tonbo2339.adblocker.Prefs.NotificationKind
  *
  * - アプリのアップデート (新しい版がある・確認が必要・失敗・更新した)
  * - ブロックリストの更新
- * - 動作中の表示: VPN はフォアグラウンドサービスなので通知そのものは必須。オフのときは重要度「最小」の
- *   チャンネルに出し、ステータスバーにアイコンを出さず通知パネルの下に畳む。IMPORTANCE_NONE (非表示) は
- *   Android 16 で試したところ、フォアグラウンドサービスの通知では自動で「低」に引き上げられて効かなかった
+ * - 動作中の表示: VPN サービスの起動時に必要な常駐通知。オフのときは VPN の確立後にサービス側で外す
+ *   (AdBlockVpnService.applyRunningNotificationSetting)
  */
 object Notifications {
     private const val CHANNEL_UPDATES = "updates"
     private const val CHANNEL_BLOCKLIST = "blocklist"
     private const val CHANNEL_RUNNING = "vpn"
-    // 重要度は作成後に変えられないので、開発中に IMPORTANCE_NONE で作った "vpn_hidden" とは別の ID にする
-    private const val CHANNEL_RUNNING_QUIET = "vpn_quiet"
 
     const val ID_RUNNING = 1
     private const val ID_UPDATE = 100
@@ -69,17 +66,10 @@ object Notifications {
 
     // ---------------------------------------------------------------- 動作中の表示
 
-    /** VPN サービスの startForeground() に渡す通知。設定に応じて表示 / 非表示のチャンネルを使い分ける。 */
+    /** VPN サービスの startForeground() に渡す通知。 */
     fun running(context: Context): Notification {
-        val visible = Prefs.isNotificationEnabled(context, NotificationKind.RUNNING)
-        val channel = if (visible) {
-            createChannel(context, CHANNEL_RUNNING, R.string.notif_channel, NotificationManager.IMPORTANCE_LOW)
-            CHANNEL_RUNNING
-        } else {
-            createChannel(context, CHANNEL_RUNNING_QUIET, R.string.notif_channel_hidden, NotificationManager.IMPORTANCE_MIN)
-            CHANNEL_RUNNING_QUIET
-        }
-        return Notification.Builder(context, channel)
+        createChannel(context, CHANNEL_RUNNING, R.string.notif_channel, NotificationManager.IMPORTANCE_LOW)
+        return Notification.Builder(context, CHANNEL_RUNNING)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.notif_text))

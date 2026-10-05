@@ -11,6 +11,7 @@ object Prefs {
     private const val KEY_BLOCKLIST_CHECKED_AT = "blocklist_checked_at"
     private const val KEY_AUTO_INSTALL = "auto_install_updates"
     private const val KEY_WIFI_ONLY = "update_on_wifi_only"
+    private const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
     private const val KEY_ETAG = "etag_"
     private const val KEY_LAST_MODIFIED = "last_modified_"
 
@@ -30,6 +31,14 @@ object Prefs {
         if (prefs.getBoolean(KEY_ENABLED, false) == enabled) return
         prefs.edit { putBoolean(KEY_ENABLED, enabled) }
         AdBlockTileService.refresh(context)
+    }
+
+    /** 通知の許可をもう尋ねたか (断られても毎回は尋ねない)。 */
+    fun notificationPermissionAsked(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_NOTIFICATION_PERMISSION_ASKED, false)
+
+    fun setNotificationPermissionAsked(context: Context) {
+        prefs(context).edit { putBoolean(KEY_NOTIFICATION_PERMISSION_ASKED, true) }
     }
 
     /** 自動更新 (ブロックリスト・アプリ) を Wi-Fi などの従量制でない回線のときだけ行うか。手動の更新には効かない。 */

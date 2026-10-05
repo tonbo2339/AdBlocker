@@ -15,7 +15,7 @@ class InstallResultReceiver : BroadcastReceiver() {
                 val confirm = confirmIntent(intent) ?: return
                 confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 // 画面を開いていなければアクティビティを出せないので、通知から確認画面を開いてもらう
-                if (AppUpdater.uiVisible) {
+                if (AdBlockerApp.inForeground) {
                     context.startActivity(confirm)
                 } else {
                     Notifications.updateNeedsConfirmation(context, confirm)

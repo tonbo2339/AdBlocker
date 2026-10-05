@@ -5,7 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import androidx.core.graphics.drawable.toDrawable
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -18,6 +17,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -145,10 +145,13 @@ class MainActivity : AppCompatActivity() {
             .observe(this) { infos -> onAppUpdateWork(infos.firstOrNull()) }
         handleIntent(intent)
 
+        // 通知の許可は初回だけ尋ねる (断られたら、あとは端末の設定から変えてもらう)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !Prefs.notificationPermissionAsked(this) &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
         ) {
+            Prefs.setNotificationPermissionAsked(this)
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
@@ -217,7 +220,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        AppUpdater.uiVisible = true
         resumeIfNeeded()
         updateSettings()
         handler.post(refresher)
@@ -234,7 +236,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        AppUpdater.uiVisible = false
         handler.removeCallbacks(refresher)
         super.onPause()
     }

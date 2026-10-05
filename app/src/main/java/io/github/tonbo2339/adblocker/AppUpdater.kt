@@ -40,24 +40,32 @@ object AppUpdater {
         data class Failed(val message: String) : Result
     }
 
-    /** 画面に表示中か。確認画面をその場で出すか、通知にするかの判断に使う。 */
-    @Volatile
-    var uiVisible = false
-
-    /** 最新版を確認し、install なら更新まで行う。ネットワークを使うのでメインスレッドで呼ばない。 */
-    fun check(context: Context, install: Boolean): Result = try {
-        val release = fetchLatest()
-        when {
-            !Versions.isNewer(release.version, BuildConfig.VERSION_NAME) -> Result.UpToDate
-            !install -> Result.Available(release.version)
-            else -> {
-                installApk(context, download(context, release.apkUrl))
-                Result.Installing(release.version)
+    /**
+     * 最新版を確認し、install なら更新まで行う。ネットワークを使うのでメインスレッドで呼ばない。
+     * 定期実行と手動の確認が重なっても、同じ一時ファイルに同時に書かないよう 1 つずつ実行する。
+     */
+    @Synchronized
+    fun check(context: Context, install: Boolean): Result {
+        val apk = File(context.cacheDir, "update.apk")
+        return try {
+            val release = fetchLatest()
+            when {
+                !Versions.isNewer(release.version, BuildConfig.VERSION_NAME) -> Result.UpToDate
+                !install -> Result.Available(release.version)
+                else -> {
+                    download(release.apkUrl, apk)
+                    verify(context, apk)
+                    installApk(context, apk)
+                    Result.Installing(release.version)
+                }
             }
+        } catch (e: Exception) {
+            Log.w(TAG, "update failed", e)
+            Result.Failed(e.message ?: e.javaClass.simpleName)
+        } finally {
+            // インストーラーには中身をコピー済み。検証で弾いた場合も含めて消す
+            apk.delete()
         }
-    } catch (e: Exception) {
-        Log.w(TAG, "update failed", e)
-        Result.Failed(e.message ?: e.javaClass.simpleName)
     }
 
     private fun fetchLatest(): Release {
@@ -73,11 +81,8 @@ object AppUpdater {
         throw IOException("no APK in release $version")
     }
 
-    private fun download(context: Context, url: String): File {
-        val file = File(context.cacheDir, "update.apk")
+    private fun download(url: String, file: File) {
         httpGet(url) { input -> file.outputStream().use { input.copyTo(it) } }
-        verify(context, file)
-        return file
     }
 
     /** 同じアプリで、新しいバージョンで、同じ鍵で署名された APK かを確かめる。 */
@@ -108,21 +113,26 @@ object AppUpdater {
             }
         }
         val sessionId = installer.createSession(params)
-        installer.openSession(sessionId).use { session ->
-            session.openWrite("base.apk", 0, apk.length()).use { out ->
-                apk.inputStream().use { it.copyTo(out) }
-                session.fsync(out)
+        try {
+            installer.openSession(sessionId).use { session ->
+                session.openWrite("base.apk", 0, apk.length()).use { out ->
+                    apk.inputStream().use { it.copyTo(out) }
+                    session.fsync(out)
+                }
+                // 結果 (確認が必要・成功・失敗) は InstallResultReceiver に届く。
+                // PackageInstaller が結果を書き込むので MUTABLE にする (明示的なインテントなので安全)
+                val callback = PendingIntent.getBroadcast(
+                    context, sessionId,
+                    Intent(context, InstallResultReceiver::class.java),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+                )
+                session.commit(callback.intentSender)
             }
-            // 結果 (確認が必要・成功・失敗) は InstallResultReceiver に届く。
-            // PackageInstaller が結果を書き込むので MUTABLE にする (明示的なインテントなので安全)
-            val callback = PendingIntent.getBroadcast(
-                context, sessionId,
-                Intent(context, InstallResultReceiver::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
-            )
-            session.commit(callback.intentSender)
+        } catch (e: Exception) {
+            // commit まで行かなかったセッションは OS 側に残り続けるので破棄する
+            installer.abandonSession(sessionId)
+            throw e
         }
-        apk.delete()
     }
 
     private fun <T> httpGet(url: String, read: (java.io.InputStream) -> T): T {

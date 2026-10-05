@@ -62,9 +62,8 @@
     <string name="notify_app_update">アプリのアップデート</string>
     <string name="notify_blocklist_update">ブロックリストの更新</string>
     <string name="notify_running">動作中の表示</string>
-    <string name="notifications_footer">「動作中の表示」をオフにしても広告ブロックは動き続けます。Android の仕様で、通知パネルの下の方に小さく残ります。</string>
+    <string name="notifications_footer">「動作中の表示」をオフにすると、広告ブロックの開始後に常駐通知を消します。広告ブロックは動き続け、ステータスバーには VPN の鍵マークが出ます。</string>
     <string name="notif_channel_blocklist">ブロックリストの更新</string>
-    <string name="notif_channel_hidden">広告ブロック (控えめ)</string>
     <string name="notif_blocklist_updated">ブロックリストを更新しました</string>
     <string name="notif_blocklist_updated_text">%1$s 件のドメインをブロックしています</string>
 

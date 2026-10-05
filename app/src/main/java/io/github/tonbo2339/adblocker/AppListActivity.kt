@@ -68,9 +68,9 @@ class AppListActivity : AppCompatActivity() {
         if (excluded == savedExcluded) return
         Prefs.setExcluded(this, excluded)
         savedExcluded = excluded.toSet()
-        // 動作中なら VPN を作り直して新しい例外設定を反映する
+        // 動作中・開始中なら VPN を作り直して新しい例外設定を反映する (開始中に変えた分も取りこぼさない)
         // (開始できなくても、次に VPN を作るときに保存した設定が使われる)
-        if (AdBlockVpnService.isRunning) {
+        if (AdBlockVpnService.state != AdBlockVpnService.State.STOPPED) {
             try {
                 AdBlockVpnService.start(this)
                 Toast.makeText(this, R.string.exclusions_applied, Toast.LENGTH_SHORT).show()

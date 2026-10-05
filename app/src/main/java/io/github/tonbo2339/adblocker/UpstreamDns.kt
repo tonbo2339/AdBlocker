@@ -57,8 +57,22 @@ class UpstreamDns(context: Context) {
             // 登録されていない
         }
         networkDns.clear()
+        lastWorking = null
     }
 
+    /** 最後に応答した転送先。応答しないサーバーのタイムアウトを毎回待たないよう、次からはこれを先に試す。 */
+    @Volatile
+    private var lastWorking: InetAddress? = null
+
     /** 試す順に並べた転送先。 */
-    fun servers(): List<InetAddress> = (networkDns.values.flatten() + PUBLIC).distinct()
+    fun servers(): List<InetAddress> {
+        val all = (networkDns.values.flatten() + PUBLIC).distinct()
+        val preferred = lastWorking ?: return all
+        // 回線が変わって今の候補に無いサーバーは使わない
+        return if (preferred in all) listOf(preferred) + (all - preferred) else all
+    }
+
+    fun markWorking(server: InetAddress) {
+        lastWorking = server
+    }
 }

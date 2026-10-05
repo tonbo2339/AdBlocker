@@ -15,13 +15,16 @@ import android.system.Os
 import android.system.OsConstants
 import android.system.StructPollfd
 import android.util.Log
+import io.github.tonbo2339.adblocker.Prefs.NotificationKind
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -49,6 +52,9 @@ class AdBlockVpnService : VpnService() {
         private const val MTU = 16384
         private const val UPSTREAM_TIMEOUT_MS = 2000
         private const val FORWARD_THREADS = 8
+
+        /** 転送待ちの問い合わせの上限。回線が切れている間に再送が積み上がってメモリを使い続けないようにする。 */
+        private const val MAX_PENDING_QUERIES = 256
 
         /** 実際の動作状態。プロセスが落ちると STOPPED に戻る (ユーザーの ON/OFF は Prefs.isEnabled)。 */
         @Volatile
@@ -116,7 +122,11 @@ class AdBlockVpnService : VpnService() {
             return START_NOT_STICKY
         }
         if (intent?.action == ACTION_REFRESH_NOTIFICATION) {
-            startForegroundWithNotification()
+            if (Prefs.isNotificationEnabled(this, NotificationKind.RUNNING)) {
+                startForegroundWithNotification()
+            } else {
+                applyRunningNotificationSetting()
+            }
             return START_STICKY
         }
         // ACTION_START、常時接続 VPN でシステムから起動された場合 (action は android.net.VpnService)、
@@ -182,7 +192,11 @@ class AdBlockVpnService : VpnService() {
 
     private fun runVpn(stopFd: FileDescriptor) {
         val me = Thread.currentThread()
-        val executor = Executors.newFixedThreadPool(FORWARD_THREADS)
+        // 上限を超えたら古い問い合わせから捨てる (アプリ側は応答が無ければ再送する)
+        val executor = ThreadPoolExecutor(
+            FORWARD_THREADS, FORWARD_THREADS, 0L, TimeUnit.MILLISECONDS,
+            ArrayBlockingQueue(MAX_PENDING_QUERIES), ThreadPoolExecutor.DiscardOldestPolicy(),
+        )
         var tun: ParcelFileDescriptor? = null
         var stoppedByRequest = false
         try {
@@ -195,7 +209,10 @@ class AdBlockVpnService : VpnService() {
                     return
                 }
                 tun = buildInterface()
-                if (tun != null) state = State.RUNNING
+                if (tun != null) {
+                    state = State.RUNNING
+                    mainHandler.post { applyRunningNotificationSetting() }
+                }
             }
             val fd = tun?.fileDescriptor ?: run {
                 Log.w(TAG, "establish() returned null (VPN permission missing?)")
@@ -296,11 +313,14 @@ class AdBlockVpnService : VpnService() {
             try {
                 DatagramSocket().use { socket ->
                     protect(socket)
+                    // 問い合わせ先に固定して、ほかの相手からのパケットを受け取らないようにする
+                    socket.connect(server, 53)
                     socket.soTimeout = UPSTREAM_TIMEOUT_MS
-                    socket.send(DatagramPacket(dns, dns.size, server, 53))
+                    socket.send(DatagramPacket(dns, dns.size))
                     val rb = ByteArray(MTU - 48) // IPv6 + UDP ヘッダー分を引いた最大サイズ
                     val rp = DatagramPacket(rb, rb.size)
                     socket.receive(rp)
+                    upstream.markWorking(server)
                     return rb.copyOf(rp.length)
                 }
             } catch (e: IOException) {
@@ -325,6 +345,22 @@ class AdBlockVpnService : VpnService() {
         try {
             Os.close(fd)
         } catch (_: ErrnoException) {
+        }
+    }
+
+    /**
+     * 「動作中の表示」がオフなら、VPN の確立後に常駐通知を外す。
+     *
+     * startForegroundService() で起動した以上 startForeground() は必須なので、起動時にはいったん通知を出す。
+     * VPN を確立した後は OS (ConnectivityService) が BIND_FOREGROUND_SERVICE でこのサービスに結び付いているので、
+     * フォアグラウンドサービスをやめてもプロセスの優先度は下がらない (エミュレーターの Android 16 で確認)。
+     * 通知チャンネルを IMPORTANCE_NONE / MIN にする方法は、Android 16 ではフォアグラウンドサービスの通知が
+     * LOW に引き上げられて効かなかった。
+     */
+    private fun applyRunningNotificationSetting() {
+        if (state != State.RUNNING) return
+        if (!Prefs.isNotificationEnabled(this, NotificationKind.RUNNING)) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
         }
     }
 
