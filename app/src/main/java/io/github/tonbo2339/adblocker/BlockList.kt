@@ -24,6 +24,12 @@ object BlockList {
     /** assets/blocklist.txt の中身と同じ取得元。 */
     const val BUNDLED_SOURCE_ID = "stevenblack"
 
+    /**
+     * どのリストに入っていても止めないドメイン。広告ブロックを見つけるとページ全体を隠して「広告を許可して」と出す
+     * 仕組み (AdShield) の配信元で、止めるとサイトが読めなくなる (日刊スポーツで確認)。AdGuard DNS と HaGeZi も止めていない。
+     */
+    internal val ALWAYS_ALLOWED = listOf("html-load.com", "content-loader.com")
+
     private class Rules(val blocked: DomainSet, val allowed: DomainSet)
 
     @Volatile
@@ -59,7 +65,7 @@ object BlockList {
         val useBundled = bundledEnabled && files.none { it.name == "$BUNDLED_SOURCE_ID.txt" }
         // 元のファイルの名前・大きさ・更新日時と、同梱リスト (アプリの版で変わる) で、保存した集合が使えるか決める
         val key = buildString {
-            append(BuildConfig.VERSION_CODE).append('|').append(useBundled)
+            append(BuildConfig.VERSION_CODE).append('|').append(useBundled).append('|').append(ALWAYS_ALLOWED.joinToString(","))
             for (f in files) append('|').append(f.name).append(':').append(f.length()).append(':').append(f.lastModified())
         }
         val cacheFile = File(context.filesDir, CACHE)
@@ -71,6 +77,7 @@ object BlockList {
             val allowed = DomainSet.Builder()
             for (f in files) f.bufferedReader().useLines { addNormalized(it, blocked, allowed) }
             if (useBundled) context.assets.open(ASSET).bufferedReader().useLines { addNormalized(it, blocked, allowed) }
+            ALWAYS_ALLOWED.forEach { allowed.add(it) }
             rules = Rules(blocked.build(), allowed.build())
             BlockListCache.write(cacheFile, key, rules.blocked, rules.allowed)
         }

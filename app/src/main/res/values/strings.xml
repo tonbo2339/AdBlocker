@@ -152,7 +152,7 @@
     <string name="rule_removed">Removed</string>
     <string name="title_blocklists">Blocklists</string>
     <string name="section_built_in_lists">Built-in Lists</string>
-    <string name="built_in_lists_footer">Turning a list off stops using it right away. HaGeZi blocks more (trackers, telemetry, scams) and may occasionally block something you need.</string>
+    <string name="built_in_lists_footer">Turning a list off stops using it right away. HaGeZi Pro also blocks many ads the other lists miss, plus trackers and scams. Pro++ blocks even more but is more likely to break a site or app; if something stops working, allow it in \"Block &amp; Allow Domains\" or turn Pro++ off.</string>
     <string name="section_custom_lists">Your Lists</string>
     <string name="custom_lists_footer">Add any list in hosts, domain or Adblock (||domain^) format by its https URL. It is downloaded with the others once a day. Tap a list to remove it.</string>
     <string name="list_add">Add List URL</string>

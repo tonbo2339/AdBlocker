@@ -22,7 +22,7 @@ After that, the app checks for new versions and updates itself.
 
 ## Features
 
-- **Ad blocking**: blocks connections to about 240,000 ad and tracker domains
+- **Ad blocking**: blocks connections to about 360,000 ad and tracker domains (StevenBlack, AdGuard DNS filter and HaGeZi Pro)
 - **CNAME cloaking detection**: also blocks trackers disguised as a site's own subdomain (when the CNAME target is on the blocklist)
 - **Apps that use their own DNS** (optional): lookups sent straight to public DNS servers such as 8.8.8.8 or 1.1.1.1 are filtered too, and encrypted DNS to them (DNS over HTTPS / TLS) is refused so the app falls back to the phone's DNS
 - **Fast lookups**: answers are cached for their TTL, several DNS servers are asked in parallel when one is slow, and a failure is reported right away instead of making apps wait for a timeout
@@ -52,6 +52,8 @@ After that, the app checks for new versions and updates itself.
 - **The blank space where an ad was can't be removed** (DNS blocking only stops the connection; it can't change page layouts). For browsers, use something like Firefox + uBlock Origin as well
 - Ads served from the same domain as the content (such as YouTube video ads), hard-coded IP addresses, and apps' own DNS-over-HTTPS to servers other than the major public DNS can't be blocked
 - Blocking works on domain names, so a page can still show the empty space, a broken-image icon (×) or a "close" button where a blocked ad was. Hiding those needs an ad blocker inside the browser (such as Firefox with uBlock Origin)
+- Some sites show their own ads (for example, store banners with the site's own affiliate links) when other ads are blocked. These come from the same servers as the site or the store, so blocking them would break the site or the store
+- Some sites hide the whole page when they detect ad blocking ("please allow ads"). For the most common service behind this (html-load.com / content-loader.com) the app never blocks those domains, so the page stays readable but some ads may appear
 - DNS lookups that fall back to TCP for large responses (rare) aren't supported
 
 ## Blocklists
@@ -60,7 +62,8 @@ After that, the app checks for new versions and updates itself.
 |---|---|
 | [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | MIT |
 | [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) | GPL-3.0 |
-| [HaGeZi Multi NORMAL](https://github.com/hagezi/dns-blocklists) (off by default) | GPL-3.0 |
+| [HaGeZi Pro](https://github.com/hagezi/dns-blocklists) | GPL-3.0 |
+| [HaGeZi Pro++](https://github.com/hagezi/dns-blocklists) (off by default) | GPL-3.0 |
 
 - Lists can be turned on / off in Settings → Blocklists, and you can add your own list (hosts, domain or Adblock format) by its https URL
 - Fetched once a day (and with "Update Now" in the app). Nothing is downloaded if the ETag hasn't changed

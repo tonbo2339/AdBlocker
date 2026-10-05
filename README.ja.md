@@ -22,7 +22,7 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 
 ## 機能
 
-- **広告ブロック**: 約 24 万の広告・トラッカーのドメインへの接続を止める
+- **広告ブロック**: 約 36 万の広告・トラッカーのドメイン (StevenBlack・AdGuard DNS filter・HaGeZi Pro)への接続を止める
 - **CNAME 隠しの検出**: サイト自身のサブドメインに見せかけたトラッカーも止める (CNAME の転送先がブロック対象のとき)
 - **DNS を自分で指定するアプリもブロック** (任意): 8.8.8.8 や 1.1.1.1 などの公開 DNS へ直接送られる問い合わせも判定し、それらへの暗号化した問い合わせ (DNS over HTTPS / TLS) は断って端末の DNS を使わせる
 - **速い名前解決**: 答えを有効期間 (TTL) の間だけ覚えておく。遅い DNS サーバーがあれば、ほかのサーバーにも同時に問い合わせる。失敗したときは、アプリをタイムアウトまで待たせずにすぐ知らせる
@@ -52,6 +52,8 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 - 広告があった場所の**空白は消せない** (DNS では通信を止めるだけで、画面のレイアウトは変えられないため)。ブラウザなら Firefox + uBlock Origin などを併用する
 - 本編と同じドメインから配信される広告 (YouTube の動画広告など)、IP アドレス直指定や、主な公開 DNS 以外へのアプリ独自の DNS-over-HTTPS は止められない
 - ドメイン名で止める方式なので、ブロックした広告の跡 (空いた枠、画像が読めない印の ×、「閉じる」ボタンなど) はページに残ることがある。跡まで消すには、ブラウザーの中で動く広告ブロッカー (Firefox と uBlock Origin など) が必要
+- 広告を止めると、代わりにサイト自身の広告 (ストアのアフィリエイトのバナーなど) を出すサイトがある。サイトやストアと同じサーバーから来るので、止めるとサイトやストアが使えなくなる
+- 広告ブロックを見つけるとページ全体を隠す (「広告を許可してください」) サイトがある。よく使われているサービス (html-load.com / content-loader.com) のドメインは止めないようにしているので、ページは読めるが広告が一部出ることがある
 - 大きな応答で TCP にフォールバックする DNS 問い合わせ (まれ) には対応していない
 
 ## ブロックリスト
@@ -60,7 +62,8 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 |---|---|
 | [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | MIT |
 | [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) | GPL-3.0 |
-| [HaGeZi Multi NORMAL](https://github.com/hagezi/dns-blocklists) (既定はオフ) | GPL-3.0 |
+| [HaGeZi Pro](https://github.com/hagezi/dns-blocklists) | GPL-3.0 |
+| [HaGeZi Pro++](https://github.com/hagezi/dns-blocklists) (既定はオフ) | GPL-3.0 |
 
 - 設定 → ブロックリスト でオン / オフでき、自分で選んだリスト (hosts・ドメイン・Adblock 形式) を https の URL で追加できる
 - 1 日 1 回 (と画面の「今すぐ更新」) で取得。ETag で変更が無ければダウンロードしない

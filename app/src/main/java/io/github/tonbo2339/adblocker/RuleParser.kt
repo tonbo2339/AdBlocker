@@ -32,11 +32,14 @@ object RuleParser {
         if (line.startsWith("@@")) return domainOrNull(line.substring(2))?.let { Rule.Allow(it) }
         if (line.startsWith("||")) return adblock(line.substring(2))?.let { Rule.Block(it) }
 
-        // 行末コメントを除いて空白で分割
-        val tokens = line.substringBefore('#').trim().split(WHITESPACE)
+        // 行末コメント (空白の後の #) を除いて空白で分割。
+        // 空白の無い # は、Adblock 形式の要素を隠すルール (example.com##.ad) なので、ドメインとして読まない
+        // (読むと、広告を出すサイトそのもの example.com を止めてしまう)
+        val tokens = line.replace(TRAILING_COMMENT, "").trim().split(WHITESPACE)
         return when {
             tokens.size >= 2 && tokens[0] in SINK_ADDRESSES -> domainOrNull(tokens[1])?.let { Rule.Block(it) }
-            tokens.size == 1 -> domainOrNull(tokens[0])?.let { Rule.Block(it) }
+            // "*.example.com" (ワイルドカード付きのドメインの形式。example.com とそのサブドメインを止めるのと同じ)
+            tokens.size == 1 -> domainOrNull(tokens[0].removePrefix("*."))?.let { Rule.Block(it) }
             else -> null
         }
     }
@@ -57,4 +60,5 @@ object RuleParser {
     }
 
     private val WHITESPACE = Regex("\\s+")
+    private val TRAILING_COMMENT = Regex("\\s#.*$")
 }

@@ -42,6 +42,23 @@ class RuleParserTest {
     }
 
     @Test
+    fun elementHidingIsNotADomain() {
+        // Adblock 形式の要素を隠すルール。サイトそのものを止めてはいけない
+        assertNull(RuleParser.parse("kakaku.com##.ad"))
+        assertNull(RuleParser.parse("example.com#@#.banner"))
+        assertNull(RuleParser.parse("example.com#?#div:has(> .ad)"))
+        // 空白の後の # はコメント
+        assertEquals(block("ads.example.com"), RuleParser.parse("ads.example.com # tracker"))
+    }
+
+    @Test
+    fun wildcardDomainFormat() {
+        assertEquals(block("example.com"), RuleParser.parse("*.example.com"))
+        assertNull(RuleParser.parse("*.*.example.com"))
+        assertNull(RuleParser.parse("ads*.example.com"))
+    }
+
+    @Test
     fun commentsAndBlanks() {
         assertNull(RuleParser.parse(""))
         assertNull(RuleParser.parse("   "))

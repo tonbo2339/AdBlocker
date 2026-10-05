@@ -150,7 +150,7 @@
     <string name="rule_removed">削除しました</string>
     <string name="title_blocklists">ブロックリスト</string>
     <string name="section_built_in_lists">組み込みのリスト</string>
-    <string name="built_in_lists_footer">オフにしたリストは、すぐに使われなくなります。HaGeZi はトラッカーやテレメトリー、詐欺サイトなども幅広く止めるため、まれに必要なサイトまで止まることがあります。</string>
+    <string name="built_in_lists_footer">オフにしたリストは、すぐに使われなくなります。HaGeZi Pro は、ほかのリストが通してしまう広告の多くと、トラッカーや詐欺サイトも止めます。Pro++ はさらに多く止めますが、サイトやアプリが動かなくなることが増えます。動かないものがあれば「ブロック・許可するドメイン」で許可するか、Pro++ をオフにしてください。</string>
     <string name="section_custom_lists">自分で追加したリスト</string>
     <string name="custom_lists_footer">hosts・ドメイン・Adblock (||domain^) 形式のリストを、https の URL で追加できます。ほかのリストと同じく、1 日 1 回ダウンロードします。タップすると削除できます。</string>
     <string name="list_add">リストの URL を追加</string>

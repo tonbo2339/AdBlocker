@@ -28,6 +28,8 @@ class AdBlockerApp : Application() {
         if (retention > 0) thread(name = "QueryLogLoad") { QueryLog.prepend(QueryLogFiles.recent(QueryLog.CAPACITY)) }
         BlockListWorker.schedule(this)
         AppUpdateWorker.schedule(this)
+        // 選んでいるのにまだ無いリスト (アプリの更新で既定オンのリストが増えたときなど) は、毎日の更新を待たずに取りに行く
+        thread(name = "BlockListCheck") { if (BlockListUpdater.hasMissing(this)) BlockListWorker.runNow(this) }
     }
 
     /** 表示中 (onStart〜onStop) の画面の数を数える。メインスレッドからだけ呼ばれる。 */
