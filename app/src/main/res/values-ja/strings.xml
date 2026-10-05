@@ -170,4 +170,12 @@
     <string name="row_encrypted_dns">暗号化 DNS</string>
     <string name="encrypted_dns_off">オフ</string>
     <string name="encrypted_dns_footer">DNS の問い合わせを DNS over TLS で送り、回線の途中で見られたり書き換えられたりしないようにします。サーバーにつながらないときは回線の DNS を使います。オンの間は、その回線の中だけの名前 (社内やルーターの名前など) が使えないことがあります。</string>
+    <string name="section_backup">バックアップ</string>
+    <string name="row_export">設定を書き出す</string>
+    <string name="row_import">設定を読み込む</string>
+    <string name="backup_footer">自分のルール・例外アプリ・ブロックリスト・設定をファイルに保存します。機種変更のときに使えます。統計とログは含みません。</string>
+    <string name="export_done">設定を書き出しました</string>
+    <string name="export_failed">ファイルを保存できませんでした</string>
+    <string name="import_done">設定を読み込みました</string>
+    <string name="import_failed">AdBlocker の設定ファイルではありません</string>
 </resources>

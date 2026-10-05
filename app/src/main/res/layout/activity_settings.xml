@@ -416,6 +416,54 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_footer" />
+
+            <!-- バックアップ -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_backup" />
+
+            <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+                <LinearLayout
+                    android:id="@+id/exportRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_gray"
+                        android:src="@drawable/ic_g_doc" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_export"
+                        android:textColor="@color/accent_blue" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
+                <LinearLayout
+                    android:id="@+id/importRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/accent_blue"
+                        android:src="@drawable/ic_g_download" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_import"
+                        android:textColor="@color/accent_blue" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/backup_footer" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

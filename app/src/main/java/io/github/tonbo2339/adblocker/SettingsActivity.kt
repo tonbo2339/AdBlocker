@@ -6,7 +6,10 @@ import android.icu.text.ListFormatter
 import android.os.Bundle
 import android.widget.CompoundButton
 import android.widget.Toast
+import android.net.Uri
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import java.io.IOException
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -37,6 +40,14 @@ class SettingsActivity : AppCompatActivity() {
     /** 日付は端末の言語に関係なく 年/月/日 の順で表示する (作者の希望)。 */
     private val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
 
+    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) exportTo(uri)
+    }
+
+    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) importFrom(uri)
+    }
+
     /** 「今すぐ更新」をタップして結果を待っている間は true。 */
     private var awaitingUpdate = false
 
@@ -60,6 +71,10 @@ class SettingsActivity : AppCompatActivity() {
             BlockListWorker.runNow(this)
         }
         binding.encryptedDnsRow.setOnClickListener { chooseEncryptedDns() }
+        binding.exportRow.setOnClickListener {
+            exportLauncher.launch("AdBlocker-settings-" + SimpleDateFormat("yyyyMMdd", Locale.US).format(Date()) + ".json")
+        }
+        binding.importRow.setOnClickListener { importLauncher.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }
         binding.listsRow.setOnClickListener { startActivity(Intent(this, BlocklistsActivity::class.java)) }
         WorkManager.getInstance(this)
             .getWorkInfosForUniqueWorkLiveData(BlockListWorker.ONE_TIME)
@@ -110,6 +125,43 @@ class SettingsActivity : AppCompatActivity() {
             Prefs.setNotificationEnabled(this, kind, checked)
             onChange()
         }
+    }
+
+    private fun exportTo(uri: Uri) {
+        val ok = try {
+            contentResolver.openOutputStream(uri, "wt")?.use { it.write(SettingsBackup.export(this).toByteArray()) } != null
+        } catch (e: IOException) {
+            false
+        }
+        Toast.makeText(this, if (ok) R.string.export_done else R.string.export_failed, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun importFrom(uri: Uri) {
+        try {
+            // 設定のファイルは小さい。大きすぎるものは別のファイルとみなす
+            val text = contentResolver.openInputStream(uri)?.use { input ->
+                val bytes = input.readBytes()
+                if (bytes.size > 1_000_000) throw IOException("too large")
+                String(bytes)
+            } ?: throw IOException("cannot open")
+            SettingsBackup.import(this, text)
+        } catch (e: IOException) {
+            Toast.makeText(this, R.string.import_failed, Toast.LENGTH_LONG).show()
+            return
+        }
+        Toast.makeText(this, R.string.import_done, Toast.LENGTH_SHORT).show()
+        // recreate() だと作り直す前のスイッチの状態が復元されて設定に書き戻されるので、値を入れ直す
+        refreshSwitches()
+        updateValues()
+    }
+
+    private fun refreshSwitches() {
+        binding.queryLogSwitch.isChecked = Prefs.queryLogEnabled(this)
+        binding.wifiOnlySwitch.isChecked = Prefs.updateOnWifiOnly(this)
+        binding.autoInstallSwitch.isChecked = Prefs.autoInstallUpdates(this)
+        binding.notifyAppUpdateSwitch.isChecked = Prefs.isNotificationEnabled(this, NotificationKind.APP_UPDATE)
+        binding.notifyBlocklistSwitch.isChecked = Prefs.isNotificationEnabled(this, NotificationKind.BLOCKLIST_UPDATE)
+        binding.notifyRunningSwitch.isChecked = Prefs.isNotificationEnabled(this, NotificationKind.RUNNING)
     }
 
     private fun chooseEncryptedDns() {

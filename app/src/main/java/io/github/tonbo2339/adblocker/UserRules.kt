@@ -41,6 +41,12 @@ object UserRules {
         if (domain in rulesOf(other)) save(context, other, rulesOf(other) - domain)
     }
 
+    /** まとめて置き換える (設定の読み込み用)。 */
+    @Synchronized
+    fun replace(context: Context, kind: Kind, domains: Set<String>) {
+        save(context, kind, domains)
+    }
+
     @Synchronized
     fun remove(context: Context, kind: Kind, domain: String) {
         save(context, kind, rulesOf(kind) - domain)
