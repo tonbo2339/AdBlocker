@@ -70,7 +70,7 @@ class SettingsActivity : SettingsPageActivity() {
         rules.value = getString(R.string.rules_value, UserRules.size)
         lists.value = getString(R.string.rules_value, BlockListUpdater.sources(this).size)
         dns.value = Prefs.encryptedDns(this)?.title ?: getString(R.string.encrypted_dns_off)
-        exclusions.value = getString(R.string.exclusion_value, Prefs.excluded(this).size)
+        exclusions.value = getString(R.string.exclusion_value, Prefs.installedExcluded(this).size)
         log.value = if (Prefs.queryLogEnabled(this)) logRetentionLabel(Prefs.logRetentionDays(this)) else getString(R.string.log_off_value)
         updates.value = updateTimeLabel()
     }

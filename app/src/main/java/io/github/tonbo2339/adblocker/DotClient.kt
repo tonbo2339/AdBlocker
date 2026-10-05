@@ -85,6 +85,8 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
             } catch (e: IOException) {
                 Log.d(TAG, "query over ${server.host} failed: $e")
                 close(conn)
+                // 新しい接続でも答えなければ、しばらく通常の DNS にする (問い合わせのたびにタイムアウトを待たない)
+                if (attempt == 1) failedUntil = System.currentTimeMillis() + RETRY_AFTER_FAILURE_MS
             }
         }
         return null
@@ -141,6 +143,8 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
         val length = conn.input.readUnsignedShort()
         val response = ByteArray(length)
         conn.input.readFully(response)
+        // 別の問い合わせへの答えが混ざっていたら、この接続は使わない
+        if (length < 12 || response[0] != dns[0] || response[1] != dns[1]) throw IOException("unexpected response")
         return response
     }
 

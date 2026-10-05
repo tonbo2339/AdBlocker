@@ -39,7 +39,7 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
         shownVersion = version
         val q = query
         val list = QueryLog.snapshot().filter { e ->
-            (!blockedOnly || e.verdict.blocked) && (q.isEmpty() || e.domain.contains(q) || e.app?.contains(q) == true)
+            (!blockedOnly || e.verdict.blocked) && (q.isEmpty() || e.domain.contains(q) || e.app?.let { appMatches(it, q) } == true)
         }
         val old = entries.size
         entries = list
@@ -50,6 +50,10 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
         if (minOf(old, new) > 0) notifyItemRangeChanged(1, minOf(old, new))
         updateHeaderTexts()
     }
+
+    /** 検索語がアプリに当たるか。画面に出しているアプリの名前 (「Chrome」など) とパッケージ名の両方で探す。 */
+    private fun appMatches(pkg: String, q: String): Boolean =
+        pkg.contains(q) || AppLabels.of(activity, pkg).lowercase().contains(q)
 
     private fun updateHeaderTexts() {
         val h = header ?: return

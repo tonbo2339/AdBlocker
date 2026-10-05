@@ -96,7 +96,7 @@ object SettingsBackup {
         AppUpdateWorker.schedule(app, retime)
         AdBlockVpnService.refreshNotification(app)
         val rebuild = Prefs.excluded(app) != oldExcluded || Prefs.captureHardcodedDns(app) != oldCapture
-        if (rebuild && AdBlockVpnService.isRunning) AdBlockVpnService.start(app, rebuild = true)
+        if (rebuild) AdBlockVpnService.rebuildIfActive(app)
         thread {
             BlockListUpdater.applySelection(app)
             if (BlockListUpdater.hasMissing(app)) BlockListWorker.runNow(app)

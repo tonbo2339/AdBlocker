@@ -1,8 +1,10 @@
 package io.github.tonbo2339.adblocker
 
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
@@ -86,6 +88,21 @@ class AdBlockVpnService : VpnService() {
             if (state == State.STOPPED) state = State.STARTING
         }
 
+        /**
+         * 例外アプリや公開 DNS の捕捉など、VPN を作るときに読む設定を変えたあとに呼ぶ。開始中・動作中なら作り直して true。
+         * (止まっていれば何もしない。次に VPN を作るときに保存した設定が使われる)
+         */
+        fun rebuildIfActive(context: Context): Boolean {
+            if (state == State.STOPPED) return false
+            return try {
+                start(context, rebuild = true)
+                true
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "rebuild failed", e)
+                false
+            }
+        }
+
         fun stop(context: Context) {
             if (state == State.STOPPED) return
             try {
@@ -161,6 +178,19 @@ class AdBlockVpnService : VpnService() {
         upstream = UpstreamDns(this) { cache.clear() }.apply { start() }
         apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
+        registerReceiver(packageAdded, IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") })
+    }
+
+    /**
+     * 例外アプリは VPN を作るときにアプリの UID で外す。アンインストールして入れ直すと UID が変わり、
+     * 作り直すまで VPN を通ってしまうので、例外アプリが入ったら作り直す (更新では UID が変わらないので何もしない)。
+     */
+    private val packageAdded = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
+            val pkg = intent.data?.schemeSpecificPart ?: return
+            if (state != State.STOPPED && pkg in Prefs.excluded(context)) restart()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -207,6 +237,7 @@ class AdBlockVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        unregisterReceiver(packageAdded)
         Pause.removeListener(pauseListener)
         mainHandler.removeCallbacks(statsFlusher)
         StatsStore.flush(applicationContext)

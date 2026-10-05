@@ -5,12 +5,16 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.Switch
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -70,14 +74,8 @@ class AppListActivity : AppCompatActivity() {
         Prefs.setExcluded(this, excluded)
         savedExcluded = excluded.toSet()
         // 動作中・開始中なら VPN を作り直して新しい例外設定を反映する (開始中に変えた分も取りこぼさない)
-        // (開始できなくても、次に VPN を作るときに保存した設定が使われる)
-        if (AdBlockVpnService.state != AdBlockVpnService.State.STOPPED) {
-            try {
-                AdBlockVpnService.start(this, rebuild = true)
-                Toast.makeText(this, R.string.exclusions_applied, Toast.LENGTH_SHORT).show()
-            } catch (e: IllegalStateException) {
-                Log.w("AppList", "restart failed", e)
-            }
+        if (AdBlockVpnService.rebuildIfActive(this)) {
+            Toast.makeText(this, R.string.exclusions_applied, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -154,6 +152,15 @@ class AppListActivity : AppCompatActivity() {
                     if (!excluded.remove(pkg)) excluded.add(pkg)
                     b.excludedSwitch.isChecked = pkg in excluded
                 }
+                // スイッチはタッチを受けないので、読み上げでは行そのものをスイッチとして伝える
+                ViewCompat.setAccessibilityDelegate(b.root, object : AccessibilityDelegateCompat() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                        super.onInitializeAccessibilityNodeInfo(host, info)
+                        info.className = Switch::class.java.name
+                        info.isCheckable = true
+                        info.isChecked = b.excludedSwitch.isChecked
+                    }
+                })
             }
         }
 

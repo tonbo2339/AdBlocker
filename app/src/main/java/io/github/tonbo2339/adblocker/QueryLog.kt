@@ -58,7 +58,8 @@ object QueryLog {
     /** ファイルに残したログを、今あるものより前に入れる (プロセスの開始時。古い順に渡す)。 */
     @Synchronized
     fun prepend(older: List<Entry>) {
-        if (older.isEmpty()) return
+        // 読み込んでいる間にログをオフにしていたら戻さない
+        if (older.isEmpty() || !enabled) return
         val room = CAPACITY - entries.size
         if (room <= 0) return
         val oldestShown = entries.firstOrNull()?.time ?: Long.MAX_VALUE

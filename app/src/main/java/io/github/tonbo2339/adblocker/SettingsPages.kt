@@ -48,9 +48,7 @@ class DnsSettingsActivity : SettingsPageActivity() {
             toggle(R.string.row_capture_dns, R.drawable.ic_g_shield, R.color.sys_red, Prefs.captureHardcodedDns(this@DnsSettingsActivity)) {
                 Prefs.setCaptureHardcodedDns(this@DnsSettingsActivity, it)
                 // VPN のルートを変えるので、動作中なら作り直す
-                if (AdBlockVpnService.state != AdBlockVpnService.State.STOPPED) {
-                    AdBlockVpnService.start(this@DnsSettingsActivity, rebuild = true)
-                }
+                AdBlockVpnService.rebuildIfActive(this@DnsSettingsActivity)
             }
         }
         footer(R.string.capture_dns_footer)
@@ -166,6 +164,7 @@ class UpdateSettingsActivity : SettingsPageActivity() {
     companion object {
         /** 「新しいバージョンがあります」の通知から開いたときに、すぐ更新を確認する。 */
         private const val EXTRA_CHECK_UPDATE = "check_update"
+        private const val KEY_AWAITING = "awaiting_app_update"
 
         fun intent(context: Context, checkUpdate: Boolean = false): Intent =
             Intent(context, UpdateSettingsActivity::class.java).putExtra(EXTRA_CHECK_UPDATE, checkUpdate)
@@ -176,11 +175,17 @@ class UpdateSettingsActivity : SettingsPageActivity() {
     private lateinit var timeRow: SettingRow
     private lateinit var checkRow: SettingRow
 
-    /** 「アップデートを確認」をタップして結果を待っている間は true。 */
+    /** 「アップデートを確認」をタップして結果を待っている間は true (回転などで作り直しても結果を知らせる)。 */
     private var awaitingAppUpdate = false
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_AWAITING, awaitingAppUpdate)
+    }
 
     override fun SettingsBuilder.build(savedInstanceState: Bundle?) {
         val context = this@UpdateSettingsActivity
+        awaitingAppUpdate = savedInstanceState?.getBoolean(KEY_AWAITING) == true
         header(R.string.section_auto_update)
         card {
             timeRow = link(R.string.row_update_time, R.drawable.ic_g_clock, R.color.sys_indigo) { chooseUpdateTime() }
@@ -336,10 +341,18 @@ class BackupSettingsActivity : SettingsPageActivity() {
     private fun importFrom(uri: Uri) {
         try {
             // 設定のファイルは小さい。大きすぎるものは別のファイルとみなす
+            // (全部を読んでから大きさを見ると、大きなファイルを選んだときにメモリが足りなくなるので、上限の少し先までしか読まない)
             val text = contentResolver.openInputStream(uri)?.use { input ->
-                val bytes = input.readBytes()
-                if (bytes.size > 1_000_000) throw IOException("too large")
-                String(bytes)
+                val limit = 1_000_000
+                val out = java.io.ByteArrayOutputStream()
+                val buf = ByteArray(8192)
+                while (true) {
+                    val n = input.read(buf)
+                    if (n < 0) break
+                    out.write(buf, 0, n)
+                    if (out.size() > limit) throw IOException("too large")
+                }
+                out.toString(Charsets.UTF_8.name())
             } ?: throw IOException("cannot open")
             SettingsBackup.import(this, text)
         } catch (e: IOException) {

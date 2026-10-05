@@ -1,6 +1,7 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.core.content.edit
 
 /** 設定の保存先。 */
@@ -29,9 +30,24 @@ object Prefs {
     fun excluded(context: Context): Set<String> =
         prefs(context).getStringSet(KEY_EXCLUDED, null)?.toSet() ?: emptySet()
 
+    /** 自分自身は外せない (外すと DNS の転送などの通信まで VPN から外れる意味の無い設定になる)。 */
     fun setExcluded(context: Context, packages: Set<String>) {
-        prefs(context).edit { putStringSet(KEY_EXCLUDED, HashSet(packages)) }
+        prefs(context).edit { putStringSet(KEY_EXCLUDED, HashSet(packages - context.packageName)) }
     }
+
+    /**
+     * 例外アプリのうち、今インストールされているもの。アンインストールしたアプリの名前も残しておく
+     * (入れ直したら例外に戻る) が、画面の件数には数えない。
+     */
+    fun installedExcluded(context: Context): Set<String> =
+        excluded(context).filterTo(HashSet()) {
+            try {
+                context.packageManager.getApplicationInfo(it, 0)
+                true
+            } catch (_: PackageManager.NameNotFoundException) {
+                false
+            }
+        }
 
     /** ユーザーが広告ブロックを ON にしているか (実際に動作中かどうかは AdBlockVpnService.state)。 */
     fun isEnabled(context: Context): Boolean = state(context).getBoolean(KEY_ENABLED, false)

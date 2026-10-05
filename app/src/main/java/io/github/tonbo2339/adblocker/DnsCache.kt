@@ -5,8 +5,9 @@ package io.github.tonbo2339.adblocker
  *
  * ブロックの判定は覚えない (毎回ルールで判定してから引く) ので、ルールを変えてもすぐ効く。
  * 回線が変わったら clear() する (社内やルーターの中だけで使える名前の答えを、別の回線で返さないため)。
+ * 時間は端末の時計ではなく単調に進む時計 (nanoTime) で測る (時計を合わせ直しても、答えを長く覚えすぎたりすぐ忘れたりしない)。
  */
-class DnsCache(private val maxEntries: Int = 1000, private val now: () -> Long = System::currentTimeMillis) {
+class DnsCache(private val maxEntries: Int = 1000, private val now: () -> Long = { System.nanoTime() / 1_000_000 }) {
 
     companion object {
         /** TTL がこれより長くても、この秒数で忘れる (行き先が変わったときに古い答えを返し続けないため)。 */
