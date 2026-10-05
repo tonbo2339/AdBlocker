@@ -72,7 +72,7 @@ Android Studio でこのフォルダを開いて実行します。コマンド�
 
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
-gradlew assembleRelease        # 署名の鍵が必要 (下の「署名」を参照)
+gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
 gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較 / 自分のルール)
 gradlew lintDebug
 ```
@@ -86,12 +86,6 @@ gradlew lintDebug
 
 インストール前に、パッケージ名・バージョンが上がっていること・署名が今のアプリと同じことを確かめます。
 Android 12 以上では、2 回目以降の更新は確認なしで入ります (初回は確認画面が出ます)。
-
-### 署名
-
-Releases の APK は、作者のリリース用の鍵で署名しています (鍵とパスワードはこのリポジトリには入っていません)。上書き更新は同じ鍵で署名した APK でしかできないため、自分でビルドした APK を入れた場合、Releases からの自動更新はできません (いったんアンインストールが必要)。
-
-自分でリリースビルドを署名したいときは、`keystore.properties` (`storeFile` / `storePassword` / `keyAlias` / `keyPassword`) を作り、`local.properties` に `signing.properties=<そのファイルのパス>` と書いて `gradlew assembleRelease` を実行します。
 
 ## ファイル構成
 
