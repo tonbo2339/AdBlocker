@@ -1,9 +1,10 @@
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// AGP 9 は Kotlin を内蔵しているので org.jetbrains.kotlin.android は付けない
+// (Kotlin の版はルートの build.gradle.kts で指定している)
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 /**
@@ -21,7 +22,7 @@ val releaseSigning: Properties? = run {
 
 android {
     namespace = "io.github.tonbo2339.adblocker"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "io.github.tonbo2339.adblocker"
@@ -79,11 +80,11 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
+    implementation("com.google.android.material:material:1.14.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
 
     testImplementation("junit:junit:4.13.2")
 }
