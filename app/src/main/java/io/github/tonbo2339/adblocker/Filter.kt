@@ -14,6 +14,9 @@ enum class Verdict(val blocked: Boolean) {
     /** 一時停止中なので通した */
     PAUSED(false),
 
+    /** CNAME の行き先がブロック対象 (CNAME 隠し) */
+    CNAME(true),
+
     /** どのルールにも当たらなかった */
     PASS(false),
 }
@@ -26,6 +29,18 @@ object Filter {
             UserRules.Kind.ALLOW -> Verdict.USER_ALLOW
             UserRules.Kind.BLOCK -> Verdict.USER_BLOCK
             null -> if (BlockList.isBlocked(name)) Verdict.LIST else Verdict.PASS
+        }
+    }
+
+    /**
+     * CNAME の行き先のうち、ブロック対象の最初のもの (無ければ null)。
+     * 問い合わせた名前そのものが PASS だったときだけ呼ぶ (自分で許可した名前・一時停止中は見ない)。
+     */
+    fun cnameBlocked(targets: List<String>): String? = targets.firstOrNull { t ->
+        when (UserRules.ruleFor(t)) {
+            UserRules.Kind.ALLOW -> false
+            UserRules.Kind.BLOCK -> true
+            null -> BlockList.isBlocked(t)
         }
     }
 }

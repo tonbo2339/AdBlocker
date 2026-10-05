@@ -10,7 +10,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 /** ログやよくブロックしたドメインの行をタップしたときのメニュー (ブロック / 許可 / ルールの削除 / コピー)。 */
 object DomainActions {
 
-    fun show(activity: Activity, domain: String) {
+    /** blocked: 今ブロックされているか (CNAME 隠しはリストを見ても分からないので、ログからは結果を渡す)。 */
+    fun show(activity: Activity, domain: String, blocked: Boolean = BlockList.isBlocked(domain)) {
         val actions = mutableListOf<Pair<String, () -> Unit>>()
         val owner = UserRules.ruleOwner(domain)
         if (owner != null) {
@@ -21,7 +22,7 @@ object DomainActions {
                 toast(activity, activity.getString(R.string.rule_removed))
             }
         } else {
-            val kind = if (BlockList.isBlocked(domain)) UserRules.Kind.ALLOW else UserRules.Kind.BLOCK
+            val kind = if (blocked) UserRules.Kind.ALLOW else UserRules.Kind.BLOCK
             val label = if (kind == UserRules.Kind.ALLOW) R.string.action_allow else R.string.action_block
             actions += activity.getString(label) to {
                 UserRules.add(activity, kind, domain)

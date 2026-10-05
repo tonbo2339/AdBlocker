@@ -11,7 +11,8 @@ object QueryLog {
     const val CAPACITY = 500
     private const val MERGE_WINDOW_MS = 2000
 
-    class Entry(val domain: String, val verdict: Verdict, val time: Long, val count: Int)
+    /** via は CNAME 隠しで止めたときの行き先。 */
+    class Entry(val domain: String, val verdict: Verdict, val time: Long, val count: Int, val via: String? = null)
 
     @Volatile
     var enabled = true
@@ -31,15 +32,15 @@ object QueryLog {
     var version = 0L
         private set
 
-    fun add(domain: String, verdict: Verdict, time: Long = System.currentTimeMillis()) {
+    fun add(domain: String, verdict: Verdict, via: String? = null, time: Long = System.currentTimeMillis()) {
         if (!enabled) return
         synchronized(this) {
             val last = entries.lastOrNull()
             if (last != null && last.domain == domain && last.verdict == verdict && time - last.time < MERGE_WINDOW_MS) {
-                entries[entries.lastIndex] = Entry(domain, verdict, time, last.count + 1)
+                entries[entries.lastIndex] = Entry(domain, verdict, time, last.count + 1, via)
             } else {
                 if (entries.size == CAPACITY) entries.removeFirst()
-                entries.addLast(Entry(domain, verdict, time, 1))
+                entries.addLast(Entry(domain, verdict, time, 1, via))
             }
             version++
         }

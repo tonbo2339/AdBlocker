@@ -447,7 +447,7 @@ class MainActivity : AppCompatActivity() {
             row.title.text = domain
             row.value.text = numberFormat.format(count)
             row.separator.isVisible = i != top.lastIndex
-            row.row.setOnClickListener { DomainActions.show(this, domain) }
+            row.row.setOnClickListener { DomainActions.show(this, domain, blocked = true) }
         }
     }
 

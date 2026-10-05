@@ -123,6 +123,7 @@
     <string name="verdict_list">ブロックリストでブロック</string>
     <string name="verdict_user_block">自分のルールでブロック</string>
     <string name="verdict_user_allow">自分のルールで許可</string>
+    <string name="verdict_cname">ブロック (CNAME の先が %1$s)</string>
     <string name="verdict_paused">一時停止中のため許可</string>
     <string name="verdict_pass">許可</string>
     <string name="log_detail_count">%1$s (×%2$d)</string>

@@ -326,17 +326,31 @@ class AdBlockVpnService : VpnService() {
     private fun handleQuery(query: DnsQuery, out: FileOutputStream, executor: ExecutorService) {
         val question = Dns.parseQuestion(query.dns) ?: return
         val verdict = Filter.decide(question.name)
-        StatsStore.record(verdict.blocked)
-        QueryLog.add(question.name, verdict)
         if (verdict.blocked) {
-            if (QueryLog.enabled) SessionStats.recordBlocked(question.name)
+            record(question.name, verdict)
             writePacket(out, Packets.buildResponse(query, Dns.nxdomain(query.dns, question)))
             return
         }
         executor.execute {
-            val response = forward(query.dns) ?: return@execute
-            writePacket(out, Packets.buildResponse(query, response))
+            val response = forward(query.dns)
+            // 自社のサブドメインに見せかけたトラッカー (CNAME 隠し) も、行き先で止める
+            if (response != null && verdict == Verdict.PASS) {
+                val cloaked = Filter.cnameBlocked(Dns.cnameTargets(response))
+                if (cloaked != null) {
+                    record(question.name, Verdict.CNAME, cloaked)
+                    writePacket(out, Packets.buildResponse(query, Dns.nxdomain(query.dns, question)))
+                    return@execute
+                }
+            }
+            record(question.name, verdict)
+            if (response != null) writePacket(out, Packets.buildResponse(query, response))
         }
+    }
+
+    private fun record(name: String, verdict: Verdict, via: String? = null) {
+        StatsStore.record(verdict.blocked)
+        QueryLog.add(name, verdict, via)
+        if (verdict.blocked && QueryLog.enabled) SessionStats.recordBlocked(name)
     }
 
     /** 本物の DNS サーバーに問い合わせる。protect() でこのソケット自体は VPN を通らないようにする。 */

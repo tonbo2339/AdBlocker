@@ -106,21 +106,20 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
         val e = entries[index]
         val b = holder.b
         b.domain.text = e.domain
-        val verdict = activity.getString(
-            when (e.verdict) {
-                Verdict.LIST -> R.string.verdict_list
-                Verdict.USER_BLOCK -> R.string.verdict_user_block
-                Verdict.USER_ALLOW -> R.string.verdict_user_allow
-                Verdict.PAUSED -> R.string.verdict_paused
-                Verdict.PASS -> R.string.verdict_pass
-            }
-        )
+        val verdict = when (e.verdict) {
+            Verdict.LIST -> activity.getString(R.string.verdict_list)
+            Verdict.USER_BLOCK -> activity.getString(R.string.verdict_user_block)
+            Verdict.USER_ALLOW -> activity.getString(R.string.verdict_user_allow)
+            Verdict.PAUSED -> activity.getString(R.string.verdict_paused)
+            Verdict.CNAME -> activity.getString(R.string.verdict_cname, e.via)
+            Verdict.PASS -> activity.getString(R.string.verdict_pass)
+        }
         b.detail.text = if (e.count > 1) activity.getString(R.string.log_detail_count, verdict, e.count) else verdict
         b.time.text = timeFormat.format(Date(e.time))
         b.dot.backgroundTintList = ColorStateList.valueOf(
             activity.getColor(
                 when (e.verdict) {
-                    Verdict.LIST, Verdict.USER_BLOCK -> R.color.sys_red
+                    Verdict.LIST, Verdict.USER_BLOCK, Verdict.CNAME -> R.color.sys_red
                     Verdict.USER_ALLOW -> R.color.sys_green
                     Verdict.PAUSED -> R.color.sys_orange
                     Verdict.PASS -> R.color.status_off
@@ -138,7 +137,7 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
             b.root.clipToOutline = true
             b.root.setOnClickListener {
                 val entry = entries.getOrNull(bindingAdapterPosition - 1) ?: return@setOnClickListener
-                DomainActions.show(activity, entry.domain)
+                DomainActions.show(activity, entry.domain, entry.verdict.blocked)
             }
         }
     }
