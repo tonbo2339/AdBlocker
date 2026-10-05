@@ -428,7 +428,8 @@
 
                 <LinearLayout
                     android:id="@+id/exportRow"
-                    style="@style/Row.Clickable">
+                    style="@style/Row.Clickable"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         style="@style/IconBadge"
@@ -445,7 +446,8 @@
 
                 <LinearLayout
                     android:id="@+id/importRow"
-                    style="@style/Row.Clickable">
+                    style="@style/Row.Clickable"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         style="@style/IconBadge"
