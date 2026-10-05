@@ -158,4 +158,13 @@
     <string name="list_bundled">アプリに同梱</string>
     <string name="list_not_downloaded">まだダウンロードしていません</string>
     <string name="sources_footer_none">ブロックリストを 1 つも選んでいません。自分のルールだけを使います。</string>
+    <string name="shortcut_pause">一時停止 / 再開</string>
+    <string name="shortcut_pause_long">15 分間一時停止 / 再開</string>
+    <string name="shortcut_toggle">オン / オフ</string>
+    <string name="shortcut_toggle_long">広告ブロックをオン / オフ</string>
+    <string name="shortcut_turned_on">広告ブロックをオンにしました</string>
+    <string name="shortcut_turned_off">広告ブロックをオフにしました</string>
+    <string name="shortcut_paused">15 分間一時停止しました</string>
+    <string name="shortcut_resumed">広告ブロックを再開しました</string>
+    <string name="shortcut_is_off">広告ブロックはオフです</string>
 </resources>

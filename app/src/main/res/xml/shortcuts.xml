@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- アプリのアイコンを長押ししたときのショートカット。動作は ShortcutActivity -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_pause"
+        android:shortcutId="pause"
+        android:shortcutLongLabel="@string/shortcut_pause_long"
+        android:shortcutShortLabel="@string/shortcut_pause">
+        <intent
+            android:action="io.github.tonbo2339.adblocker.shortcut.PAUSE"
+            android:targetClass="io.github.tonbo2339.adblocker.ShortcutActivity"
+            android:targetPackage="io.github.tonbo2339.adblocker" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_toggle"
+        android:shortcutId="toggle"
+        android:shortcutLongLabel="@string/shortcut_toggle_long"
+        android:shortcutShortLabel="@string/shortcut_toggle">
+        <intent
+            android:action="io.github.tonbo2339.adblocker.shortcut.TOGGLE"
+            android:targetClass="io.github.tonbo2339.adblocker.ShortcutActivity"
+            android:targetPackage="io.github.tonbo2339.adblocker" />
+    </shortcut>
+</shortcuts>

@@ -21,4 +21,7 @@
     <color name="segment_selected">#FFFFFF</color>
     <color name="tab_bar_bg">#F7F9F9F9</color>
     <color name="row_pressed_overlay">#1F000000</color>
+    <!-- ランチャーのショートカットの背景 (ダークモードでも同じ) -->
+    <color name="shortcut_toggle">#34C759</color>
+    <color name="shortcut_pause">#FF9500</color>
 </resources>

@@ -160,4 +160,13 @@
     <string name="list_bundled">Bundled with the app</string>
     <string name="list_not_downloaded">Not downloaded yet</string>
     <string name="sources_footer_none">No blocklist is selected. Only your own rules are used.</string>
+    <string name="shortcut_pause">Pause / Resume</string>
+    <string name="shortcut_pause_long">Pause for 15 Minutes / Resume</string>
+    <string name="shortcut_toggle">On / Off</string>
+    <string name="shortcut_toggle_long">Turn Ad Blocking On / Off</string>
+    <string name="shortcut_turned_on">Ad blocking turned on</string>
+    <string name="shortcut_turned_off">Ad blocking turned off</string>
+    <string name="shortcut_paused">Paused for 15 minutes</string>
+    <string name="shortcut_resumed">Ad blocking resumed</string>
+    <string name="shortcut_is_off">Ad blocking is off</string>
 </resources>
