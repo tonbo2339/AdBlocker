@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.tonbo2339.adblocker.databinding.ActivityAppListBinding
 import io.github.tonbo2339.adblocker.databinding.ItemAppBinding
+import java.text.Collator
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 
@@ -96,7 +97,8 @@ class AppListActivity : AppCompatActivity() {
                     it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP == 0
                 AppEntry(it.packageName, it.loadLabel(pm).toString(), system, it)
             }
-            .sortedWith(compareBy<AppEntry> { it.packageName !in pinned }.thenBy { it.label.lowercase() })
+            // 名前は言語の並び順で (日本語ならかな、英語なら大文字小文字を区別しないアルファベット順)
+            .sortedWith(compareBy<AppEntry> { it.packageName !in pinned }.thenBy(Collator.getInstance()) { it.label })
     }
 
     private fun applyFilter() {

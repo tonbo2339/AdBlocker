@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.icu.text.ListFormatter
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -114,9 +115,10 @@ class MainActivity : AppCompatActivity() {
             awaitingUpdate = true
             BlockListWorker.runNow(this)
         }
+        // 区切り方は言語に合わせる (英語は "A and B"、日本語は "A、B")
         binding.sourcesFooter.text = getString(
             R.string.sources_footer,
-            BlockListUpdater.SOURCES.joinToString("、") { it.name },
+            ListFormatter.getInstance().format(BlockListUpdater.SOURCES.map { it.name }),
         )
         WorkManager.getInstance(this)
             .getWorkInfosForUniqueWorkLiveData(BlockListWorker.ONE_TIME)

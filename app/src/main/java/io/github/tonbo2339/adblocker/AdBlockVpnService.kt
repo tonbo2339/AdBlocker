@@ -5,9 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.net.VpnService
 import android.os.Build
 import android.os.Handler
+import android.os.LocaleList
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.system.ErrnoException
@@ -111,8 +113,12 @@ class AdBlockVpnService : VpnService() {
     /** 現在のワーカーへ停止を伝えるパイプの書き込み側。 */
     private var stopSignal: FileDescriptor? = null
 
+    /** 常駐通知を出したときの言語。 */
+    private lateinit var locales: LocaleList
+
     override fun onCreate() {
         super.onCreate()
+        locales = resources.configuration.locales
         upstream = UpstreamDns(this).apply { start() }
     }
 
@@ -139,6 +145,16 @@ class AdBlockVpnService : VpnService() {
         }
         restart()
         return START_STICKY
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // 言語が変わったら、出ている常駐通知とチャンネル名を新しい言語で出し直す (回転などでは何もしない)
+        if (newConfig.locales == locales) return
+        locales = newConfig.locales
+        if (state != State.STOPPED && Prefs.isNotificationEnabled(this, NotificationKind.RUNNING)) {
+            startForegroundWithNotification()
+        }
     }
 
     override fun onRevoke() {
