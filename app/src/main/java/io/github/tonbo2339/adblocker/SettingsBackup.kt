@@ -83,7 +83,7 @@ object SettingsBackup {
         BlockListWorker.schedule(app)
         AppUpdateWorker.schedule(app)
         AdBlockVpnService.refreshNotification(app)
-        if (Prefs.excluded(app) != oldExcluded && AdBlockVpnService.isRunning) AdBlockVpnService.start(app)
+        if (Prefs.excluded(app) != oldExcluded && AdBlockVpnService.isRunning) AdBlockVpnService.start(app, rebuild = true)
         thread {
             BlockListUpdater.applySelection(app)
             if (BlockListUpdater.hasMissing(app)) BlockListWorker.runNow(app)

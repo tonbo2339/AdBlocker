@@ -46,7 +46,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // 使っていないコードとリソースを除いて APK を小さくする
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
         }
     }
@@ -64,6 +67,8 @@ android {
     // 端末の設定 (Android 13 以上) でアプリごとに言語を選べるようにする
     androidResources {
         generateLocaleConfig = true
+        // アプリが対応している言語だけ残す (ライブラリに入っている他の言語の翻訳を外す)
+        localeFilters += listOf("en", "ja")
     }
 }
 

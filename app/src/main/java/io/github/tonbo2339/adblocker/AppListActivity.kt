@@ -73,7 +73,7 @@ class AppListActivity : AppCompatActivity() {
         // (開始できなくても、次に VPN を作るときに保存した設定が使われる)
         if (AdBlockVpnService.state != AdBlockVpnService.State.STOPPED) {
             try {
-                AdBlockVpnService.start(this)
+                AdBlockVpnService.start(this, rebuild = true)
                 Toast.makeText(this, R.string.exclusions_applied, Toast.LENGTH_SHORT).show()
             } catch (e: IllegalStateException) {
                 Log.w("AppList", "restart failed", e)

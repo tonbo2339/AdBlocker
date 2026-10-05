@@ -43,6 +43,7 @@ class AdBlockVpnService : VpnService() {
     companion object {
         private const val TAG = "AdBlockVpn"
         private const val ACTION_START = "io.github.tonbo2339.adblocker.START"
+        private const val ACTION_REBUILD = "io.github.tonbo2339.adblocker.REBUILD"
         private const val ACTION_STOP = "io.github.tonbo2339.adblocker.STOP"
         private const val ACTION_REFRESH_NOTIFICATION = "io.github.tonbo2339.adblocker.REFRESH_NOTIFICATION"
 
@@ -54,6 +55,7 @@ class AdBlockVpnService : VpnService() {
         private const val UPSTREAM_TIMEOUT_MS = 2000
         private const val FORWARD_THREADS = 8
         private const val STATS_FLUSH_INTERVAL_MS = 30_000L
+        private const val PREVIOUS_WORKER_WAIT_MS = 3000L
 
         /** 転送待ちの問い合わせの上限。回線が切れている間に再送が積み上がってメモリを使い続けないようにする。 */
         private const val MAX_PENDING_QUERIES = 256
@@ -66,12 +68,12 @@ class AdBlockVpnService : VpnService() {
         val isRunning: Boolean get() = state == State.RUNNING
 
         /**
-         * 開始する。動作中なら例外設定を読み直して作り直す。先に VpnService.prepare() が済んでいること。
-         * バックグラウンドからの開始が許されない場合は IllegalStateException。
+         * 開始する。開始中・動作中なら何もしない (rebuild なら例外設定を読み直して作り直す)。
+         * 先に VpnService.prepare() が済んでいること。バックグラウンドからの開始が許されない場合は IllegalStateException。
          */
-        fun start(context: Context) {
+        fun start(context: Context, rebuild: Boolean = false) {
             context.startForegroundService(
-                Intent(context, AdBlockVpnService::class.java).setAction(ACTION_START)
+                Intent(context, AdBlockVpnService::class.java).setAction(if (rebuild) ACTION_REBUILD else ACTION_START)
             )
             if (state == State.STOPPED) state = State.STARTING
         }
@@ -110,6 +112,9 @@ class AdBlockVpnService : VpnService() {
     /** 現在のワーカー。作り直しで置き換わった古いワーカーは、終了時に状態を書き換えない。 */
     @Volatile
     private var worker: Thread? = null
+
+    /** 最後に停止を伝えたワーカー (次のワーカーは、これが終わるのを待ってから tun を作る)。 */
+    private var stopping: Thread? = null
 
     /** 現在のワーカーへ停止を伝えるパイプの書き込み側。 */
     private var stopSignal: FileDescriptor? = null
@@ -157,6 +162,12 @@ class AdBlockVpnService : VpnService() {
         // START_STICKY での再起動 (intent は null) のいずれか
         startForegroundWithNotification()
         Prefs.setEnabled(this, true)
+        // 開始の要求は重なることがある (アプリの更新直後は BootReceiver と画面の両方から届く)。
+        // そのたびに作り直すと、古い tun の後片付けと新しい tun の作成が重なり、問い合わせが届かなくなることがあった
+        if (intent?.action != ACTION_REBUILD && worker != null) {
+            applyRunningNotificationSetting()
+            return START_STICKY
+        }
         if (state != State.RUNNING) SessionStats.reset()
         restart()
         return START_STICKY
@@ -197,17 +208,15 @@ class AdBlockVpnService : VpnService() {
         stopSelf()
     }
 
-    /**
-     * 新しいワーカーで VPN を作り直す。古いワーカーの終了は待たない
-     * (新しい VPN を establish() した時点で古いインターフェースは置き換わり、古いワーカーは自分の tun を閉じて終わる)。
-     */
+    /** 新しいワーカーで VPN を作り直す。新しいワーカーは、古いワーカーが終わってから tun を作る。 */
     @Synchronized
     private fun restart() {
         shutdown()
+        val previous = stopping
         state = State.STARTING
         val pipe = Os.pipe()
         stopSignal = pipe[1]
-        worker = Thread({ runVpn(pipe[0]) }, "AdBlockVpn").also { it.start() }
+        worker = Thread({ runVpn(pipe[0], previous) }, "AdBlockVpn").also { it.start() }
     }
 
     /** 現在のワーカーに停止を伝える (終了は待たない)。 */
@@ -215,6 +224,7 @@ class AdBlockVpnService : VpnService() {
     private fun shutdown() {
         val signal = stopSignal ?: return
         stopSignal = null
+        stopping = worker
         worker = null
         try {
             Os.write(signal, byteArrayOf(1), 0, 1)
@@ -225,7 +235,8 @@ class AdBlockVpnService : VpnService() {
         closeQuietly(signal)
     }
 
-    private fun runVpn(stopFd: FileDescriptor) {
+    /** previous: 作り直す前のワーカー。それが古い tun を閉じてから新しい tun を作る。 */
+    private fun runVpn(stopFd: FileDescriptor, previous: Thread?) {
         val me = Thread.currentThread()
         // 上限を超えたら古い問い合わせから捨てる (アプリ側は応答が無ければ再送する)
         val executor = ThreadPoolExecutor(
@@ -236,6 +247,8 @@ class AdBlockVpnService : VpnService() {
         var stoppedByRequest = false
         try {
             BlockList.load(this)
+            // 古い tun が開いたまま新しい tun を作ると、端末がどちらに問い合わせを送るかが不安定になる
+            previous?.join(PREVIOUS_WORKER_WAIT_MS)
             // 停止・作り直しが要求されていたら VPN を作らない (新しいワーカーの VPN を上書きしないため)。
             // restart() / shutdown() と同じロックの中で確認と作成をまとめて行う
             synchronized(this) {
