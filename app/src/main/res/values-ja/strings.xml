@@ -167,4 +167,7 @@
     <string name="shortcut_paused">15 分間一時停止しました</string>
     <string name="shortcut_resumed">広告ブロックを再開しました</string>
     <string name="shortcut_is_off">広告ブロックはオフです</string>
+    <string name="row_encrypted_dns">暗号化 DNS</string>
+    <string name="encrypted_dns_off">オフ</string>
+    <string name="encrypted_dns_footer">DNS の問い合わせを DNS over TLS で送り、回線の途中で見られたり書き換えられたりしないようにします。サーバーにつながらないときは回線の DNS を使います。オンの間は、その回線の中だけの名前 (社内やルーターの名前など) が使えないことがあります。</string>
 </resources>

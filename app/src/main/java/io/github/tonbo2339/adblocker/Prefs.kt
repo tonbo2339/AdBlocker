@@ -15,6 +15,7 @@ object Prefs {
     private const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
     private const val KEY_QUERY_LOG = "query_log"
     private const val KEY_PAUSED_UNTIL = "paused_until"
+    private const val KEY_ENCRYPTED_DNS = "encrypted_dns"
     private const val KEY_SOURCE_ON = "source_on_"
     private const val KEY_CUSTOM_SOURCES = "custom_sources"
     private const val KEY_ETAG = "etag_"
@@ -90,6 +91,13 @@ object Prefs {
 
     fun setNotificationEnabled(context: Context, kind: NotificationKind, enabled: Boolean) {
         prefs(context).edit { putBoolean(kind.key, enabled) }
+    }
+
+    /** 暗号化 DNS の転送先 (null ならオフ = 回線の DNS を使う)。 */
+    fun encryptedDns(context: Context): EncryptedDns? = EncryptedDns.of(prefs(context).getString(KEY_ENCRYPTED_DNS, null))
+
+    fun setEncryptedDns(context: Context, server: EncryptedDns?) {
+        prefs(context).edit { putString(KEY_ENCRYPTED_DNS, server?.id) }
     }
 
     /** 組み込みのブロックリストを使うか。 */

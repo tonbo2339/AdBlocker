@@ -103,6 +103,10 @@ class AdBlockVpnService : VpnService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private lateinit var upstream: UpstreamDns
 
+    /** 暗号化 DNS のクライアント。設定が変わったら作り直す (VPN は作り直さない)。 */
+    @Volatile
+    private var dot: DotClient? = null
+
     /** 現在のワーカー。作り直しで置き換わった古いワーカーは、終了時に状態を書き換えない。 */
     @Volatile
     private var worker: Thread? = null
@@ -180,6 +184,7 @@ class AdBlockVpnService : VpnService() {
         shutdown()
         state = State.STOPPED
         upstream.stop()
+        dot?.close()
         super.onDestroy()
     }
 
@@ -353,8 +358,25 @@ class AdBlockVpnService : VpnService() {
         if (verdict.blocked && QueryLog.enabled) SessionStats.recordBlocked(name)
     }
 
-    /** 本物の DNS サーバーに問い合わせる。protect() でこのソケット自体は VPN を通らないようにする。 */
+    /** 設定に合った暗号化 DNS のクライアント (オフなら null)。 */
+    private fun dotClient(): DotClient? {
+        val server = Prefs.encryptedDns(this)
+        val current = dot
+        if (current?.server == server) return current
+        synchronized(this) {
+            val again = dot
+            if (again?.server == server) return again
+            again?.close()
+            return server?.let { DotClient(this, it) }.also { dot = it }
+        }
+    }
+
+    /**
+     * 本物の DNS サーバーに問い合わせる。暗号化 DNS がオンならそれを使い、失敗したときだけ通常の DNS にする。
+     * protect() でこのソケット自体は VPN を通らないようにする。
+     */
     private fun forward(dns: ByteArray): ByteArray? {
+        dotClient()?.query(dns)?.let { return it }
         for (server in upstream.servers()) {
             try {
                 DatagramSocket().use { socket ->

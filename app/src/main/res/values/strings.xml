@@ -169,4 +169,7 @@
     <string name="shortcut_paused">Paused for 15 minutes</string>
     <string name="shortcut_resumed">Ad blocking resumed</string>
     <string name="shortcut_is_off">Ad blocking is off</string>
+    <string name="row_encrypted_dns">Encrypted DNS</string>
+    <string name="encrypted_dns_off">Off</string>
+    <string name="encrypted_dns_footer">Sends lookups over DNS over TLS so your network can\'t read or change them. If the server can\'t be reached, your network\'s DNS is used instead. While it\'s on, names that only your network knows (such as company or router names) may not work.</string>
 </resources>

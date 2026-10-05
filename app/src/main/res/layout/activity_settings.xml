@@ -105,6 +105,37 @@
                 android:layout_height="wrap_content"
                 android:text="@string/query_log_footer" />
 
+            <io.github.tonbo2339.adblocker.CardLayout
+                style="@style/Card"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout
+                    android:id="@+id/encryptedDnsRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_green"
+                        android:src="@drawable/ic_g_lock" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_encrypted_dns" />
+
+                    <TextView
+                        android:id="@+id/encryptedDnsValue"
+                        style="@style/RowValue" />
+
+                    <ImageView style="@style/Chevron" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/encrypted_dns_footer" />
+
             <!-- ブロックリスト -->
             <TextView
                 style="@style/SectionHeader"

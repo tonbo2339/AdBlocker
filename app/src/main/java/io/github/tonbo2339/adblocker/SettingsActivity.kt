@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
@@ -58,6 +59,7 @@ class SettingsActivity : AppCompatActivity() {
             awaitingUpdate = true
             BlockListWorker.runNow(this)
         }
+        binding.encryptedDnsRow.setOnClickListener { chooseEncryptedDns() }
         binding.listsRow.setOnClickListener { startActivity(Intent(this, BlocklistsActivity::class.java)) }
         WorkManager.getInstance(this)
             .getWorkInfosForUniqueWorkLiveData(BlockListWorker.ONE_TIME)
@@ -110,6 +112,21 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun chooseEncryptedDns() {
+        val choices = listOf<EncryptedDns?>(null) + EncryptedDns.entries
+        val labels = choices.map { it?.label ?: getString(R.string.encrypted_dns_off) }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.row_encrypted_dns)
+            .setSingleChoiceItems(labels, choices.indexOf(Prefs.encryptedDns(this))) { dialog, which ->
+                // VPN を動かしたまま、次の問い合わせから切り替わる
+                Prefs.setEncryptedDns(this, choices[which])
+                updateValues()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
     private fun checkAppUpdate() {
         awaitingAppUpdate = true
         AppUpdateWorker.runNow(this)
@@ -117,6 +134,8 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateValues() {
         binding.rulesValue.text = getString(R.string.rules_value, UserRules.size)
+        binding.encryptedDnsValue.text =
+            Prefs.encryptedDns(this)?.label?.substringBefore(" (") ?: getString(R.string.encrypted_dns_off)
         val sources = BlockListUpdater.sources(this)
         binding.listsValue.text = getString(R.string.rules_value, sources.size)
         // 区切り方は言語に合わせる (英語は "A and B"、日本語は "A、B")
