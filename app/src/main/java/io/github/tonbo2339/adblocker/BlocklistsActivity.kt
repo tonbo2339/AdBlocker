@@ -1,16 +1,12 @@
 package io.github.tonbo2339.adblocker
 
-import android.content.DialogInterface
 import android.os.Bundle
-import android.view.WindowManager
-import android.view.inputmethod.EditorInfo
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.ActivityBlocklistsBinding
-import io.github.tonbo2339.adblocker.databinding.DialogRuleBinding
 import io.github.tonbo2339.adblocker.databinding.ItemSourceRowBinding
 import java.net.URI
 import java.text.NumberFormat
@@ -118,35 +114,16 @@ class BlocklistsActivity : AppCompatActivity() {
     }
 
     private fun showAddDialog() {
-        val input = DialogRuleBinding.inflate(layoutInflater)
-        input.domainInput.setHint(R.string.list_url_hint)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.list_add)
-            .setView(input.root)
-            .setPositiveButton(R.string.action_add, null)
-            .setNegativeButton(R.string.action_cancel, null)
-            .create()
-        val submit = {
-            val url = normalizeUrl(input.domainInput.text.toString())
-            if (url == null) {
-                input.domainInput.error = getString(R.string.list_url_invalid)
-            } else {
-                Prefs.setCustomSourceUrls(this, Prefs.customSourceUrls(this) + url)
-                selectionChanged()
-                show()
-                dialog.dismiss()
-            }
+        showInputDialog(
+            title = R.string.list_add,
+            hint = R.string.list_url_hint,
+            error = R.string.list_url_invalid,
+            parse = ::normalizeUrl,
+        ) { url ->
+            Prefs.setCustomSourceUrls(this, Prefs.customSourceUrls(this) + url)
+            selectionChanged()
+            show()
         }
-        dialog.setOnShowListener {
-            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener { submit() }
-        }
-        input.domainInput.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) submit()
-            actionId == EditorInfo.IME_ACTION_DONE
-        }
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-        dialog.show()
-        input.domainInput.requestFocus()
     }
 
     /** https の URL だけを受け付ける (平文の http だと途中で書き換えられる恐れがある)。 */

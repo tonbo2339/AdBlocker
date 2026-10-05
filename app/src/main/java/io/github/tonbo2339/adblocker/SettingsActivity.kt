@@ -63,7 +63,8 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.backButton.setOnClickListener { finish() }
         binding.rulesRow.setOnClickListener { startActivity(Intent(this, RulesActivity::class.java)) }
-        binding.queryLogSwitch.isChecked = Prefs.queryLogEnabled(this)
+        // リスナーを付ける前に値を入れる (付けた後だと、値を入れただけで設定を書き直してしまう)
+        refreshSwitches()
         binding.queryLogSwitch.setOnCheckedChangeListener { _, checked -> Prefs.setQueryLogEnabled(this, checked) }
 
         binding.updateRow.setOnClickListener {
@@ -80,7 +81,6 @@ class SettingsActivity : AppCompatActivity() {
             .getWorkInfosForUniqueWorkLiveData(BlockListWorker.ONE_TIME)
             .observe(this) { infos -> onUpdateWork(infos.firstOrNull()) }
 
-        binding.wifiOnlySwitch.isChecked = Prefs.updateOnWifiOnly(this)
         binding.wifiOnlySwitch.setOnCheckedChangeListener { _, checked ->
             Prefs.setUpdateOnWifiOnly(this, checked)
             // 定期実行の条件を登録し直す (次回の実行予定は保たれる)
@@ -89,7 +89,6 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.versionValue.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
-        binding.autoInstallSwitch.isChecked = Prefs.autoInstallUpdates(this)
         binding.autoInstallSwitch.setOnCheckedChangeListener { _, checked ->
             Prefs.setAutoInstallUpdates(this, checked)
         }
@@ -120,7 +119,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun bindNotificationSwitch(switch: CompoundButton, kind: NotificationKind, onChange: () -> Unit = {}) {
-        switch.isChecked = Prefs.isNotificationEnabled(this, kind)
         switch.setOnCheckedChangeListener { _, checked ->
             Prefs.setNotificationEnabled(this, kind, checked)
             onChange()
@@ -187,7 +185,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun updateValues() {
         binding.rulesValue.text = getString(R.string.rules_value, UserRules.size)
         binding.encryptedDnsValue.text =
-            Prefs.encryptedDns(this)?.label?.substringBefore(" (") ?: getString(R.string.encrypted_dns_off)
+            Prefs.encryptedDns(this)?.title ?: getString(R.string.encrypted_dns_off)
         val sources = BlockListUpdater.sources(this)
         binding.listsValue.text = getString(R.string.rules_value, sources.size)
         // 区切り方は言語に合わせる (英語は "A and B"、日本語は "A、B")

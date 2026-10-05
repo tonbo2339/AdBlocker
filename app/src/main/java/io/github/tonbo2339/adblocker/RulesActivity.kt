@@ -1,15 +1,11 @@
 package io.github.tonbo2339.adblocker
 
-import android.content.DialogInterface
 import android.os.Bundle
-import android.view.WindowManager
-import android.view.inputmethod.EditorInfo
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.ActivityRulesBinding
-import io.github.tonbo2339.adblocker.databinding.DialogRuleBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
 
 /** 自分で追加するブロック / 許可のルール。 */
@@ -67,34 +63,15 @@ class RulesActivity : AppCompatActivity() {
     }
 
     private fun showAddDialog() {
-        val input = DialogRuleBinding.inflate(layoutInflater)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(if (kind == UserRules.Kind.BLOCK) R.string.rule_add_title_block else R.string.rule_add_title_allow)
-            .setView(input.root)
-            .setPositiveButton(R.string.action_add, null)
-            .setNegativeButton(R.string.action_cancel, null)
-            .create()
-        // 正しくない入力ではダイアログを閉じずにエラーを出すため、ボタンの動作を差し替える
-        val submit = {
-            val domain = UserRules.normalize(input.domainInput.text.toString())
-            if (domain == null) {
-                input.domainInput.error = getString(R.string.rule_invalid)
-            } else {
-                UserRules.add(this, kind, domain)
-                showRules()
-                dialog.dismiss()
-            }
+        showInputDialog(
+            title = if (kind == UserRules.Kind.BLOCK) R.string.rule_add_title_block else R.string.rule_add_title_allow,
+            hint = R.string.rule_hint,
+            error = R.string.rule_invalid,
+            parse = UserRules::normalize,
+        ) { domain ->
+            UserRules.add(this, kind, domain)
+            showRules()
         }
-        dialog.setOnShowListener {
-            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener { submit() }
-        }
-        input.domainInput.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) submit()
-            actionId == EditorInfo.IME_ACTION_DONE
-        }
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-        dialog.show()
-        input.domainInput.requestFocus()
     }
 
     private fun confirmDelete(domain: String) {

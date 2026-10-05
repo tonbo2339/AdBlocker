@@ -15,10 +15,13 @@ import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
 /** 暗号化 DNS (DNS over TLS) の転送先。アドレスは IP で持ち、名前解決なしで接続する。 */
-enum class EncryptedDns(val id: String, val label: String, val host: String, val address: String) {
-    CLOUDFLARE("cloudflare", "Cloudflare (1.1.1.1)", "cloudflare-dns.com", "1.1.1.1"),
-    GOOGLE("google", "Google (8.8.8.8)", "dns.google", "8.8.8.8"),
-    QUAD9("quad9", "Quad9 (9.9.9.9)", "dns.quad9.net", "9.9.9.9");
+enum class EncryptedDns(val id: String, val title: String, val host: String, val address: String) {
+    CLOUDFLARE("cloudflare", "Cloudflare", "cloudflare-dns.com", "1.1.1.1"),
+    GOOGLE("google", "Google", "dns.google", "8.8.8.8"),
+    QUAD9("quad9", "Quad9", "dns.quad9.net", "9.9.9.9");
+
+    /** 選ぶときの表示 (例: "Cloudflare (1.1.1.1)")。 */
+    val label: String get() = "$title ($address)"
 
     companion object {
         fun of(id: String?): EncryptedDns? = entries.firstOrNull { it.id == id }
@@ -40,6 +43,12 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
         /** これより長く使っていない接続は、相手に切られている可能性が高いので使わずに作り直す。 */
         const val MAX_IDLE_MS = 8000L
         const val MAX_IDLE_CONNECTIONS = 4
+
+        /**
+         * つながらなかったら、この間は試さずに通常の DNS を使う。
+         * 853 番を塞いでいる回線で、問い合わせのたびに接続のタイムアウトを待たないようにする。
+         */
+        const val RETRY_AFTER_FAILURE_MS = 30_000L
     }
 
     private class Connection(val socket: SSLSocket) {
@@ -54,14 +63,19 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
     @Volatile
     private var closed = false
 
+    @Volatile
+    private var failedUntil = 0L
+
     /** 問い合わせて応答を返す。失敗したら null (呼び出し側は通常の DNS に切り替える)。 */
     fun query(dns: ByteArray): ByteArray? {
+        if (System.currentTimeMillis() < failedUntil) return null
         // 使い回した接続が切れていたら、新しい接続で 1 回だけやり直す
         repeat(2) { attempt ->
             val conn = (if (attempt == 0) takeIdle() else null) ?: try {
                 connect()
             } catch (e: IOException) {
                 Log.d(TAG, "connect to ${server.host} failed: $e")
+                failedUntil = System.currentTimeMillis() + RETRY_AFTER_FAILURE_MS
                 return null
             }
             try {

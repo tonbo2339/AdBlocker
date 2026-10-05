@@ -57,6 +57,9 @@ class AdBlockVpnService : VpnService() {
         private const val STATS_FLUSH_INTERVAL_MS = 30_000L
         private const val PREVIOUS_WORKER_WAIT_MS = 3000L
 
+        /** tun に書ける DNS 応答の最大サイズ (MTU から IPv6 + UDP のヘッダー分を引く)。 */
+        private const val MAX_RESPONSE = MTU - 48
+
         /** 転送待ちの問い合わせの上限。回線が切れている間に再送が積み上がってメモリを使い続けないようにする。 */
         private const val MAX_PENDING_QUERIES = 256
 
@@ -108,6 +111,7 @@ class AdBlockVpnService : VpnService() {
     /** 暗号化 DNS のクライアント。設定が変わったら作り直す (VPN は作り直さない)。 */
     @Volatile
     private var dot: DotClient? = null
+    private val dotLock = Any()
 
     /** 現在のワーカー。作り直しで置き換わった古いワーカーは、終了時に状態を書き換えない。 */
     @Volatile
@@ -376,7 +380,8 @@ class AdBlockVpnService : VpnService() {
         val server = Prefs.encryptedDns(this)
         val current = dot
         if (current?.server == server) return current
-        synchronized(this) {
+        // VPN の作り直しと同じロック (this) を使うと、tun を作っている間の問い合わせが待たされる
+        synchronized(dotLock) {
             val again = dot
             if (again?.server == server) return again
             again?.close()
@@ -389,7 +394,8 @@ class AdBlockVpnService : VpnService() {
      * protect() でこのソケット自体は VPN を通らないようにする。
      */
     private fun forward(dns: ByteArray): ByteArray? {
-        dotClient()?.query(dns)?.let { return it }
+        // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがあるので、そのときは UDP で取り直す
+        dotClient()?.query(dns)?.takeIf { it.size <= MAX_RESPONSE }?.let { return it }
         for (server in upstream.servers()) {
             try {
                 DatagramSocket().use { socket ->
@@ -398,7 +404,7 @@ class AdBlockVpnService : VpnService() {
                     socket.connect(server, 53)
                     socket.soTimeout = UPSTREAM_TIMEOUT_MS
                     socket.send(DatagramPacket(dns, dns.size))
-                    val rb = ByteArray(MTU - 48) // IPv6 + UDP ヘッダー分を引いた最大サイズ
+                    val rb = ByteArray(MAX_RESPONSE)
                     val rp = DatagramPacket(rb, rb.size)
                     socket.receive(rp)
                     upstream.markWorking(server)
