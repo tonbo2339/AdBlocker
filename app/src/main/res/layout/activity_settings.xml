@@ -114,6 +114,28 @@
 
             <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
 
+                <LinearLayout
+                    android:id="@+id/listsRow"
+                    style="@style/Row.Clickable">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/sys_orange"
+                        android:src="@drawable/ic_g_doc" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/title_blocklists" />
+
+                    <TextView
+                        android:id="@+id/listsValue"
+                        style="@style/RowValue" />
+
+                    <ImageView style="@style/Chevron" />
+                </LinearLayout>
+
+                <View style="@style/Separator.Inset" />
+
                 <LinearLayout style="@style/Row">
 
                     <ImageView

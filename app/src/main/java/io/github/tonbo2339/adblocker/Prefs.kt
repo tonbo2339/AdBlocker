@@ -15,6 +15,8 @@ object Prefs {
     private const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
     private const val KEY_QUERY_LOG = "query_log"
     private const val KEY_PAUSED_UNTIL = "paused_until"
+    private const val KEY_SOURCE_ON = "source_on_"
+    private const val KEY_CUSTOM_SOURCES = "custom_sources"
     private const val KEY_ETAG = "etag_"
     private const val KEY_LAST_MODIFIED = "last_modified_"
     private val STATE_KEYS = setOf(KEY_ENABLED, KEY_NOTIFICATION_PERMISSION_ASKED, KEY_PAUSED_UNTIL, KEY_BLOCKLIST_CHECKED_AT)
@@ -88,6 +90,22 @@ object Prefs {
 
     fun setNotificationEnabled(context: Context, kind: NotificationKind, enabled: Boolean) {
         prefs(context).edit { putBoolean(kind.key, enabled) }
+    }
+
+    /** 組み込みのブロックリストを使うか。 */
+    fun isSourceEnabled(context: Context, source: BlockListSource): Boolean =
+        prefs(context).getBoolean(KEY_SOURCE_ON + source.id, source.enabledByDefault)
+
+    fun setSourceEnabled(context: Context, source: BlockListSource, enabled: Boolean) {
+        prefs(context).edit { putBoolean(KEY_SOURCE_ON + source.id, enabled) }
+    }
+
+    /** 利用者が追加したブロックリストの URL。 */
+    fun customSourceUrls(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_CUSTOM_SOURCES, null)?.toSet().orEmpty()
+
+    fun setCustomSourceUrls(context: Context, urls: Set<String>) {
+        prefs(context).edit { putStringSet(KEY_CUSTOM_SOURCES, HashSet(urls)) }
     }
 
     /** ブロックリストをすべての取得元で最後に確認できた日時 (ミリ秒)。未確認なら 0。 */

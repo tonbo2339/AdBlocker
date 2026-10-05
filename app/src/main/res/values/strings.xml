@@ -147,4 +147,17 @@
     <string name="rule_added_block">Blocking %1$s</string>
     <string name="rule_added_allow">Allowing %1$s</string>
     <string name="rule_removed">Rule removed</string>
+    <string name="title_blocklists">Blocklists</string>
+    <string name="section_built_in_lists">Built-in Lists</string>
+    <string name="built_in_lists_footer">Turning a list off stops using it right away. HaGeZi blocks more (trackers, telemetry, scams) and may occasionally block something you need.</string>
+    <string name="section_custom_lists">Your Lists</string>
+    <string name="custom_lists_footer">Add any list in hosts, domain or Adblock (||domain^) format by its https URL. It is downloaded with the others once a day. Tap a list to remove it.</string>
+    <string name="list_add">Add List URL</string>
+    <string name="list_url_hint" translatable="false">https://example.com/list.txt</string>
+    <string name="list_url_invalid">Enter an https:// URL</string>
+    <string name="list_delete_title">Remove %1$s?</string>
+    <string name="list_rules">%1$s rules</string>
+    <string name="list_bundled">Bundled with the app</string>
+    <string name="list_not_downloaded">Not downloaded yet</string>
+    <string name="sources_footer_none">No blocklist is selected. Only your own rules are used.</string>
 </resources>

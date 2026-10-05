@@ -48,6 +48,12 @@
             android:parentActivityName=".MainActivity" />
 
         <activity
+            android:name=".BlocklistsActivity"
+            android:exported="false"
+            android:label="@string/title_blocklists"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
             android:name=".RulesActivity"
             android:exported="false"
             android:label="@string/title_rules"

@@ -7,7 +7,7 @@ import java.io.File
  * ブロック対象ドメインの集合。
  *
  * BlockListUpdater がダウンロードしたリスト (filesDir/blocklists/ 内の .txt) を使い、
- * StevenBlack のリストをまだダウンロードできていなければ、同梱の assets/blocklist.txt も使う。
+ * StevenBlack のリストをオンにしていて、まだダウンロードできていなければ、同梱の assets/blocklist.txt を使う。
  * reload() は集合を丸ごと差し替えるので、VPN を止めずに反映される。
  */
 object BlockList {
@@ -47,7 +47,8 @@ object BlockList {
         for (f in files) f.bufferedReader().useLines { addNormalized(it, blocked, allowed) }
         // 同梱リストを使うかは、上で読んだ一覧だけで決める。別に exists() で調べると、その間に
         // ダウンロードしたファイルの名前が確定したとき、どちらも読まずに 0 件になる (初回起動時に実際に起きた)
-        if (files.none { it.name == "$BUNDLED_SOURCE_ID.txt" }) {
+        val bundledEnabled = Prefs.isSourceEnabled(context, BlockListUpdater.BUILT_IN.first { it.id == BUNDLED_SOURCE_ID })
+        if (bundledEnabled && files.none { it.name == "$BUNDLED_SOURCE_ID.txt" }) {
             context.assets.open(ASSET).bufferedReader().useLines { addNormalized(it, blocked, allowed) }
         }
         rules = Rules(blocked.build(), allowed.build())

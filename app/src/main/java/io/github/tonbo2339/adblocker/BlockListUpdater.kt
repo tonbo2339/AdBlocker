@@ -7,8 +7,18 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** ブロックリストの取得元。id は保存ファイル名に使う。 */
-data class BlockListSource(val id: String, val name: String, val url: String)
+/**
+ * ブロックリストの取得元。id は保存ファイル名に使う。
+ * builtIn でないものは利用者が URL で追加したもの (件数の下限を緩める)。
+ */
+data class BlockListSource(
+    val id: String,
+    val name: String,
+    val url: String,
+    val builtIn: Boolean = true,
+    val enabledByDefault: Boolean = true,
+    val license: String? = null,
+)
 
 /**
  * ブロックリストをダウンロードして filesDir/blocklists/<id>.txt に保存する。
@@ -21,18 +31,69 @@ object BlockListUpdater {
     private const val MIN_RULES = 1000
     private const val TIMEOUT_MS = 30_000
 
-    val SOURCES = listOf(
+    /** アプリに組み込みの取得元。設定でオン / オフできる。 */
+    val BUILT_IN = listOf(
         BlockListSource(
             id = BlockList.BUNDLED_SOURCE_ID,
             name = "StevenBlack hosts",
             url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+            license = "MIT",
         ),
         BlockListSource(
             id = "adguard-dns",
             name = "AdGuard DNS filter",
             url = "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
+            license = "GPL-3.0",
+        ),
+        BlockListSource(
+            id = "hagezi-multi",
+            name = "HaGeZi Multi NORMAL",
+            url = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/multi.txt",
+            enabledByDefault = false,
+            license = "GPL-3.0",
         ),
     )
+
+    /** 利用者が追加した URL の取得元。id は URL から作る (同じ URL なら同じファイル)。 */
+    fun custom(url: String): BlockListSource {
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(url.toByteArray())
+        val id = "custom-" + digest.take(6).joinToString("") { "%02x".format(it) }
+        val name = runCatching { java.net.URI(url).host }.getOrNull() ?: url
+        return BlockListSource(id, name, url, builtIn = false)
+    }
+
+    /** 今使う取得元 (オンの組み込み + 追加した URL)。 */
+    fun sources(context: Context): List<BlockListSource> =
+        BUILT_IN.filter { Prefs.isSourceEnabled(context, it) } +
+            Prefs.customSourceUrls(context).sorted().map { custom(it) }
+
+    /** 使わなくなった取得元のファイルを消して、すぐ読み直す (ネットワークは使わない)。 */
+    @Synchronized
+    fun applySelection(context: Context) {
+        removeUnused(context, BlockList.dir(context))
+        BlockList.reload(context)
+    }
+
+    /** 選んだ取得元で、まだダウンロードしていないものがあるか。 */
+    fun hasMissing(context: Context): Boolean {
+        val dir = BlockList.dir(context)
+        return sources(context).any { it.id != BlockList.BUNDLED_SOURCE_ID && !File(dir, "${it.id}.txt").exists() }
+    }
+
+    /** 消したファイルがあれば true。 */
+    private fun removeUnused(context: Context, dir: File): Boolean {
+        val ids = sources(context).map { "${it.id}.txt" }.toSet()
+        val unused = dir.listFiles()?.filter { it.name !in ids }.orEmpty()
+        unused.forEach { it.delete() }
+        return unused.isNotEmpty()
+    }
+
+    /** ダウンロード済みのリストのルール数 (まだ無ければ null)。ファイルを読むのでメインスレッドで呼ばない。 */
+    fun ruleCount(context: Context, source: BlockListSource): Int? {
+        val file = File(BlockList.dir(context), "${source.id}.txt")
+        if (!file.exists()) return null
+        return file.bufferedReader().useLines { lines -> lines.count { it.isNotBlank() && !it.startsWith("#") } }
+    }
 
     class Result(val updated: Int, val unchanged: Int, val failed: List<String>) {
         val success: Boolean get() = failed.isEmpty()
@@ -45,7 +106,7 @@ object BlockListUpdater {
         var updated = 0
         var unchanged = 0
         val failed = mutableListOf<String>()
-        for (source in SOURCES) {
+        for (source in sources(context)) {
             try {
                 if (fetch(context, source, dir)) updated++ else unchanged++
             } catch (e: Exception) {
@@ -53,11 +114,10 @@ object BlockListUpdater {
                 failed += source.name
             }
         }
-        // 取得元の一覧から外したリストのファイルは消す
-        val ids = SOURCES.map { "${it.id}.txt" }.toSet()
-        dir.listFiles()?.filter { it.name !in ids }?.forEach { it.delete() }
+        // オフにした・取得元の一覧から外したリストのファイルは消す
+        val removed = removeUnused(context, dir)
 
-        if (updated > 0) BlockList.reload(context)
+        if (updated > 0 || removed) BlockList.reload(context)
         if (failed.isEmpty()) Prefs.setBlocklistCheckedAt(context, System.currentTimeMillis())
         return Result(updated, unchanged, failed)
     }
@@ -95,7 +155,8 @@ object BlockListUpdater {
                     }
                 }
             }
-            if (count < MIN_RULES) {
+            // 自分で追加したリストは小さくてもよい (取得元の障害で空になったものだけ弾く)
+            if (count < if (source.builtIn) MIN_RULES else 1) {
                 tmp.delete()
                 throw IOException("too few rules ($count)")
             }

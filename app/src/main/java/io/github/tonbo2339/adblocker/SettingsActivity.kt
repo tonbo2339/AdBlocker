@@ -58,11 +58,7 @@ class SettingsActivity : AppCompatActivity() {
             awaitingUpdate = true
             BlockListWorker.runNow(this)
         }
-        // 区切り方は言語に合わせる (英語は "A and B"、日本語は "A、B")
-        binding.sourcesFooter.text = getString(
-            R.string.sources_footer,
-            ListFormatter.getInstance().format(BlockListUpdater.SOURCES.map { it.name }),
-        )
+        binding.listsRow.setOnClickListener { startActivity(Intent(this, BlocklistsActivity::class.java)) }
         WorkManager.getInstance(this)
             .getWorkInfosForUniqueWorkLiveData(BlockListWorker.ONE_TIME)
             .observe(this) { infos -> onUpdateWork(infos.firstOrNull()) }
@@ -121,6 +117,14 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateValues() {
         binding.rulesValue.text = getString(R.string.rules_value, UserRules.size)
+        val sources = BlockListUpdater.sources(this)
+        binding.listsValue.text = getString(R.string.rules_value, sources.size)
+        // 区切り方は言語に合わせる (英語は "A and B"、日本語は "A、B")
+        binding.sourcesFooter.text = if (sources.isEmpty()) {
+            getString(R.string.sources_footer_none)
+        } else {
+            getString(R.string.sources_footer, ListFormatter.getInstance().format(sources.map { it.name }))
+        }
         binding.blocklistValue.text = getString(R.string.blocklist_value, numberFormat.format(BlockList.size))
         val checkedAt = Prefs.blocklistCheckedAt(this)
         binding.lastCheckedValue.text =

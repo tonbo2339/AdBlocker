@@ -146,4 +146,16 @@
     <string name="rule_added_block">%1$s をブロックします</string>
     <string name="rule_added_allow">%1$s を許可します</string>
     <string name="rule_removed">ルールを削除しました</string>
+    <string name="title_blocklists">ブロックリスト</string>
+    <string name="section_built_in_lists">組み込みのリスト</string>
+    <string name="built_in_lists_footer">オフにしたリストはすぐ使わなくなります。HaGeZi はより多く (トラッカー、テレメトリー、詐欺サイトなど) を止めるため、まれに必要なものまで止まることがあります。</string>
+    <string name="section_custom_lists">自分で追加したリスト</string>
+    <string name="custom_lists_footer">hosts・ドメイン・Adblock (||domain^) 形式のリストを https の URL で追加できます。ほかのリストと一緒に 1 日 1 回ダウンロードします。タップすると削除できます。</string>
+    <string name="list_add">リストの URL を追加</string>
+    <string name="list_url_invalid">https:// で始まる URL を入力してください</string>
+    <string name="list_delete_title">%1$s を削除しますか?</string>
+    <string name="list_rules">%1$s 件</string>
+    <string name="list_bundled">アプリに同梱</string>
+    <string name="list_not_downloaded">まだダウンロードしていません</string>
+    <string name="sources_footer_none">ブロックリストを 1 つも選んでいません。自分のルールだけを使います。</string>
 </resources>
