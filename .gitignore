@@ -11,3 +11,6 @@
 .kotlin/
 __pycache__/
 CLAUDE.md
+*.jks
+*.keystore
+keystore.properties

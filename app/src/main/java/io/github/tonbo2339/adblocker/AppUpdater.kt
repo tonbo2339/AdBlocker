@@ -95,14 +95,22 @@ object AppUpdater {
         val newCode = PackageInfoCompat.getLongVersionCode(archive)
         if (newCode <= PackageInfoCompat.getLongVersionCode(current)) throw IOException("not newer: $newCode")
         // Android 8 では署名を読み出せないが、違う鍵の APK はどのみち OS がインストールを拒否する
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && signers(archive) != signers(current)) {
-            throw IOException("signature mismatch")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val installed = signers(current, withHistory = false)
+            // 鍵を切り替えた (v3 の鍵ローテーション) APK は、署名の履歴に今の鍵が入っていれば OS が受け入れる
+            if (installed.isEmpty() || !signers(archive, withHistory = true).containsAll(installed)) {
+                throw IOException("signature mismatch")
+            }
         }
     }
 
+    /** 署名した鍵。withHistory なら、鍵ローテーションの履歴にある過去の鍵も含める。 */
     @RequiresApi(Build.VERSION_CODES.P)
-    private fun signers(info: PackageInfo): Set<String> =
-        info.signingInfo?.apkContentsSigners?.map { it.toCharsString() }?.toSet().orEmpty()
+    private fun signers(info: PackageInfo, withHistory: Boolean): Set<String> {
+        val signing = info.signingInfo ?: return emptySet()
+        val certs = if (withHistory && !signing.hasMultipleSigners()) signing.signingCertificateHistory else signing.apkContentsSigners
+        return certs.orEmpty().map { it.toCharsString() }.toSet()
+    }
 
     private fun installApk(context: Context, apk: File) {
         val installer = context.packageManager.packageInstaller

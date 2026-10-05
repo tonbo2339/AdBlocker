@@ -1,8 +1,22 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+/**
+ * リリース署名の設定ファイル (storeFile / storePassword / keyAlias / keyPassword)。
+ * 鍵とパスワードはリポジトリに入れず、local.properties の signing.properties でファイルの場所を指す。
+ * 無ければリリースビルドは署名なしで作られる。
+ */
+val releaseSigning: Properties? = run {
+    val local = Properties()
+    rootProject.file("local.properties").takeIf { it.exists() }?.reader()?.use { local.load(it) }
+    val path = local.getProperty("signing.properties") ?: return@run null
+    val file = file(path).takeIf { it.exists() } ?: return@run null
+    Properties().apply { file.reader().use { load(it) } }
 }
 
 android {
@@ -17,9 +31,23 @@ android {
         versionName = "0.1"
     }
 
+    signingConfigs {
+        if (releaseSigning != null) {
+            create("release") {
+                storeFile = file(releaseSigning.getProperty("storeFile"))
+                storePassword = releaseSigning.getProperty("storePassword")
+                keyAlias = releaseSigning.getProperty("keyAlias")
+                keyPassword = releaseSigning.getProperty("keyPassword")
+                // v3 を付けておくと、将来鍵を替えるときに既存のアプリを上書き更新できる (鍵ローテーション)
+                enableV3Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 

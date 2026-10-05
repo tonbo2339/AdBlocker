@@ -18,7 +18,7 @@
     <string name="row_domains">Domains</string>
     <string name="blocklist_value">%1$s</string>
     <string name="row_last_checked">Last Checked</string>
-    <string name="last_checked_never">Never (using the built-in list)</string>
+    <string name="last_checked_never">Never (built-in list)</string>
     <string name="row_update_now">Update Now</string>
     <string name="updating">Updating…</string>
     <string name="update_done">Blocklist updated</string>

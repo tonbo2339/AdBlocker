@@ -67,6 +67,7 @@ Open this folder in Android Studio and run it. From the command line:
 
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
+gradlew assembleRelease        # needs a signing key (see "Signing" below)
 gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison)
 gradlew lintDebug
 ```
@@ -83,7 +84,9 @@ On Android 12 and later, updates after the first one install without asking (the
 
 ### Signing
 
-APKs in Releases are signed with the debug key on the author's PC. An app can only be updated in place by an APK signed with the same key, so if you install an APK you built yourself, updates from Releases won't work (you'd need to uninstall first).
+APKs in Releases are signed with the author's release key (the key and its password are not in this repository). An app can only be updated in place by an APK signed with the same key, so if you install an APK you built yourself, updates from Releases won't work (you'd need to uninstall first).
+
+To sign your own release build, create a `keystore.properties` (`storeFile` / `storePassword` / `keyAlias` / `keyPassword`), add `signing.properties=<path to that file>` to `local.properties`, and run `gradlew assembleRelease`.
 
 ## Project layout
 
