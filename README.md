@@ -65,7 +65,7 @@ After that, the app checks for new versions and updates itself.
 | [HaGeZi Pro](https://github.com/hagezi/dns-blocklists) | GPL-3.0 |
 | [HaGeZi Pro++](https://github.com/hagezi/dns-blocklists) (off by default) | GPL-3.0 |
 
-- Lists can be turned on / off in Settings → Blocklists, and you can add your own list (hosts, domain or Adblock format) by its https URL
+- Lists can be turned on / off in Settings → Blocklists, and you can add your own list (hosts, domain, `*.domain` or Adblock format) by its https URL. From Adblock-format lists only the domain rules are used; rules that hide parts of a page (`example.com##.ad`) are skipped
 - Fetched once a day (and with "Update Now" in the app). Nothing is downloaded if the ETag hasn't changed
 - Each source is stored separately; if a source can't be fetched, its previous copy keeps being used. A built-in list with fewer than 1,000 rules is treated as broken and ignored
 - Allow rules (`@@||domain^`) are honored

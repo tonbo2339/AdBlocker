@@ -65,7 +65,7 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 | [HaGeZi Pro](https://github.com/hagezi/dns-blocklists) | GPL-3.0 |
 | [HaGeZi Pro++](https://github.com/hagezi/dns-blocklists) (既定はオフ) | GPL-3.0 |
 
-- 設定 → ブロックリスト でオン / オフでき、自分で選んだリスト (hosts・ドメイン・Adblock 形式) を https の URL で追加できる
+- 設定 → ブロックリスト でオン / オフでき、自分で選んだリスト (hosts・ドメイン・`*.ドメイン`・Adblock 形式) を https の URL で追加できる。Adblock 形式はドメインのルールだけを使い、ページの一部を隠すルール (`example.com##.ad`) は読み飛ばす
 - 1 日 1 回 (と画面の「今すぐ更新」) で取得。ETag で変更が無ければダウンロードしない
 - 取得元ごとに保存し、取得できなくなった取得元は前回の内容を使い続ける。組み込みのリストはルールが 1,000 件未満なら異常とみなして使わない
 - 例外ルール (`@@||domain^`) も反映する
