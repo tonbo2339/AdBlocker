@@ -66,7 +66,7 @@ object Prefs {
     }
 
     /** 自動更新 (ブロックリスト・アプリ) を Wi-Fi などの従量制でない回線のときだけ行うか。手動の更新には効かない。 */
-    fun updateOnWifiOnly(context: Context): Boolean = prefs(context).getBoolean(KEY_WIFI_ONLY, false)
+    fun updateOnWifiOnly(context: Context): Boolean = prefs(context).getBoolean(KEY_WIFI_ONLY, true)
 
     fun setUpdateOnWifiOnly(context: Context, enabled: Boolean) {
         prefs(context).edit { putBoolean(KEY_WIFI_ONLY, enabled) }

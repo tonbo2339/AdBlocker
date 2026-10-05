@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 自分のルール: ブロック / 許可を切り替えて、ドメインを追加・削除する -->
+<!-- ブロック・許可するドメイン: ブロック / 許可を切り替えて、ドメインを追加・削除する -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"

@@ -13,7 +13,7 @@
     <string name="stat_blocked">Blocked</string>
     <string name="stat_queries">Queries</string>
     <string name="row_blocklist">Blocklist</string>
-    <string name="row_domains">Domains</string>
+    <string name="row_domains">Blocked Domains</string>
     <string name="blocklist_value">%1$s</string>
     <string name="row_last_checked">Last Checked</string>
     <string name="last_checked_never">Never (built-in list)</string>
@@ -35,18 +35,18 @@
     <string name="exclusions_applied">Exclusions applied</string>
 
     <string name="section_auto_update">Automatic Updates</string>
-    <string name="row_wifi_only">Wi-Fi Only</string>
-    <string name="wifi_only_footer">When on, automatic blocklist and app updates don\'t use mobile data. \"Update Now\" and \"Check for Update\" always work.</string>
+    <string name="row_wifi_only">Update on Wi-Fi Only</string>
+    <string name="wifi_only_footer">When on, automatic blocklist and app updates only run on Wi-Fi (or other unmetered networks), not on mobile data. \"Update Now\" and \"Check for Update\" always work.</string>
     <string name="section_app">App</string>
     <string name="row_version">Version</string>
     <string name="version_value">v%1$s</string>
-    <string name="row_auto_install">Install Automatically</string>
+    <string name="row_auto_install">Update Automatically</string>
     <string name="row_check_update">Check for Update</string>
     <string name="checking_update">Checking…</string>
     <string name="update_up_to_date">You\'re up to date</string>
     <string name="update_installing">Installing v%1$s</string>
     <string name="update_check_failed">Couldn\'t check for updates</string>
-    <string name="app_update_footer">Checks GitHub for a new version once a day. Turn off \"Install Automatically\" to only get a notification.</string>
+    <string name="app_update_footer">Checks GitHub for a new version once a day. Turn off \"Update Automatically\" to only get a notification.</string>
     <string name="notif_channel_updates">Updates</string>
     <string name="notif_update_available">AdBlocker v%1$s is available</string>
     <string name="notif_update_available_text">Tap to install</string>
@@ -81,7 +81,7 @@
     <string name="action_reset">Reset</string>
     <string name="action_block">Block</string>
     <string name="action_allow">Allow</string>
-    <string name="action_remove_rule">Remove Rule for %1$s</string>
+    <string name="action_remove_rule">Stop Blocking / Allowing %1$s</string>
     <string name="action_copy">Copy</string>
     <string name="copied">Copied</string>
 
@@ -121,15 +121,15 @@
     <string name="log_no_results">No results</string>
     <string name="log_disabled">The query log is off. You can turn it on in Settings.</string>
     <string name="verdict_list">Blocked by the blocklist</string>
-    <string name="verdict_user_block">Blocked by your rule</string>
-    <string name="verdict_user_allow">Allowed by your rule</string>
+    <string name="verdict_user_block">Blocked by you</string>
+    <string name="verdict_user_allow">Allowed by you</string>
     <string name="verdict_cname">Blocked by CNAME target (%1$s)</string>
     <string name="verdict_paused">Allowed while paused</string>
     <string name="verdict_pass">Allowed</string>
     <string name="log_detail_count">%1$s (×%2$d)</string>
 
     <string name="section_filtering">Filtering</string>
-    <string name="title_rules">My Rules</string>
+    <string name="title_rules">Block &amp; Allow Domains</string>
     <string name="rules_value">%1$d</string>
     <string name="row_query_log">Query Log</string>
     <string name="query_log_footer">Keeps the last 500 lookups and the most-blocked domains in memory only. Nothing is written to storage.</string>
@@ -142,11 +142,11 @@
     <string name="rule_invalid">That isn\'t a valid domain</string>
     <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on the blocklist.</string>
     <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. Allow rules win over block rules.</string>
-    <string name="rules_empty">No rules</string>
+    <string name="rules_empty">Nothing added yet</string>
     <string name="rule_delete_title">Delete %1$s?</string>
     <string name="rule_added_block">Blocking %1$s</string>
     <string name="rule_added_allow">Allowing %1$s</string>
-    <string name="rule_removed">Rule removed</string>
+    <string name="rule_removed">Removed</string>
     <string name="title_blocklists">Blocklists</string>
     <string name="section_built_in_lists">Built-in Lists</string>
     <string name="built_in_lists_footer">Turning a list off stops using it right away. HaGeZi blocks more (trackers, telemetry, scams) and may occasionally block something you need.</string>
@@ -159,7 +159,7 @@
     <string name="list_rules">%1$s rules</string>
     <string name="list_bundled">Bundled with the app</string>
     <string name="list_not_downloaded">Not downloaded yet</string>
-    <string name="sources_footer_none">No blocklist is selected. Only your own rules are used.</string>
+    <string name="sources_footer_none">No blocklist is selected. Only the domains you added in \"Block &amp; Allow Domains\" are blocked.</string>
     <string name="shortcut_pause">Pause / Resume</string>
     <string name="shortcut_pause_long">Pause for 15 Minutes / Resume</string>
     <string name="shortcut_toggle">On / Off</string>
@@ -175,7 +175,7 @@
     <string name="section_backup">Backup</string>
     <string name="row_export">Export Settings</string>
     <string name="row_import">Import Settings</string>
-    <string name="backup_footer">Saves your rules, excluded apps, blocklists and settings to a file, for moving to a new phone. Statistics and the log are not included.</string>
+    <string name="backup_footer">Saves your blocked and allowed domains, excluded apps, blocklists and settings to a file, for moving to a new phone. Statistics and the log are not included.</string>
     <string name="export_done">Settings exported</string>
     <string name="export_failed">Couldn\'t save the file</string>
     <string name="import_done">Settings imported</string>

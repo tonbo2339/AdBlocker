@@ -26,16 +26,16 @@ After that, the app checks for new versions and updates itself.
 - **CNAME cloaking detection**: also blocks trackers disguised as a site's own subdomain (when the CNAME target is on the blocklist)
 - **Choose blocklists**: turn the built-in lists on / off, or add any list by URL
 - **Excluded apps**: chosen apps bypass ad blocking and connect as usual (for apps that break with ad blocking)
-- **My rules**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win)
+- **Block & allow domains**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win)
 - **Pause**: let everything through for 5 minutes, 15 minutes or 1 hour without turning the VPN off. The notification shows when it resumes and has a Resume button
 - **Query log**: the last 500 lookups and whether each was blocked. Tap one to block or allow it. Kept only in memory, and can be turned off
 - **Statistics**: today's counts, a 7-day chart, all-time totals, and the most-blocked domains. Only counts are saved, not which sites you visited
 - **Private DNS warning**: tells you when "Private DNS" is set to a hostname, which stops blocking from working
 - **Encrypted DNS** (optional): send lookups to Cloudflare, Google or Quad9 over DNS over TLS
-- **Settings backup**: export your rules, excluded apps and settings to a file and import them on a new phone
+- **Settings backup**: export your blocked and allowed domains, excluded apps and settings to a file and import them on a new phone
 - **Automatic blocklist updates**: fetches the latest lists once a day
 - **Automatic app updates**: checks GitHub Releases once a day and installs new versions automatically (or just notifies you, if you prefer)
-- **Wi-Fi only**: keep automatic updates (blocklist and app) off mobile data
+- **Update on Wi-Fi only**: keep automatic updates (blocklist and app) off mobile data (on by default)
 - **Quick Settings tile**: turn blocking on / off from the notification shade (tap it while paused to resume)
 - **Launcher shortcuts**: long-press the app icon for "Pause / Resume" and "On / Off"
 - **Notification settings**: app updates, blocklist updates and the running indicator can each be turned on / off
@@ -80,7 +80,7 @@ Open this folder in Android Studio and run it. From the command line:
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / my rules / blocklist sources)
+gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources)
 gradlew lintDebug
 ```
 
@@ -106,11 +106,11 @@ On Android 12 and later, updates after the first one install without asking (the
 | `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) |
 | `DotClient.kt` | Encrypted DNS (DNS over TLS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
-| `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, my rules, blocklist) |
+| `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, your blocked / allowed domains, blocklist) |
 | `QueryLog.kt` / `StatsStore.kt` | Query log (in memory) / daily counts |
 | `PrivateDnsMonitor.kt` | Detecting "Private DNS" set to a hostname |
 | `MainActivity.kt` / `LogAdapter.kt` | Home / Statistics / Log tabs |
-| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | Settings / my rules / blocklists / excluded apps |
+| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | Settings / blocked and allowed domains / blocklists / excluded apps |
 | `SettingsBackup.kt` | Exporting and importing settings |
 | `ShortcutActivity.kt` / `ResumeReceiver.kt` | Launcher shortcuts / the Resume button in the notification |
 | `DomainActions.kt` | The block / allow menu for a domain |

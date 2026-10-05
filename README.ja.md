@@ -26,16 +26,16 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 - **CNAME 隠しの検出**: サイト自身のサブドメインに見せかけたトラッカーも止める (CNAME の転送先がブロック対象のとき)
 - **ブロックリストの選択**: 組み込みのリストをオン / オフできるほか、好きなリストを URL で追加できる
 - **例外アプリ**: 選んだアプリは広告ブロックを通らず、普段どおり通信する (広告ブロックで動かなくなるアプリ用)
-- **自分のルール**: ドメインを自分でブロック・許可できる (サブドメインにも効く。許可が優先)
+- **ブロック・許可するドメイン**: ドメインを手動でブロック・許可できる (サブドメインにも効く。許可が優先)
 - **一時停止**: VPN を止めずに、5 分・15 分・1 時間だけブロックを止める。一時停止中は、通知に再開の時刻と「再開」ボタンが出る
 - **問い合わせのログ**: 直近 500 件と、ブロックしたかどうか。タップするとブロック・許可を設定できる。メモリ上だけに持ち、オフにもできる
 - **統計**: 今日の件数、過去 7 日のグラフ、累計、よくブロックしたドメイン。保存するのは件数だけで、どのサイトを見たかは残さない
 - **プライベート DNS の警告**: 「プライベート DNS」が「ホスト名を指定」でブロックが効かないときに知らせる
 - **暗号化 DNS** (任意): 問い合わせを DNS over TLS で Cloudflare・Google・Quad9 に送る
-- **設定のバックアップ**: 自分のルール・例外アプリ・設定をファイルに書き出し、機種変更後の端末で読み込める
+- **設定のバックアップ**: ブロック・許可するドメイン・例外アプリ・設定をファイルに書き出し、機種変更後の端末で読み込める
 - **ブロックリストの自動更新**: 1 日 1 回、最新のリストを取得する
-- **アプリの自動更新**: 1 日 1 回 GitHub Releases を確認し、新しいバージョンがあれば自動でインストール (設定で「通知のみ」にもできる)
-- **Wi-Fi のときだけ更新**: 自動更新 (ブロックリスト・アプリ) をモバイル通信では行わないようにできる
+- **アプリの自動更新**: 1 日 1 回 GitHub Releases を確認し、新しいバージョンがあれば自動でアップデート (設定で「通知のみ」にもできる)
+- **Wi-Fi のときだけ自動更新**: 自動更新 (ブロックリスト・アプリ) をモバイル通信では行わない (既定でオン)
 - **クイック設定タイル**: 通知パネルから ON / OFF (一時停止中にタップすると再開)
 - **ランチャーのショートカット**: アプリのアイコンを長押しすると「一時停止 / 再開」「オン / オフ」が使える
 - **通知の設定**: アプリの更新・ブロックリストの更新・動作中の表示を、それぞれオン / オフできる
@@ -80,7 +80,7 @@ Android Studio でこのフォルダを開いて実行します。コマンド�
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較 / 自分のルール / ブロックリストの取得元)
+gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較 / ブロック・許可するドメイン / ブロックリストの取得元)
 gradlew lintDebug
 ```
 
@@ -106,11 +106,11 @@ Android 12 以上では、2 回目以降の更新は確認なしで入ります 
 | `UpstreamDns.kt` | 転送先 DNS の選択 (回線の DNS を優先、公開 DNS は予備) |
 | `DotClient.kt` | 暗号化 DNS (DNS over TLS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | GitHub Releases からの自動更新 |
-| `Filter.kt` / `UserRules.kt` / `Pause.kt` | 問い合わせごとの判定 (一時停止・自分のルール・ブロックリスト) |
+| `Filter.kt` / `UserRules.kt` / `Pause.kt` | 問い合わせごとの判定 (一時停止・ブロック・許可するドメイン・ブロックリスト) |
 | `QueryLog.kt` / `StatsStore.kt` | 問い合わせのログ (メモリ上) / 日ごとの件数 |
 | `PrivateDnsMonitor.kt` | 「プライベート DNS」が「ホスト名を指定」かの検知 |
 | `MainActivity.kt` / `LogAdapter.kt` | ホーム / 統計 / ログのタブ |
-| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | 設定 / 自分のルール / ブロックリスト / 例外アプリ |
+| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | 設定 / ブロック・許可するドメイン / ブロックリスト / 例外アプリ |
 | `SettingsBackup.kt` | 設定の書き出しと読み込み |
 | `ShortcutActivity.kt` / `ResumeReceiver.kt` | ランチャーのショートカット / 通知の「再開」ボタン |
 | `DomainActions.kt` | ドメインのブロック・許可のメニュー |
