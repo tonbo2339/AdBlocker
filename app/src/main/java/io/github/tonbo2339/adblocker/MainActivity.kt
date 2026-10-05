@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
 
     /** よくブロックしたドメインの表示中の内容 (変わったときだけ作り直す)。 */
     private var shownTopDomains: List<Pair<String, Int>>? = null
+    private var shownTopEnabled = true
 
     private val logAdapter = LogAdapter(this)
 
@@ -426,13 +427,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateTopDomains() {
         val top = SessionStats.top(TOP_DOMAINS)
-        if (top == shownTopDomains) return
+        val enabled = QueryLog.enabled
+        if (top == shownTopDomains && enabled == shownTopEnabled) return
         shownTopDomains = top
+        shownTopEnabled = enabled
         val card = binding.stats.topDomains
         card.removeAllViews()
         if (top.isEmpty()) {
             val row = ItemValueRowBinding.inflate(layoutInflater, card, true)
-            row.title.setText(R.string.top_domains_empty)
+            row.title.setText(if (enabled) R.string.top_domains_empty else R.string.top_domains_disabled)
             row.title.setTextColor(getColor(R.color.label_secondary))
             row.row.isClickable = false
             row.separator.isVisible = false

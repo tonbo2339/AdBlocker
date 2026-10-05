@@ -70,6 +70,7 @@
 
     <string name="notif_channel">Ad Blocking</string>
     <string name="notif_text">Blocking ads</string>
+    <string name="notif_paused_text">Paused until %1$s</string>
     <string name="tab_home">Home</string>
     <string name="tab_stats">Statistics</string>
     <string name="tab_log">Log</string>
@@ -108,6 +109,7 @@
     <string name="section_top_domains">Top Blocked Domains</string>
     <string name="top_domains_footer">Since ad blocking was last turned on. Kept only in memory. Tap a domain to block or allow it.</string>
     <string name="top_domains_empty">None yet</string>
+    <string name="top_domains_disabled">Off while the query log is off</string>
     <string name="stats_reset">Reset Statistics</string>
     <string name="stats_reset_title">Reset all statistics?</string>
     <string name="stats_reset_message">Daily and all-time counts will be deleted.</string>
@@ -129,7 +131,7 @@
     <string name="title_rules">My Rules</string>
     <string name="rules_value">%1$d</string>
     <string name="row_query_log">Query Log</string>
-    <string name="query_log_footer">Keeps the last 500 lookups in memory only. Nothing is written to storage.</string>
+    <string name="query_log_footer">Keeps the last 500 lookups and the most-blocked domains in memory only. Nothing is written to storage.</string>
     <string name="rules_block">Block</string>
     <string name="rules_allow">Allow</string>
     <string name="rule_add">Add Domain</string>

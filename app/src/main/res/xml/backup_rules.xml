@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 以前のバックアップ。端末ごとの状態とダウンロードしたブロックリストは含めない -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="state.xml" />
+    <exclude domain="file" path="blocklists/" />
+</full-backup-content>

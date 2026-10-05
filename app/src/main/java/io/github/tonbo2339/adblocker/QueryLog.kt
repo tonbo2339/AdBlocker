@@ -17,7 +17,11 @@ object QueryLog {
     var enabled = true
         set(value) {
             field = value
-            if (!value) clear()
+            // よくブロックしたドメインもドメイン名を残すので、ログと一緒に止める
+            if (!value) {
+                clear()
+                SessionStats.reset()
+            }
         }
 
     private val entries = ArrayDeque<Entry>(CAPACITY)

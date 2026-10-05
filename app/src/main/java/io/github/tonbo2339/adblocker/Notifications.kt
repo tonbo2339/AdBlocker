@@ -69,13 +69,28 @@ object Notifications {
     /** VPN サービスの startForeground() に渡す通知。 */
     fun running(context: Context): Notification {
         createChannel(context, CHANNEL_RUNNING, R.string.notif_channel, NotificationManager.IMPORTANCE_LOW)
-        return Notification.Builder(context, CHANNEL_RUNNING)
+        val builder = Notification.Builder(context, CHANNEL_RUNNING)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(context.getString(R.string.notif_text))
             .setContentIntent(pendingActivity(context, ID_RUNNING, mainIntent(context)))
             .setOngoing(true)
-            .build()
+        if (Pause.isPaused()) {
+            val time = android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(Pause.resumesAt))
+            val resume = PendingIntent.getBroadcast(
+                context, 0, Intent(context, ResumeReceiver::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+            builder.setContentText(context.getString(R.string.notif_paused_text, time))
+                .addAction(
+                    Notification.Action.Builder(
+                        android.graphics.drawable.Icon.createWithResource(context, R.drawable.ic_g_play),
+                        context.getString(R.string.row_resume), resume,
+                    ).build()
+                )
+        } else {
+            builder.setContentText(context.getString(R.string.notif_text))
+        }
+        return builder.build()
     }
 
     // ----------------------------------------------------------------

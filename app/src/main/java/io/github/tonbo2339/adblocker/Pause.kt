@@ -3,6 +3,7 @@ package io.github.tonbo2339.adblocker
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * 一時停止。VPN は動かしたまま、期限までブロックせずにすべて通す
@@ -13,6 +14,13 @@ object Pause {
     private var until = 0L
 
     private val handler = Handler(Looper.getMainLooper())
+
+    /** 一時停止・再開・期限切れのときに (メインスレッドで) 呼ばれる。 */
+    private val listeners = CopyOnWriteArraySet<() -> Unit>()
+
+    fun addListener(listener: () -> Unit) = listeners.add(listener)
+
+    fun removeListener(listener: () -> Unit) = listeners.remove(listener)
 
     fun load(context: Context) {
         until = Prefs.pausedUntil(context)
@@ -34,11 +42,16 @@ object Pause {
         val app = context.applicationContext
         until = time
         Prefs.setPausedUntil(app, time)
-        AdBlockTileService.refresh(app)
+        changed(app)
         // 期限が来たらタイルの「一時停止中」を戻す (プロセスが終了していたら、次にパネルを開いたときに戻る)
         handler.removeCallbacksAndMessages(null)
         if (time > System.currentTimeMillis()) {
-            handler.postDelayed({ AdBlockTileService.refresh(app) }, time - System.currentTimeMillis())
+            handler.postDelayed({ changed(app) }, time - System.currentTimeMillis())
         }
+    }
+
+    private fun changed(context: Context) {
+        AdBlockTileService.refresh(context)
+        for (l in listeners) l()
     }
 }

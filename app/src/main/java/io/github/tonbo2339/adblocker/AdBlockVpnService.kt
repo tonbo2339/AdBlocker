@@ -121,8 +121,16 @@ class AdBlockVpnService : VpnService() {
         }
     }
 
+    /** 一時停止・再開したら、常駐通知の文言と「再開」ボタンを差し替える。 */
+    private val pauseListener: () -> Unit = {
+        if (state == State.RUNNING && Prefs.isNotificationEnabled(this, NotificationKind.RUNNING)) {
+            startForegroundWithNotification()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        Pause.addListener(pauseListener)
         locales = resources.configuration.locales
         upstream = UpstreamDns(this).apply { start() }
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
@@ -166,6 +174,7 @@ class AdBlockVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        Pause.removeListener(pauseListener)
         mainHandler.removeCallbacks(statsFlusher)
         StatsStore.flush(applicationContext)
         shutdown()
@@ -320,7 +329,7 @@ class AdBlockVpnService : VpnService() {
         StatsStore.record(verdict.blocked)
         QueryLog.add(question.name, verdict)
         if (verdict.blocked) {
-            SessionStats.recordBlocked(question.name)
+            if (QueryLog.enabled) SessionStats.recordBlocked(question.name)
             writePacket(out, Packets.buildResponse(query, Dns.nxdomain(query.dns, question)))
             return
         }
