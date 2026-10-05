@@ -77,10 +77,20 @@ class LogSettingsActivity : SettingsPageActivity() {
     }
 
     override fun SettingsBuilder.build(savedInstanceState: Bundle?) {
+        val context = this@LogSettingsActivity
         card(spaced = true) {
-            toggle(R.string.row_query_log, R.drawable.ic_g_doc, R.color.sys_gray, Prefs.queryLogEnabled(this@LogSettingsActivity)) {
-                Prefs.setQueryLogEnabled(this@LogSettingsActivity, it)
-                refresh()
+            lateinit var logRow: SettingRow
+            logRow = toggle(R.string.row_query_log, R.drawable.ic_g_doc, R.color.sys_gray, Prefs.queryLogEnabled(context)) { on ->
+                if (on) {
+                    Prefs.setQueryLogEnabled(context, true)
+                    refresh()
+                } else {
+                    // オフにすると保存したログも消えるので確かめる。やめたらスイッチを戻す
+                    confirmDelete(0, onCancel = { logRow.binding.toggle.isChecked = true }) {
+                        Prefs.setQueryLogEnabled(context, false)
+                        refresh()
+                    }
+                }
             }
         }
         footer = footer()
@@ -89,8 +99,10 @@ class LogSettingsActivity : SettingsPageActivity() {
         retentionCard = card {
             for (days in Prefs.LOG_RETENTION_CHOICES) {
                 retentionRows += choice(logRetentionLabel(days), false) {
-                    Prefs.setLogRetentionDays(this@LogSettingsActivity, days)
-                    refresh()
+                    confirmDelete(days) {
+                        Prefs.setLogRetentionDays(context, days)
+                        refresh()
+                    }
                 }
             }
         }
@@ -109,6 +121,26 @@ class LogSettingsActivity : SettingsPageActivity() {
         retentionViews.forEach { it.isVisible = on }
         Prefs.LOG_RETENTION_CHOICES.forEachIndexed { i, d -> retentionRows[i].checked = d == days }
         footer.text = getString(if (on && days > 0) R.string.query_log_footer_saved else R.string.query_log_footer, logPeriodText(days))
+    }
+
+    /**
+     * 保存したログが消える変更 (オフにする・期間を短くする) なら、消してよいか確かめてから onConfirm を呼ぶ。
+     * days は変更後に残す日数 (0 ならすべて消える)。消えるものが無ければ、確かめずにそのまま呼ぶ。
+     */
+    private fun confirmDelete(days: Int, onCancel: () -> Unit = {}, onConfirm: () -> Unit) {
+        val current = Prefs.logRetentionDays(this)
+        val shrinks = current > 0 && (days == 0 || days < current)
+        if (!shrinks || !QueryLogFiles.hasSavedLog()) {
+            onConfirm()
+            return
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.log_delete_title)
+            .setMessage(if (days == 0) getString(R.string.log_delete_all) else getString(R.string.log_delete_older, logPeriodText(days)))
+            .setPositiveButton(R.string.action_delete) { _, _ -> onConfirm() }
+            .setNegativeButton(R.string.action_cancel) { _, _ -> onCancel() }
+            .setOnCancelListener { onCancel() }
+            .show()
     }
 
     private fun exportTo(uri: Uri) {

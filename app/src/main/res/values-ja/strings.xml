@@ -190,6 +190,9 @@
     <string name="log_period_30">30 日</string>
     <string name="row_export_log">ログを書き出す</string>
     <string name="export_log_done">ログを書き出しました</string>
+    <string name="log_delete_title">保存したログを消しますか?</string>
+    <string name="log_delete_all">この端末に保存したログをすべて消します。元に戻せません。</string>
+    <string name="log_delete_older">%1$sより前のログを消します。元に戻せません。</string>
     <string name="row_capture_dns">DNS を自分で指定するアプリもブロック</string>
     <string name="capture_dns_footer">アプリによっては、端末の設定を使わずに公開 DNS (8.8.8.8 や 1.1.1.1 など) へ直接問い合わせるため、広告ブロックが効きません。オンにすると、その問い合わせもブロックの対象にし、これらのサーバーへの暗号化した問い合わせ (DNS over HTTPS / TLS) は断って、端末の DNS を使わせます。オンの間は、これらのアドレスへの ping が届きません。</string>
     <string name="section_top_apps">よくブロックしたアプリ</string>

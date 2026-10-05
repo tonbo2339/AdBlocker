@@ -23,7 +23,7 @@ object UserRules {
     /** 保存しているルール (書いたとおり) と、照合用に分けたもの。 */
     private class Rules(val all: Set<String>) {
         val domains: Set<String> = all.filterTo(HashSet()) { '*' !in it && IpRule.parse(it) == null }
-        val wildcards: List<Pair<String, Regex>> = all.filter { '*' in it }.sorted().map { it to wildcardRegex(it) }
+        val wildcards: List<String> = all.filter { '*' in it }.sorted()
         val ips: List<Pair<String, IpRule>> = all.mapNotNull { r -> IpRule.parse(r)?.let { r to it } }.sortedBy { it.first }
     }
 
@@ -82,7 +82,7 @@ object UserRules {
         for (kind in listOf(Kind.ALLOW, Kind.BLOCK)) {
             val rules = rulesOf(kind)
             selfAndParents(name).firstOrNull { it in rules.domains }?.let { return kind to it }
-            rules.wildcards.firstOrNull { it.second.matches(name) }?.let { return kind to it.first }
+            rules.wildcards.firstOrNull { wildcardMatches(it, name) }?.let { return kind to it }
         }
         return null
     }
@@ -97,16 +97,44 @@ object UserRules {
 
     private fun matches(rules: Rules, name: String): Boolean =
         rules.domains.isNotEmpty() && selfAndParents(name).any { it in rules.domains } ||
-            rules.wildcards.any { it.second.matches(name) }
+            rules.wildcards.any { wildcardMatches(it, name) }
 
     /** ads.example.com → ads.example.com, example.com, com */
     private fun selfAndParents(name: String): Sequence<String> =
         generateSequence(name.trimEnd('.')) { n -> n.indexOf('.').takeIf { it >= 0 }?.let { n.substring(it + 1) } }
             .filter { it.isNotEmpty() }
 
-    /** `*` は何文字でも (ドットも含む)。名前全体と比べる。 */
-    private fun wildcardRegex(pattern: String): Regex =
-        Regex(pattern.split('*').joinToString(".*") { Regex.escape(it) })
+    /**
+     * `*` は何文字でも (ドットも含む) に当たる。名前全体と比べる。
+     * 正規表現にすると `*` の多いパターンで照合が極端に遅くなることがある (問い合わせのたびに VPN のスレッドで動く) ので、
+     * `*` の位置を覚えて戻るだけの方法で、長さの積に比例する時間で必ず終わるようにする。
+     */
+    internal fun wildcardMatches(pattern: String, name: String): Boolean {
+        var p = 0
+        var n = 0
+        var star = -1 // 最後に見た * の位置
+        var resume = 0 // その * で読み飛ばし始めた名前の位置
+        while (n < name.length) {
+            when {
+                p < pattern.length && pattern[p] == name[n] -> {
+                    p++
+                    n++
+                }
+                p < pattern.length && pattern[p] == '*' -> {
+                    star = p++
+                    resume = n
+                }
+                star >= 0 -> {
+                    // 直前の * にもう 1 文字飲み込ませてやり直す
+                    p = star + 1
+                    n = ++resume
+                }
+                else -> return false
+            }
+        }
+        while (p < pattern.length && pattern[p] == '*') p++
+        return p == pattern.length
+    }
 
     /**
      * 入力をルールに整える。URL や Adblock 形式 (`||example.com^`)、`*.example.com` (= example.com)、

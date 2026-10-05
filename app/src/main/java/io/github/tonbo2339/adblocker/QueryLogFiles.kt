@@ -88,6 +88,9 @@ object QueryLogFiles {
         executor.execute { flushWriter() }
     }
 
+    /** 保存しているログのファイルがあるか (消す前に確認するため)。 */
+    fun hasSavedLog(): Boolean = dir?.let { files(it).isNotEmpty() } == true
+
     /** 新しい日のファイルから、直近 limit 件を古い順に読む (プロセスの開始時に画面のログへ戻す)。ディスクを読むのでメインスレッドで呼ばない。 */
     fun recent(limit: Int): List<QueryLog.Entry> {
         val d = dir ?: return emptyList()

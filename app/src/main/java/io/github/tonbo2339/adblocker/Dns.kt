@@ -194,13 +194,19 @@ object Dns {
     }
 
     /**
-     * キャッシュのキー。名前・種類・クラスに加えて、応答の中身が変わるフラグ (CD と、EDNS の DO) を含める。
+     * キャッシュのキー。名前・種類・クラスに加えて、応答の中身が変わるもの (CD、EDNS の有無と DO) を含める。
      */
     fun cacheKey(query: ByteArray, q: Question): String {
         val qclass = u16(query, q.end - 2)
         val cd = query[3].toInt() and 0x10 != 0
-        val dnssecOk = records(query).orEmpty().any { it.type == TYPE_OPT && u32(query, it.ttlAt) and 0x8000L != 0L }
-        return "${q.name}/${q.type}/$qclass/${if (cd) 1 else 0}${if (dnssecOk) 1 else 0}"
+        // EDNS (OPT) を使わない問い合わせに、OPT 付きの答えを返さないよう、EDNS の有無も分ける
+        val opt = records(query).orEmpty().firstOrNull { it.type == TYPE_OPT }
+        val edns = when {
+            opt == null -> 0
+            u32(query, opt.ttlAt) and 0x8000L != 0L -> 2 // DO (DNSSEC の情報も欲しい)
+            else -> 1
+        }
+        return "${q.name}/${q.type}/$qclass/${if (cd) 1 else 0}$edns"
     }
 }
 

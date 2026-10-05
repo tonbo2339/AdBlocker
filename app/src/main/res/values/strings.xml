@@ -193,6 +193,9 @@
     <string name="log_period_30">30 days</string>
     <string name="row_export_log">Export Log</string>
     <string name="export_log_done">Log exported</string>
+    <string name="log_delete_title">Delete the Saved Log?</string>
+    <string name="log_delete_all">The log saved on this phone will be deleted. This can\'t be undone.</string>
+    <string name="log_delete_older">Log entries older than %1$s will be deleted. This can\'t be undone.</string>
     <string name="row_capture_dns">Block Apps\' Own DNS</string>
     <string name="capture_dns_footer">Some apps send lookups straight to public DNS servers (such as 8.8.8.8 or 1.1.1.1), which gets around ad blocking. When on, those lookups are filtered too, and encrypted lookups to these servers (DNS over HTTPS / TLS) are refused so the app falls back to your phone\'s DNS. While it\'s on, ping to these addresses doesn\'t work.</string>
     <string name="section_top_apps">Top Blocked Apps</string>

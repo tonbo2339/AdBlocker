@@ -70,4 +70,19 @@ class UserRulesTest {
         assertTrue(odd.contains(byteArrayOf(10, 127, 0, 1)))
         assertFalse(odd.contains(byteArrayOf(10, (-128).toByte(), 0, 1)))
     }
+
+    @Test
+    fun wildcardMatching() {
+        assertTrue(UserRules.wildcardMatches("ads.*", "ads.example.com"))
+        assertFalse(UserRules.wildcardMatches("ads.*", "x.ads.example.com"))
+        assertTrue(UserRules.wildcardMatches("*tracker*", "cdn.tracker-1.example"))
+        assertTrue(UserRules.wildcardMatches("*.ads.*", "x.ads.example.com"))
+        assertFalse(UserRules.wildcardMatches("*.ads.*", "ads.example.com"))
+        assertTrue(UserRules.wildcardMatches("a*b*c", "a.b.c"))
+        assertFalse(UserRules.wildcardMatches("a*b*c", "a.b.d"))
+        // * の多いパターンでもすぐ終わる (正規表現だと極端に遅くなる形)
+        val started = System.nanoTime()
+        assertFalse(UserRules.wildcardMatches("*a".repeat(60) + "*b", "a".repeat(250)))
+        assertTrue(System.nanoTime() - started < 1_000_000_000L)
+    }
 }

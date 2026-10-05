@@ -30,7 +30,7 @@ After that, the app checks for new versions and updates itself.
 - **Excluded apps**: chosen apps bypass ad blocking and connect as usual (for apps that break with ad blocking)
 - **Block & allow domains**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win). Use `*` as a wildcard (`ads.*`, `*tracker*`), or block an IP address or range (`203.0.113.0/24`) to stop any name whose answer is that address
 - **Pause**: let everything through for 5 minutes, 15 minutes or 1 hour without turning the VPN off. The notification shows when it resumes and has a Resume button
-- **Query log**: the last 500 lookups, which app made each one (Android 10+), and whether it was blocked. Tap one to block or allow it. Kept only in memory by default; you can also keep it in a file on the phone for 1, 7 or 30 days and export it as CSV. Can be turned off
+- **Query log**: the last 500 lookups, which app made each one (Android 10+), and whether it was blocked. Tap one to block or allow it. Kept only in memory by default; you can also keep it in a file on the phone for 1, 7 or 30 days and export it as CSV (turning the log off or shortening the period asks before deleting the saved log). Can be turned off
 - **Statistics**: today's counts, a 7-day chart, all-time totals, and the most-blocked domains and apps. Only counts are saved, not which sites you visited
 - **Private DNS warning**: tells you when "Private DNS" is set to a hostname, which stops blocking from working
 - **Encrypted DNS** (optional): send lookups to Cloudflare, Google or Quad9 over DNS over TLS
