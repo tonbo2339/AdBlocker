@@ -1,57 +1,59 @@
 # AdBlocker
 
-Android 用の広告ブロッカーです。端末内にローカル VPN を作り、広告・トラッカーのドメインへの DNS 問い合わせを止めます。root は不要で、通信内容を外部に送ることもありません。
+**English** | [日本語](README.ja.md)
 
-> **このリポジトリのコード・ドキュメント・アイコンは、[Claude Code](https://claude.com/claude-code) (Anthropic の AI コーディングツール) が作成しました。**
+An ad blocker for Android. It runs a local VPN on the device and stops DNS lookups for ad and tracker domains. No root required, and nothing you do is sent anywhere.
+
+> **The code, documentation and icon in this repository were made by [Claude Code](https://claude.com/claude-code) (Anthropic's AI coding tool).**
 
 <p>
-  <img src="docs/screenshots/main-dark.png" width="240" alt="メイン画面 (保護中・ダーク)">
-  <img src="docs/screenshots/main-light.png" width="240" alt="メイン画面 (停止中・ライト)">
-  <img src="docs/screenshots/exclusions.png" width="240" alt="例外アプリの設定">
+  <img src="docs/screenshots/en/main-dark.png" width="240" alt="Main screen (protected, dark)">
+  <img src="docs/screenshots/en/main-light.png" width="240" alt="Main screen (off, light)">
+  <img src="docs/screenshots/en/exclusions.png" width="240" alt="Excluded apps">
 </p>
 
-## ダウンロード
+## Download
 
-[Releases](https://github.com/tonbo2339/AdBlocker/releases/latest) から `AdBlocker-vX.Y.apk` をダウンロードしてインストールしてください (「提供元不明のアプリ」の許可が必要です)。
-一度入れれば、以降はアプリが新しいバージョンを確認して自動で更新します。
+Download `AdBlocker-vX.Y.apk` from [Releases](https://github.com/tonbo2339/AdBlocker/releases/latest) and install it (you need to allow installing unknown apps).
+After that, the app checks for new versions and updates itself.
 
-- 動作環境: Android 8.0 以上
-- まだ開発中のため、バージョンは 0.x です
+- Requires Android 8.0 or later
+- Still in development, so the version is 0.x
 
-## 機能
+## Features
 
-- **広告ブロック**: 約 24 万の広告・トラッカーのドメインへの接続を止める
-- **例外アプリ**: 選んだアプリは広告ブロックを通らず、普段どおり通信する (広告ブロックで動かなくなるアプリ用)
-- **ブロックリストの自動更新**: 1 日 1 回、最新のリストを取得する
-- **アプリの自動更新**: 1 日 1 回 GitHub Releases を確認し、新しいバージョンがあれば自動でインストール (設定で「通知のみ」にもできる)
-- **Wi-Fi のときだけ更新**: 自動更新 (ブロックリスト・アプリ) をモバイル通信では行わないようにできる
-- **クイック設定タイル**: 通知パネルから ON / OFF
-- **通知の設定**: アプリの更新・ブロックリストの更新・動作中の表示を、それぞれオン / オフできる
-- 端末の再起動後・アプリの更新後に自動で再開、常時接続 VPN にも対応
-- ライト / ダークモード対応
-- 日本語 / 英語 (端末の言語に合わせる。Android 13 以上は設定でアプリごとに切り替え可)
+- **Ad blocking**: blocks connections to about 240,000 ad and tracker domains
+- **Excluded apps**: chosen apps bypass ad blocking and connect as usual (for apps that break with ad blocking)
+- **Automatic blocklist updates**: fetches the latest lists once a day
+- **Automatic app updates**: checks GitHub Releases once a day and installs new versions automatically (or just notifies you, if you prefer)
+- **Wi-Fi only**: keep automatic updates (blocklist and app) off mobile data
+- **Quick Settings tile**: turn blocking on / off from the notification shade
+- **Notification settings**: app updates, blocklist updates and the running indicator can each be turned on / off
+- Resumes automatically after a reboot or an app update; works with Always-on VPN
+- Light / dark mode
+- English / Japanese (follows the device language; on Android 13+ you can pick a language per app in Settings)
 
-## 制限
+## Limitations
 
-- Android では VPN は同時に 1 つしか使えない。他の VPN アプリを起動すると AdBlocker は自動で OFF になる
-- 設定の「プライベート DNS」が「ホスト名を指定」だとブロックが効かない (「自動」か「オフ」にする)
-- 広告があった場所の**空白は消せない** (DNS では通信を止めるだけで、画面のレイアウトは変えられないため)。ブラウザなら Firefox + uBlock Origin などを併用する
-- 本編と同じドメインから配信される広告 (YouTube の動画広告など)、IP アドレス直指定やアプリ独自の DNS-over-HTTPS は止められない
-- 大きな応答で TCP にフォールバックする DNS 問い合わせ (まれ) には対応していない
+- Android allows only one VPN at a time. Starting another VPN app turns AdBlocker off
+- Blocking doesn't work while "Private DNS" in Settings is set to a hostname (use "Automatic" or "Off")
+- **The blank space where an ad was can't be removed** (DNS blocking only stops the connection; it can't change page layouts). For browsers, use something like Firefox + uBlock Origin as well
+- Ads served from the same domain as the content (such as YouTube video ads), hard-coded IP addresses, and apps' own DNS-over-HTTPS can't be blocked
+- DNS lookups that fall back to TCP for large responses (rare) aren't supported
 
-## ブロックリスト
+## Blocklists
 
-| 取得元 | ライセンス |
+| Source | License |
 |---|---|
 | [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | MIT |
 | [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) | GPL-3.0 |
 
-- 1 日 1 回 (と画面の「今すぐ更新」) で取得。ETag で変更が無ければダウンロードしない
-- 取得元ごとに保存し、取得できなくなった取得元は前回の内容を使い続ける。ルールが 1,000 件未満なら異常とみなして使わない
-- 例外ルール (`@@||domain^`) も反映する
-- 初回のダウンロードまでは、アプリに同梱した StevenBlack のリスト (`app/src/main/assets/blocklist.txt`) を使う
+- Fetched once a day (and with "Update Now" in the app). Nothing is downloaded if the ETag hasn't changed
+- Each source is stored separately; if a source can't be fetched, its previous copy keeps being used. A list with fewer than 1,000 rules is treated as broken and ignored
+- Allow rules (`@@||domain^`) are honored
+- Until the first download, the StevenBlack list bundled with the app (`app/src/main/assets/blocklist.txt`) is used
 
-同梱リストを作り直すとき:
+To regenerate the bundled list:
 
 ```
 curl -sSL https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts \
@@ -59,47 +61,47 @@ curl -sSL https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts \
   > app/src/main/assets/blocklist.txt
 ```
 
-## ビルド
+## Building
 
-Android Studio でこのフォルダを開いて実行します。コマンドラインなら:
+Open this folder in Android Studio and run it. From the command line:
 
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
-gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較)
+gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison)
 gradlew lintDebug
 ```
 
-### リリースと自動更新
+### Releases and automatic updates
 
-アプリは `https://api.github.com/repos/tonbo2339/AdBlocker/releases/latest` を見て、タグ (`v0.1` など) が自分の `versionName` より新しければ、添付の `.apk` をダウンロードしてインストールします。
+The app reads `https://api.github.com/repos/tonbo2339/AdBlocker/releases/latest`, and if the tag (such as `v0.1`) is newer than its own `versionName`, it downloads and installs the attached `.apk`.
 
-1. `app/build.gradle.kts` の `versionCode` を上げ、`versionName` を新しい番号にする
-2. ビルドして、タグ `v<versionName>` のリリースに APK を添付する
+1. Bump `versionCode` and set `versionName` to the new number in `app/build.gradle.kts`
+2. Build, and attach the APK to a release tagged `v<versionName>`
 
-インストール前に、パッケージ名・バージョンが上がっていること・署名が今のアプリと同じことを確かめます。
-Android 12 以上では、2 回目以降の更新は確認なしで入ります (初回は確認画面が出ます)。
+Before installing, the app checks the package name, that the version is higher, and that the signature matches the installed app.
+On Android 12 and later, updates after the first one install without asking (the first one shows a confirmation).
 
-### 署名
+### Signing
 
-Releases の APK は作者の PC のデバッグ鍵で署名しています。上書き更新は同じ鍵で署名した APK でしかできないため、自分でビルドした APK を入れた場合、Releases からの自動更新はできません (いったんアンインストールが必要)。
+APKs in Releases are signed with the debug key on the author's PC. An app can only be updated in place by an APK signed with the same key, so if you install an APK you built yourself, updates from Releases won't work (you'd need to uninstall first).
 
-## ファイル構成
+## Project layout
 
-| ファイル | 内容 |
+| File | Contents |
 |---|---|
-| `AdBlockVpnService.kt` | VPN 本体 (tun の読み書き、ブロック判定、上流 DNS への転送) |
-| `Packets.kt` / `Dns.kt` | IPv4 / IPv6 + UDP パケット、DNS メッセージの解析と組み立て |
-| `BlockList.kt` / `DomainSet.kt` | ブロックリストの読み込みと照合 (親ドメイン・例外ルール対応) |
-| `RuleParser.kt` | hosts / ドメイン / Adblock 形式の 1 行を解釈 |
-| `BlockListUpdater.kt` / `BlockListWorker.kt` | ブロックリストのダウンロードと 1 日 1 回の自動更新 |
-| `UpstreamDns.kt` | 転送先 DNS の選択 (回線の DNS を優先、公開 DNS は予備) |
-| `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | GitHub Releases からの自動更新 |
-| `MainActivity.kt` / `AppListActivity.kt` | メイン画面 / 例外アプリの選択画面 |
-| `CardLayout.kt` | 角丸カード (iOS の設定画面風のセクション) |
-| `AdBlockTileService.kt` | クイック設定タイル |
-| `BootReceiver.kt` | 再起動後・更新後の自動再開 |
-| `Notifications.kt` / `Prefs.kt` | 通知 / 設定の保存 |
+| `AdBlockVpnService.kt` | The VPN itself (reads / writes the tun, decides what to block, forwards to upstream DNS) |
+| `Packets.kt` / `Dns.kt` | Parsing and building IPv4 / IPv6 + UDP packets and DNS messages |
+| `BlockList.kt` / `DomainSet.kt` | Loading and matching the blocklist (parent domains and allow rules) |
+| `RuleParser.kt` | Parses one line in hosts / domain / Adblock format |
+| `BlockListUpdater.kt` / `BlockListWorker.kt` | Downloading blocklists and the daily automatic update |
+| `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) |
+| `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
+| `MainActivity.kt` / `AppListActivity.kt` | Main screen / excluded apps screen |
+| `CardLayout.kt` | Rounded cards (sections in the style of iOS Settings) |
+| `AdBlockTileService.kt` | Quick Settings tile |
+| `BootReceiver.kt` | Resuming after a reboot or an update |
+| `Notifications.kt` / `Prefs.kt` | Notifications / saved settings |
 
-## ライセンス
+## License
 
-[MIT License](LICENSE)。ブロックリストはそれぞれの元のライセンスに従います ([NOTICE](NOTICE) を参照)。
+[MIT License](LICENSE). Each blocklist is under its own license (see [NOTICE](NOTICE)).
