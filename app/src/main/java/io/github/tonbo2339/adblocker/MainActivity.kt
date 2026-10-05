@@ -128,6 +128,13 @@ class MainActivity : AppCompatActivity() {
             Prefs.setAutoInstallUpdates(this, checked)
         }
         binding.checkUpdateRow.setOnClickListener { checkAppUpdate() }
+        binding.wifiOnlySwitch.isChecked = Prefs.updateOnWifiOnly(this)
+        binding.wifiOnlySwitch.setOnCheckedChangeListener { _, checked ->
+            Prefs.setUpdateOnWifiOnly(this, checked)
+            // 定期実行の条件を登録し直す (次回の実行予定は保たれる)
+            BlockListWorker.schedule(this)
+            AppUpdateWorker.schedule(this)
+        }
         bindNotificationSwitch(binding.notifyAppUpdateSwitch, NotificationKind.APP_UPDATE)
         bindNotificationSwitch(binding.notifyBlocklistSwitch, NotificationKind.BLOCKLIST_UPDATE)
         bindNotificationSwitch(binding.notifyRunningSwitch, NotificationKind.RUNNING) {

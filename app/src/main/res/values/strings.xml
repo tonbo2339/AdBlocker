@@ -29,15 +29,16 @@
     <string name="always_on_footer">VPN の設定で「常時接続 VPN」をオンにすると、アプリが終了させられても自動で再開します。</string>
     <string name="exclusion_value">%1$d 個</string>
     <string name="vpn_denied">VPN の許可がないため開始できません</string>
-    <string name="note">端末内のローカル VPN で、広告ドメインへの DNS 問い合わせを止めます。通信内容を外部に送ることはありません。
-
-設定の「プライベート DNS」が「ホスト名を指定」になっていると、ブロックが効きません。</string>
+    <string name="note">端末内のローカル VPN で、広告ドメインへの DNS 問い合わせを止めます。通信内容を外部に送ることはありません。\n\n設定の「プライベート DNS」が「ホスト名を指定」になっていると、ブロックが効きません。</string>
 
     <string name="search_hint">検索</string>
     <string name="show_system_apps">システムアプリを表示</string>
     <string name="exclusions_footer">オンにしたアプリは広告ブロックを通さず、通常どおり通信します。広告ブロックで動かなくなるアプリに使ってください。</string>
     <string name="exclusions_applied">例外設定を反映しました</string>
 
+    <string name="section_auto_update">自動更新</string>
+    <string name="row_wifi_only">Wi-Fi のときだけ</string>
+    <string name="wifi_only_footer">オンにすると、ブロックリストとアプリの自動更新をモバイル通信では行いません。「今すぐ更新」と「アップデートを確認」は、いつでも使えます。</string>
     <string name="section_app">アプリ</string>
     <string name="row_version">バージョン</string>
     <string name="version_value">v%1$s</string>

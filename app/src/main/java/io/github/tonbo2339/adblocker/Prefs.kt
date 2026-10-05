@@ -10,6 +10,7 @@ object Prefs {
     private const val KEY_ENABLED = "enabled"
     private const val KEY_BLOCKLIST_CHECKED_AT = "blocklist_checked_at"
     private const val KEY_AUTO_INSTALL = "auto_install_updates"
+    private const val KEY_WIFI_ONLY = "update_on_wifi_only"
     private const val KEY_ETAG = "etag_"
     private const val KEY_LAST_MODIFIED = "last_modified_"
 
@@ -29,6 +30,13 @@ object Prefs {
         if (prefs.getBoolean(KEY_ENABLED, false) == enabled) return
         prefs.edit { putBoolean(KEY_ENABLED, enabled) }
         AdBlockTileService.refresh(context)
+    }
+
+    /** 自動更新 (ブロックリスト・アプリ) を Wi-Fi などの従量制でない回線のときだけ行うか。手動の更新には効かない。 */
+    fun updateOnWifiOnly(context: Context): Boolean = prefs(context).getBoolean(KEY_WIFI_ONLY, false)
+
+    fun setUpdateOnWifiOnly(context: Context, enabled: Boolean) {
+        prefs(context).edit { putBoolean(KEY_WIFI_ONLY, enabled) }
     }
 
     /** 新しいバージョンを見つけたら自動でインストールするか (false なら通知だけ)。 */

@@ -1,10 +1,8 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
-import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -28,13 +26,9 @@ class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(conte
         const val RESULT_INSTALLING = "installing"
         const val RESULT_FAILED = "failed"
 
-        private val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
         fun schedule(context: Context) {
             val request = PeriodicWorkRequestBuilder<AppUpdateWorker>(1, TimeUnit.DAYS)
-                .setConstraints(constraints)
+                .setConstraints(UpdateConstraints.automatic(context))
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
@@ -43,7 +37,7 @@ class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(conte
         /** 今すぐ確認して、新しい版があればインストールする (ユーザー操作から呼ぶ)。 */
         fun runNow(context: Context) {
             val request = OneTimeWorkRequestBuilder<AppUpdateWorker>()
-                .setConstraints(constraints)
+                .setConstraints(UpdateConstraints.manual)
                 .setInputData(workDataOf(KEY_INSTALL to true))
                 .build()
             WorkManager.getInstance(context)

@@ -288,6 +288,40 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <!-- 自動更新 -->
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_auto_update" />
+
+            <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+                <LinearLayout style="@style/Row">
+
+                    <ImageView
+                        style="@style/IconBadge"
+                        android:backgroundTint="@color/accent_blue"
+                        android:src="@drawable/ic_g_wifi" />
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/row_wifi_only" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/wifiOnlySwitch"
+                        style="@style/IosSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/wifi_only_footer" />
+
             <!-- アプリ -->
             <TextView
                 style="@style/SectionHeader"

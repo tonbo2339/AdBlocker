@@ -1,10 +1,8 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
-import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -22,14 +20,10 @@ class BlockListWorker(context: Context, params: WorkerParameters) : Worker(conte
         private const val MAX_RETRIES = 3
         private const val KEY_MANUAL = "manual"
 
-        private val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
         /** 1 日 1 回の自動更新を登録する (登録済みなら次回の実行予定は保ったまま設定だけ更新)。 */
         fun schedule(context: Context) {
             val request = PeriodicWorkRequestBuilder<BlockListWorker>(1, TimeUnit.DAYS)
-                .setConstraints(constraints)
+                .setConstraints(UpdateConstraints.automatic(context))
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
@@ -38,7 +32,7 @@ class BlockListWorker(context: Context, params: WorkerParameters) : Worker(conte
         /** 今すぐ更新する。進み具合は getWorkInfosForUniqueWorkLiveData(ONE_TIME) で見られる。 */
         fun runNow(context: Context) {
             val request = OneTimeWorkRequestBuilder<BlockListWorker>()
-                .setConstraints(constraints)
+                .setConstraints(UpdateConstraints.manual)
                 .setInputData(workDataOf(KEY_MANUAL to true))
                 .build()
             WorkManager.getInstance(context)
