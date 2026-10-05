@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ホーム: 状態、ON / OFF、一時停止、プライベート DNS の警告、今日の件数、例外アプリ -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    tools:ignore="ContentDescription,UseCompoundDrawables">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="32dp">
+
+        <TextView
+            android:id="@+id/largeTitle"
+            style="@style/LargeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="52dp"
+            android:text="@string/app_name" />
+
+        <!-- プライベート DNS の警告 (「ホスト名を指定」のときだけ) -->
+        <io.github.tonbo2339.adblocker.CardLayout
+            android:id="@+id/privateDnsCard"
+            style="@style/Card"
+            android:layout_marginTop="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                style="@style/Row"
+                android:gravity="top"
+                android:paddingVertical="12dp">
+
+                <ImageView
+                    style="@style/IconBadge"
+                    android:backgroundTint="@color/sys_orange"
+                    android:src="@drawable/ic_g_warning" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/private_dns_title"
+                        android:textColor="@color/label"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/privateDnsText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:lineSpacingExtra="2dp"
+                        android:textColor="@color/label_secondary"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View style="@style/Separator.Inset" />
+
+            <LinearLayout
+                android:id="@+id/privateDnsRow"
+                style="@style/Row.Clickable">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:layout_marginStart="42dp"
+                    android:text="@string/private_dns_open"
+                    android:textColor="@color/accent_blue" />
+
+                <ImageView style="@style/Chevron" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <!-- 状態 -->
+        <io.github.tonbo2339.adblocker.CardLayout
+            style="@style/Card"
+            android:layout_marginTop="12dp"
+            android:gravity="center_horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="24dp">
+
+            <ImageView
+                android:id="@+id/statusIcon"
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_shield_off" />
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="@color/label"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/statusDetail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFeatureSettings="tnum"
+                android:gravity="center"
+                android:textColor="@color/label_secondary"
+                android:textSize="15sp" />
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            style="@style/Card"
+            android:layout_marginTop="20dp">
+
+            <LinearLayout style="@style/Row">
+
+                <ImageView
+                    style="@style/IconBadge"
+                    android:backgroundTint="@color/sys_green"
+                    android:src="@drawable/ic_g_shield" />
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/row_adblock" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/vpnSwitch"
+                    style="@style/IosSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/pauseSeparator"
+                style="@style/Separator.Inset" />
+
+            <LinearLayout
+                android:id="@+id/pauseRow"
+                style="@style/Row.Clickable">
+
+                <ImageView
+                    android:id="@+id/pauseIcon"
+                    style="@style/IconBadge"
+                    android:backgroundTint="@color/sys_orange"
+                    android:src="@drawable/ic_g_pause" />
+
+                <TextView
+                    android:id="@+id/pauseText"
+                    style="@style/RowTitle"
+                    android:textColor="@color/accent_blue" />
+
+                <TextView
+                    android:id="@+id/pauseValue"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <!-- 今日 -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_today" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            android:id="@+id/todayCard"
+            style="@style/Card"
+            android:orientation="horizontal"
+            android:paddingVertical="14dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/blockedCount"
+                    style="@style/StatNumber"
+                    android:textColor="@color/sys_green" />
+
+                <TextView
+                    style="@style/StatLabel"
+                    android:text="@string/stat_blocked" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="0.5dp"
+                android:layout_height="match_parent"
+                android:background="@color/separator" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/queryCount"
+                    style="@style/StatNumber" />
+
+                <TextView
+                    style="@style/StatLabel"
+                    android:text="@string/stat_queries" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <!-- 例外アプリ・常時接続 VPN -->
+        <io.github.tonbo2339.adblocker.CardLayout
+            style="@style/Card"
+            android:layout_marginTop="28dp">
+
+            <LinearLayout
+                android:id="@+id/exclusionsRow"
+                style="@style/Row.Clickable">
+
+                <ImageView
+                    style="@style/IconBadge"
+                    android:backgroundTint="@color/accent_blue"
+                    android:src="@drawable/ic_g_apps" />
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/title_exclusions" />
+
+                <TextView
+                    android:id="@+id/exclusionValue"
+                    style="@style/RowValue" />
+
+                <ImageView style="@style/Chevron" />
+            </LinearLayout>
+
+            <View style="@style/Separator.Inset" />
+
+            <LinearLayout
+                android:id="@+id/alwaysOnRow"
+                style="@style/Row.Clickable">
+
+                <ImageView
+                    style="@style/IconBadge"
+                    android:backgroundTint="@color/sys_indigo"
+                    android:src="@drawable/ic_g_lock" />
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/row_always_on" />
+
+                <ImageView style="@style/Chevron" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/always_on_footer" />
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/note" />
+    </LinearLayout>
+</ScrollView>

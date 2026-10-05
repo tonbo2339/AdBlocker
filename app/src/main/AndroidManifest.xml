@@ -39,6 +39,18 @@
             android:label="@string/title_exclusions"
             android:parentActivityName=".MainActivity" />
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_settings"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".RulesActivity"
+            android:exported="false"
+            android:label="@string/title_rules"
+            android:parentActivityName=".SettingsActivity" />
+
         <service
             android:name=".AdBlockVpnService"
             android:exported="false"

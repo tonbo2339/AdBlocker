@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 統計: 今日、過去 7 日のグラフ、累計、今回よくブロックしたドメイン -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="32dp">
+
+        <TextView
+            android:id="@+id/statsTitle"
+            style="@style/LargeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="52dp"
+            android:text="@string/tab_stats" />
+
+        <!-- 今日 -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/section_today" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            style="@style/Card"
+            android:orientation="horizontal"
+            android:paddingVertical="14dp">
+
+            <LinearLayout style="@style/StatColumn">
+
+                <TextView
+                    android:id="@+id/todayBlocked"
+                    style="@style/StatNumber"
+                    android:textColor="@color/sys_green" />
+
+                <TextView
+                    style="@style/StatLabel"
+                    android:text="@string/stat_blocked" />
+            </LinearLayout>
+
+            <View style="@style/StatDivider" />
+
+            <LinearLayout style="@style/StatColumn">
+
+                <TextView
+                    android:id="@+id/todayQueries"
+                    style="@style/StatNumber" />
+
+                <TextView
+                    style="@style/StatLabel"
+                    android:text="@string/stat_queries" />
+            </LinearLayout>
+
+            <View style="@style/StatDivider" />
+
+            <LinearLayout style="@style/StatColumn">
+
+                <TextView
+                    android:id="@+id/todayRate"
+                    style="@style/StatNumber" />
+
+                <TextView
+                    style="@style/StatLabel"
+                    android:text="@string/stat_rate" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <!-- 過去 7 日 -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_week" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            style="@style/Card"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="10dp">
+
+            <io.github.tonbo2339.adblocker.BarChartView
+                android:id="@+id/weekChart"
+                android:layout_width="match_parent"
+                android:layout_height="150dp" />
+
+            <TextView
+                android:id="@+id/weekSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textColor="@color/label_secondary"
+                android:textSize="13sp" />
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/week_footer" />
+
+        <!-- 累計 -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_total" />
+
+        <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_blocked" />
+
+                <TextView
+                    android:id="@+id/totalBlocked"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+
+            <View style="@style/Separator" />
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_queries" />
+
+                <TextView
+                    android:id="@+id/totalQueries"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+
+            <View style="@style/Separator" />
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_since" />
+
+                <TextView
+                    android:id="@+id/totalSince"
+                    style="@style/RowValue" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <!-- よくブロックしたドメイン -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_top_domains" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            android:id="@+id/topDomains"
+            style="@style/Card" />
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/top_domains_footer" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            style="@style/Card"
+            android:layout_marginTop="28dp">
+
+            <LinearLayout
+                android:id="@+id/resetRow"
+                style="@style/Row.Clickable">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:gravity="center"
+                    android:text="@string/stats_reset"
+                    android:textColor="@color/sys_red" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+    </LinearLayout>
+</ScrollView>

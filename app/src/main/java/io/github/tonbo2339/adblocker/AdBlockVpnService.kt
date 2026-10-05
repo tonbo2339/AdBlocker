@@ -27,7 +27,6 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * DNS だけを通すローカル VPN。
@@ -54,6 +53,7 @@ class AdBlockVpnService : VpnService() {
         private const val MTU = 16384
         private const val UPSTREAM_TIMEOUT_MS = 2000
         private const val FORWARD_THREADS = 8
+        private const val STATS_FLUSH_INTERVAL_MS = 30_000L
 
         /** 転送待ちの問い合わせの上限。回線が切れている間に再送が積み上がってメモリを使い続けないようにする。 */
         private const val MAX_PENDING_QUERIES = 256
@@ -64,9 +64,6 @@ class AdBlockVpnService : VpnService() {
             private set
 
         val isRunning: Boolean get() = state == State.RUNNING
-
-        val blockedCount = AtomicLong()
-        val queryCount = AtomicLong()
 
         /**
          * 開始する。動作中なら例外設定を読み直して作り直す。先に VpnService.prepare() が済んでいること。
@@ -116,10 +113,19 @@ class AdBlockVpnService : VpnService() {
     /** 常駐通知を出したときの言語。 */
     private lateinit var locales: LocaleList
 
+    /** 日ごとの件数を定期的に保存する。 */
+    private val statsFlusher = object : Runnable {
+        override fun run() {
+            StatsStore.flush(applicationContext)
+            mainHandler.postDelayed(this, STATS_FLUSH_INTERVAL_MS)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         locales = resources.configuration.locales
         upstream = UpstreamDns(this).apply { start() }
+        mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -139,10 +145,7 @@ class AdBlockVpnService : VpnService() {
         // START_STICKY での再起動 (intent は null) のいずれか
         startForegroundWithNotification()
         Prefs.setEnabled(this, true)
-        if (state != State.RUNNING) {
-            blockedCount.set(0)
-            queryCount.set(0)
-        }
+        if (state != State.RUNNING) SessionStats.reset()
         restart()
         return START_STICKY
     }
@@ -163,6 +166,8 @@ class AdBlockVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        mainHandler.removeCallbacks(statsFlusher)
+        StatsStore.flush(applicationContext)
         shutdown()
         state = State.STOPPED
         upstream.stop()
@@ -311,9 +316,11 @@ class AdBlockVpnService : VpnService() {
 
     private fun handleQuery(query: DnsQuery, out: FileOutputStream, executor: ExecutorService) {
         val question = Dns.parseQuestion(query.dns) ?: return
-        queryCount.incrementAndGet()
-        if (BlockList.isBlocked(question.name)) {
-            blockedCount.incrementAndGet()
+        val verdict = Filter.decide(question.name)
+        StatsStore.record(verdict.blocked)
+        QueryLog.add(question.name, verdict)
+        if (verdict.blocked) {
+            SessionStats.recordBlocked(question.name)
             writePacket(out, Packets.buildResponse(query, Dns.nxdomain(query.dns, question)))
             return
         }

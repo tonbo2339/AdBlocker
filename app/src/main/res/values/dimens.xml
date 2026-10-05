@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 下のタブバーの高さ (区切り線を含む)。ページの下の余白に使う -->
+    <dimen name="tab_bar_height">53dp</dimen>
+</resources>

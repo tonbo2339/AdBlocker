@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- カードに並べる「ドメイン + 値」の行 (自分のルール、よくブロックしたドメイン) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/row"
+        style="@style/Row.Clickable">
+
+        <TextView
+            android:id="@+id/title"
+            style="@style/RowTitle"
+            android:ellipsize="middle"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/value"
+            style="@style/RowValue"
+            android:layout_marginStart="8dp"
+            android:fontFeatureSettings="tnum" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/separator"
+        style="@style/Separator" />
+</LinearLayout>

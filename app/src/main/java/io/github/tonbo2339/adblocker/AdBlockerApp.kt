@@ -16,6 +16,10 @@ class AdBlockerApp : Application() {
     override fun onCreate() {
         super.onCreate()
         registerActivityLifecycleCallbacks(ForegroundTracker())
+        // VPN と画面の両方から使うので、プロセスの開始時に読み込む
+        UserRules.load(this)
+        Pause.load(this)
+        QueryLog.enabled = Prefs.queryLogEnabled(this)
         BlockListWorker.schedule(this)
         AppUpdateWorker.schedule(this)
     }

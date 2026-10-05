@@ -32,7 +32,10 @@ class AdBlockTileService : TileService() {
     }
 
     override fun onClick() {
-        if (Prefs.isEnabled(this)) {
+        if (Prefs.isEnabled(this) && Pause.isPaused()) {
+            // 一時停止中のタップは再開
+            Pause.resume(this)
+        } else if (Prefs.isEnabled(this)) {
             AdBlockVpnService.stop(this)
             Prefs.setEnabled(this, false)
         } else if (VpnService.prepare(this) != null) {
@@ -58,7 +61,13 @@ class AdBlockTileService : TileService() {
         val enabled = Prefs.isEnabled(this)
         tile.state = if (enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            tile.subtitle = getString(if (enabled) R.string.tile_on else R.string.tile_off)
+            tile.subtitle = getString(
+                when {
+                    !enabled -> R.string.tile_off
+                    Pause.isPaused() -> R.string.tile_paused
+                    else -> R.string.tile_on
+                }
+            )
         }
         tile.updateTile()
     }

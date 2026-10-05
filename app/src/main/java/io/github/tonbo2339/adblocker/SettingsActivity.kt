@@ -1,0 +1,177 @@
+package io.github.tonbo2339.adblocker
+
+import android.content.Context
+import android.content.Intent
+import android.icu.text.ListFormatter
+import android.os.Bundle
+import android.widget.CompoundButton
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.databinding.ActivitySettingsBinding
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.concurrent.thread
+
+/** 設定 (ホームの右上の ≡ から開く)。 */
+class SettingsActivity : AppCompatActivity() {
+
+    companion object {
+        /** 「新しいバージョンがあります」の通知から開いたときに、すぐ更新を確認する。 */
+        private const val EXTRA_CHECK_UPDATE = "check_update"
+
+        fun intent(context: Context, checkUpdate: Boolean = false): Intent =
+            Intent(context, SettingsActivity::class.java).putExtra(EXTRA_CHECK_UPDATE, checkUpdate)
+    }
+
+    private lateinit var binding: ActivitySettingsBinding
+    private val numberFormat = NumberFormat.getIntegerInstance()
+
+    /** 日付は端末の言語に関係なく 年/月/日 の順で表示する (作者の希望)。 */
+    private val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
+
+    /** 「今すぐ更新」をタップして結果を待っている間は true。 */
+    private var awaitingUpdate = false
+
+    /** 「アップデートを確認」をタップして結果を待っている間は true。 */
+    private var awaitingAppUpdate = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.root.padForSystemBars()
+
+        binding.backButton.setOnClickListener { finish() }
+        binding.rulesRow.setOnClickListener { startActivity(Intent(this, RulesActivity::class.java)) }
+        binding.queryLogSwitch.isChecked = Prefs.queryLogEnabled(this)
+        binding.queryLogSwitch.setOnCheckedChangeListener { _, checked -> Prefs.setQueryLogEnabled(this, checked) }
+
+        binding.updateRow.setOnClickListener {
+            awaitingUpdate = true
+            BlockListWorker.runNow(this)
+        }
+        // 区切り方は言語に合わせる (英語は "A and B"、日本語は "A、B")
+        binding.sourcesFooter.text = getString(
+            R.string.sources_footer,
+            ListFormatter.getInstance().format(BlockListUpdater.SOURCES.map { it.name }),
+        )
+        WorkManager.getInstance(this)
+            .getWorkInfosForUniqueWorkLiveData(BlockListWorker.ONE_TIME)
+            .observe(this) { infos -> onUpdateWork(infos.firstOrNull()) }
+
+        binding.wifiOnlySwitch.isChecked = Prefs.updateOnWifiOnly(this)
+        binding.wifiOnlySwitch.setOnCheckedChangeListener { _, checked ->
+            Prefs.setUpdateOnWifiOnly(this, checked)
+            // 定期実行の条件を登録し直す (次回の実行予定は保たれる)
+            BlockListWorker.schedule(this)
+            AppUpdateWorker.schedule(this)
+        }
+
+        binding.versionValue.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
+        binding.autoInstallSwitch.isChecked = Prefs.autoInstallUpdates(this)
+        binding.autoInstallSwitch.setOnCheckedChangeListener { _, checked ->
+            Prefs.setAutoInstallUpdates(this, checked)
+        }
+        binding.checkUpdateRow.setOnClickListener { checkAppUpdate() }
+        WorkManager.getInstance(this)
+            .getWorkInfosForUniqueWorkLiveData(AppUpdateWorker.ONE_TIME)
+            .observe(this) { infos -> onAppUpdateWork(infos.firstOrNull()) }
+
+        bindNotificationSwitch(binding.notifyAppUpdateSwitch, NotificationKind.APP_UPDATE)
+        bindNotificationSwitch(binding.notifyBlocklistSwitch, NotificationKind.BLOCKLIST_UPDATE)
+        bindNotificationSwitch(binding.notifyRunningSwitch, NotificationKind.RUNNING) {
+            AdBlockVpnService.refreshNotification(this)
+        }
+
+        // 画面の作り直し (回転など) では繰り返さない
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_CHECK_UPDATE, false)) checkAppUpdate()
+
+        // ブロックリストの件数を表示するために読み込んでおく (読み込み済みならすぐ終わる)
+        thread {
+            BlockList.load(applicationContext)
+            runOnUiThread { if (!isDestroyed) updateValues() }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateValues()
+    }
+
+    private fun bindNotificationSwitch(switch: CompoundButton, kind: NotificationKind, onChange: () -> Unit = {}) {
+        switch.isChecked = Prefs.isNotificationEnabled(this, kind)
+        switch.setOnCheckedChangeListener { _, checked ->
+            Prefs.setNotificationEnabled(this, kind, checked)
+            onChange()
+        }
+    }
+
+    private fun checkAppUpdate() {
+        awaitingAppUpdate = true
+        AppUpdateWorker.runNow(this)
+    }
+
+    private fun updateValues() {
+        binding.rulesValue.text = getString(R.string.rules_value, UserRules.size)
+        binding.blocklistValue.text = getString(R.string.blocklist_value, numberFormat.format(BlockList.size))
+        val checkedAt = Prefs.blocklistCheckedAt(this)
+        binding.lastCheckedValue.text =
+            if (checkedAt == 0L) getString(R.string.last_checked_never) else dateFormat.format(Date(checkedAt))
+    }
+
+    /** 「アップデートを確認」の進み具合と結果を表示する。 */
+    private fun onAppUpdateWork(info: WorkInfo?) {
+        val state = info?.state
+        val busy = state == WorkInfo.State.ENQUEUED || state == WorkInfo.State.RUNNING
+        binding.checkUpdateRow.isEnabled = !busy
+        binding.checkUpdateProgress.isVisible = busy
+        binding.checkUpdateText.setText(
+            when {
+                state == WorkInfo.State.ENQUEUED -> R.string.update_waiting_network
+                busy -> R.string.checking_update
+                else -> R.string.row_check_update
+            }
+        )
+        if (state == null || !state.isFinished || !awaitingAppUpdate) return
+        awaitingAppUpdate = false
+        val data = if (state == WorkInfo.State.SUCCEEDED) info.outputData else null
+        val message = when (data?.getString(AppUpdateWorker.KEY_RESULT)) {
+            AppUpdateWorker.RESULT_UP_TO_DATE -> getString(R.string.update_up_to_date)
+            AppUpdateWorker.RESULT_INSTALLING ->
+                getString(R.string.update_installing, data.getString(AppUpdateWorker.KEY_VERSION))
+            else -> getString(R.string.update_check_failed)
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    /** 「今すぐ更新」の進み具合を表示する。 */
+    private fun onUpdateWork(info: WorkInfo?) {
+        val state = info?.state
+        val busy = state == WorkInfo.State.ENQUEUED || state == WorkInfo.State.RUNNING
+        binding.updateRow.isEnabled = !busy
+        binding.updateProgress.isVisible = busy
+        binding.updateText.setText(
+            when {
+                // 初回の実行待ち = ネットワーク待ち (再試行の待ちは「更新中」と見せる)
+                state == WorkInfo.State.ENQUEUED && info.runAttemptCount == 0 -> R.string.update_waiting_network
+                busy -> R.string.updating
+                else -> R.string.row_update_now
+            }
+        )
+        if (state == null || !state.isFinished) return
+        updateValues()
+        // 以前の実行結果も最初に通知されるので、このタップで始めた更新のときだけ知らせる
+        if (!awaitingUpdate) return
+        awaitingUpdate = false
+        val message = if (state == WorkInfo.State.SUCCEEDED) R.string.update_done else R.string.update_failed
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+}

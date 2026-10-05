@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自分のルール: ブロック / 許可を切り替えて、ドメインを追加・削除する -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/backButton"
+        style="@style/BackButton"
+        tools:ignore="UseCompoundDrawables">
+
+        <ImageView
+            android:layout_width="12dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@string/title_settings"
+            android:textColor="@color/accent_blue"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="40dp">
+
+            <TextView
+                style="@style/LargeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/title_rules" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_segment"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <TextView
+                    android:id="@+id/segmentBlock"
+                    style="@style/SegmentItem"
+                    android:text="@string/rules_block" />
+
+                <TextView
+                    android:id="@+id/segmentAllow"
+                    style="@style/SegmentItem"
+                    android:text="@string/rules_allow" />
+            </LinearLayout>
+
+            <io.github.tonbo2339.adblocker.CardLayout
+                style="@style/Card"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout
+                    android:id="@+id/addRow"
+                    style="@style/Row.Clickable">
+
+                    <TextView
+                        style="@style/RowTitle"
+                        android:text="@string/rule_add"
+                        android:textColor="@color/accent_blue" />
+                </LinearLayout>
+            </io.github.tonbo2339.adblocker.CardLayout>
+
+            <TextView
+                android:id="@+id/rulesFooter"
+                style="@style/SectionFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <io.github.tonbo2339.adblocker.CardLayout
+                android:id="@+id/rulesCard"
+                style="@style/Card"
+                android:layout_marginTop="20dp" />
+
+            <TextView
+                android:id="@+id/emptyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:text="@string/rules_empty"
+                android:textColor="@color/label_secondary"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

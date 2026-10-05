@@ -12,6 +12,7 @@ object Prefs {
     private const val KEY_AUTO_INSTALL = "auto_install_updates"
     private const val KEY_WIFI_ONLY = "update_on_wifi_only"
     private const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
+    private const val KEY_QUERY_LOG = "query_log"
     private const val KEY_ETAG = "etag_"
     private const val KEY_LAST_MODIFIED = "last_modified_"
 
@@ -30,6 +31,8 @@ object Prefs {
         val prefs = prefs(context)
         if (prefs.getBoolean(KEY_ENABLED, false) == enabled) return
         prefs.edit { putBoolean(KEY_ENABLED, enabled) }
+        // 次にオンにしたとき、前の一時停止の続きにならないようにする
+        if (!enabled && Pause.isPaused()) Pause.resume(context)
         AdBlockTileService.refresh(context)
     }
 
@@ -39,6 +42,14 @@ object Prefs {
 
     fun setNotificationPermissionAsked(context: Context) {
         prefs(context).edit { putBoolean(KEY_NOTIFICATION_PERMISSION_ASKED, true) }
+    }
+
+    /** 問い合わせのログ (メモリ上だけ) を取るか。 */
+    fun queryLogEnabled(context: Context): Boolean = prefs(context).getBoolean(KEY_QUERY_LOG, true)
+
+    fun setQueryLogEnabled(context: Context, enabled: Boolean) {
+        prefs(context).edit { putBoolean(KEY_QUERY_LOG, enabled) }
+        QueryLog.enabled = enabled
     }
 
     /** 自動更新 (ブロックリスト・アプリ) を Wi-Fi などの従量制でない回線のときだけ行うか。手動の更新には効かない。 */

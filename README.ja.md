@@ -7,9 +7,9 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 > **このリポジトリのコード・ドキュメント・アイコンは、[Claude Code](https://claude.com/claude-code) (Anthropic の AI コーディングツール) が作成しました。**
 
 <p>
-  <img src="docs/screenshots/ja/main-dark.png" width="240" alt="メイン画面 (保護中・ダーク)">
-  <img src="docs/screenshots/ja/main-light.png" width="240" alt="メイン画面 (停止中・ライト)">
-  <img src="docs/screenshots/ja/exclusions.png" width="240" alt="例外アプリの設定">
+  <img src="docs/screenshots/ja/home-dark.png" width="240" alt="ホーム (保護中・ダーク)">
+  <img src="docs/screenshots/ja/stats.png" width="240" alt="統計">
+  <img src="docs/screenshots/ja/log.png" width="240" alt="問い合わせのログ">
 </p>
 
 ## ダウンロード
@@ -24,10 +24,15 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 
 - **広告ブロック**: 約 24 万の広告・トラッカーのドメインへの接続を止める
 - **例外アプリ**: 選んだアプリは広告ブロックを通らず、普段どおり通信する (広告ブロックで動かなくなるアプリ用)
+- **自分のルール**: ドメインを自分でブロック・許可できる (サブドメインにも効く。許可が優先)
+- **一時停止**: VPN を止めずに、5 分・15 分・1 時間だけすべて通す
+- **問い合わせのログ**: 直近 500 件と、ブロックしたかどうか。タップするとブロック・許可を設定できる。メモリ上だけに持ち、オフにもできる
+- **統計**: 今日の件数、過去 7 日のグラフ、累計、よくブロックしたドメイン。保存するのは件数だけで、どのサイトを見たかは残さない
+- **プライベート DNS の警告**: 「プライベート DNS」が「ホスト名を指定」でブロックが効かないときに知らせる
 - **ブロックリストの自動更新**: 1 日 1 回、最新のリストを取得する
 - **アプリの自動更新**: 1 日 1 回 GitHub Releases を確認し、新しいバージョンがあれば自動でインストール (設定で「通知のみ」にもできる)
 - **Wi-Fi のときだけ更新**: 自動更新 (ブロックリスト・アプリ) をモバイル通信では行わないようにできる
-- **クイック設定タイル**: 通知パネルから ON / OFF
+- **クイック設定タイル**: 通知パネルから ON / OFF (一時停止中にタップすると再開)
 - **通知の設定**: アプリの更新・ブロックリストの更新・動作中の表示を、それぞれオン / オフできる
 - 端末の再起動後・アプリの更新後に自動で再開、常時接続 VPN にも対応
 - ライト / ダークモード対応
@@ -36,7 +41,7 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 ## 制限
 
 - Android では VPN は同時に 1 つしか使えない。他の VPN アプリを起動すると AdBlocker は自動で OFF になる
-- 設定の「プライベート DNS」が「ホスト名を指定」だとブロックが効かない (「自動」か「オフ」にする)
+- 設定の「プライベート DNS」が「ホスト名を指定」だとブロックが効かない (「自動」か「オフ」にする)。そのときはアプリが警告を出す
 - 広告があった場所の**空白は消せない** (DNS では通信を止めるだけで、画面のレイアウトは変えられないため)。ブラウザなら Firefox + uBlock Origin などを併用する
 - 本編と同じドメインから配信される広告 (YouTube の動画広告など)、IP アドレス直指定やアプリ独自の DNS-over-HTTPS は止められない
 - 大きな応答で TCP にフォールバックする DNS 問い合わせ (まれ) には対応していない
@@ -68,7 +73,7 @@ Android Studio でこのフォルダを開いて実行します。コマンド�
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # 署名の鍵が必要 (下の「署名」を参照)
-gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較)
+gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較 / 自分のルール)
 gradlew lintDebug
 ```
 
@@ -99,8 +104,13 @@ Releases の APK は、作者のリリース用の鍵で署名しています (�
 | `BlockListUpdater.kt` / `BlockListWorker.kt` | ブロックリストのダウンロードと 1 日 1 回の自動更新 |
 | `UpstreamDns.kt` | 転送先 DNS の選択 (回線の DNS を優先、公開 DNS は予備) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | GitHub Releases からの自動更新 |
-| `MainActivity.kt` / `AppListActivity.kt` | メイン画面 / 例外アプリの選択画面 |
-| `CardLayout.kt` | 角丸カード |
+| `Filter.kt` / `UserRules.kt` / `Pause.kt` | 問い合わせごとの判定 (一時停止・自分のルール・ブロックリスト) |
+| `QueryLog.kt` / `StatsStore.kt` | 問い合わせのログ (メモリ上) / 日ごとの件数 |
+| `PrivateDnsMonitor.kt` | 「プライベート DNS」が「ホスト名を指定」かの検知 |
+| `MainActivity.kt` | ホーム / 統計 / ログのタブ |
+| `SettingsActivity.kt` / `RulesActivity.kt` / `AppListActivity.kt` | 設定 / 自分のルール / 例外アプリ |
+| `DomainActions.kt` | ドメインのブロック・許可のメニュー |
+| `CardLayout.kt` / `BarChartView.kt` | 角丸カード / 過去 7 日のグラフ |
 | `AdBlockTileService.kt` | クイック設定タイル |
 | `BootReceiver.kt` | 再起動後・更新後の自動再開 |
 | `Notifications.kt` / `Prefs.kt` | 通知 / 設定の保存 |

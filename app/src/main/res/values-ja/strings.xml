@@ -10,10 +10,8 @@
     <string name="status_detail_starting">ブロックリストを読み込んでいます</string>
     <string name="status_detail_off">スイッチをオンにすると広告をブロックします</string>
     <string name="row_adblock">広告ブロック</string>
-    <string name="section_stats">今回の統計</string>
     <string name="stat_blocked">ブロック</string>
     <string name="stat_queries">問い合わせ</string>
-    <string name="section_settings">設定</string>
     <string name="row_blocklist">ブロックリスト</string>
     <string name="row_domains">ドメイン数</string>
     <string name="blocklist_value">%1$s 件</string>
@@ -72,4 +70,77 @@
 
     <string name="notif_channel">広告ブロック</string>
     <string name="notif_text">広告ブロック中</string>
+    <string name="tab_home">ホーム</string>
+    <string name="tab_stats">統計</string>
+    <string name="tab_log">ログ</string>
+    <string name="title_settings">設定</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_add">追加</string>
+    <string name="action_delete">削除</string>
+    <string name="action_reset">リセット</string>
+    <string name="action_block">ブロックする</string>
+    <string name="action_allow">許可する</string>
+    <string name="action_remove_rule">%1$s のルールを削除</string>
+    <string name="action_copy">コピー</string>
+    <string name="copied">コピーしました</string>
+
+    <string name="row_pause">一時停止</string>
+    <string name="row_resume">再開</string>
+    <string name="pause_title">広告ブロックを一時停止</string>
+    <string name="pause_5min">5 分</string>
+    <string name="pause_15min">15 分</string>
+    <string name="pause_1hour">1 時間</string>
+    <string name="status_paused">一時停止中</string>
+    <string name="status_detail_paused">%1$s に再開します</string>
+    <string name="tile_paused">一時停止中</string>
+
+    <string name="private_dns_title">プライベート DNS がオンです</string>
+    <string name="private_dns_text">プライベート DNS が「%1$s」に設定されているため、広告をブロックできません。「自動」か「オフ」にしてください。</string>
+    <string name="private_dns_open">ネットワークの設定を開く</string>
+
+    <string name="section_today">今日</string>
+    <string name="stat_rate">ブロック率</string>
+    <string name="section_week">過去 7 日</string>
+    <string name="week_summary">%2$s 件中 %1$s 件をブロック</string>
+    <string name="week_footer">灰色が問い合わせ、緑がブロックした件数です。保存するのは件数だけで、どのサイトを見たかは残しません。</string>
+    <string name="section_total">累計</string>
+    <string name="stat_since">集計開始</string>
+    <string name="section_top_domains">よくブロックしたドメイン</string>
+    <string name="top_domains_footer">広告ブロックを最後にオンにしてからの件数です。メモリ上だけに持ちます。タップするとブロック・許可を設定できます。</string>
+    <string name="top_domains_empty">まだありません</string>
+    <string name="stats_reset">統計をリセット</string>
+    <string name="stats_reset_title">統計をすべてリセットしますか?</string>
+    <string name="stats_reset_message">日ごとの件数と累計を消します。</string>
+
+    <string name="log_filter_all">すべて</string>
+    <string name="log_filter_blocked">ブロック</string>
+    <string name="log_footer">直近 %1$s 件。メモリ上だけに持ち、アプリが終了すると消えます。行をタップするとブロック・許可を設定できます。</string>
+    <string name="log_empty">まだ問い合わせはありません</string>
+    <string name="log_no_results">見つかりません</string>
+    <string name="log_disabled">ログはオフです。設定でオンにできます。</string>
+    <string name="verdict_list">ブロックリストでブロック</string>
+    <string name="verdict_user_block">自分のルールでブロック</string>
+    <string name="verdict_user_allow">自分のルールで許可</string>
+    <string name="verdict_paused">一時停止中のため許可</string>
+    <string name="verdict_pass">許可</string>
+    <string name="log_detail_count">%1$s (×%2$d)</string>
+
+    <string name="section_filtering">ブロックの設定</string>
+    <string name="title_rules">自分のルール</string>
+    <string name="rules_value">%1$d 件</string>
+    <string name="row_query_log">問い合わせのログ</string>
+    <string name="query_log_footer">直近 500 件をメモリ上だけに持ちます。ストレージには保存しません。</string>
+    <string name="rules_block">ブロック</string>
+    <string name="rules_allow">許可</string>
+    <string name="rule_add">ドメインを追加</string>
+    <string name="rule_add_title_block">ブロックするドメイン</string>
+    <string name="rule_add_title_allow">許可するドメイン</string>
+    <string name="rule_invalid">ドメインとして正しくありません</string>
+    <string name="rules_footer_block">ドメインとそのサブドメインを、ブロックリストに無くてもブロックします。</string>
+    <string name="rules_footer_allow">ドメインとそのサブドメインを常に許可します。ブロックでサイトやアプリが動かないときに使います。許可はブロックより優先します。</string>
+    <string name="rules_empty">ルールはありません</string>
+    <string name="rule_delete_title">%1$s を削除しますか?</string>
+    <string name="rule_added_block">%1$s をブロックします</string>
+    <string name="rule_added_allow">%1$s を許可します</string>
+    <string name="rule_removed">ルールを削除しました</string>
 </resources>

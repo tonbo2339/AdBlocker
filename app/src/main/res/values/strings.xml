@@ -10,10 +10,8 @@
     <string name="status_detail_starting">Loading the blocklist</string>
     <string name="status_detail_off">Turn on the switch to block ads</string>
     <string name="row_adblock">Ad Blocking</string>
-    <string name="section_stats">This Session</string>
     <string name="stat_blocked">Blocked</string>
     <string name="stat_queries">Queries</string>
-    <string name="section_settings">Settings</string>
     <string name="row_blocklist">Blocklist</string>
     <string name="row_domains">Domains</string>
     <string name="blocklist_value">%1$s</string>
@@ -72,4 +70,78 @@
 
     <string name="notif_channel">Ad Blocking</string>
     <string name="notif_text">Blocking ads</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_stats">Statistics</string>
+    <string name="tab_log">Log</string>
+    <string name="title_settings">Settings</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_add">Add</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_block">Block</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_remove_rule">Remove Rule for %1$s</string>
+    <string name="action_copy">Copy</string>
+    <string name="copied">Copied</string>
+
+    <string name="row_pause">Pause</string>
+    <string name="row_resume">Resume</string>
+    <string name="pause_title">Pause Ad Blocking</string>
+    <string name="pause_5min">5 minutes</string>
+    <string name="pause_15min">15 minutes</string>
+    <string name="pause_1hour">1 hour</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_detail_paused">Resumes at %1$s</string>
+    <string name="tile_paused">Paused</string>
+
+    <string name="private_dns_title">Private DNS Is On</string>
+    <string name="private_dns_text">Private DNS is set to \"%1$s\", so ads aren\'t blocked. Set it to \"Automatic\" or \"Off\".</string>
+    <string name="private_dns_open">Open Network Settings</string>
+
+    <string name="section_today">Today</string>
+    <string name="stat_rate">Block Rate</string>
+    <string name="section_week">Last 7 Days</string>
+    <string name="week_summary">%1$s of %2$s queries blocked</string>
+    <string name="week_footer">Gray bars are all lookups, green bars are blocked ones. Only counts are saved, not which sites you visited.</string>
+    <string name="section_total">All Time</string>
+    <string name="stat_since">Counting Since</string>
+    <string name="section_top_domains">Top Blocked Domains</string>
+    <string name="top_domains_footer">Since ad blocking was last turned on. Kept only in memory. Tap a domain to block or allow it.</string>
+    <string name="top_domains_empty">None yet</string>
+    <string name="stats_reset">Reset Statistics</string>
+    <string name="stats_reset_title">Reset all statistics?</string>
+    <string name="stats_reset_message">Daily and all-time counts will be deleted.</string>
+
+    <string name="log_filter_all">All</string>
+    <string name="log_filter_blocked">Blocked</string>
+    <string name="log_footer">The last %1$s lookups, kept only in memory and cleared when the app stops. Tap a row to block or allow it.</string>
+    <string name="log_empty">No lookups yet</string>
+    <string name="log_no_results">No results</string>
+    <string name="log_disabled">The query log is off. You can turn it on in Settings.</string>
+    <string name="verdict_list">Blocked by the blocklist</string>
+    <string name="verdict_user_block">Blocked by your rule</string>
+    <string name="verdict_user_allow">Allowed by your rule</string>
+    <string name="verdict_paused">Allowed while paused</string>
+    <string name="verdict_pass">Allowed</string>
+    <string name="log_detail_count">%1$s (×%2$d)</string>
+
+    <string name="section_filtering">Filtering</string>
+    <string name="title_rules">My Rules</string>
+    <string name="rules_value">%1$d</string>
+    <string name="row_query_log">Query Log</string>
+    <string name="query_log_footer">Keeps the last 500 lookups in memory only. Nothing is written to storage.</string>
+    <string name="rules_block">Block</string>
+    <string name="rules_allow">Allow</string>
+    <string name="rule_add">Add Domain</string>
+    <string name="rule_add_title_block">Domain to Block</string>
+    <string name="rule_add_title_allow">Domain to Allow</string>
+    <string name="rule_hint" translatable="false">example.com</string>
+    <string name="rule_invalid">That isn\'t a valid domain</string>
+    <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on the blocklist.</string>
+    <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. Allow rules win over block rules.</string>
+    <string name="rules_empty">No rules</string>
+    <string name="rule_delete_title">Delete %1$s?</string>
+    <string name="rule_added_block">Blocking %1$s</string>
+    <string name="rule_added_allow">Allowing %1$s</string>
+    <string name="rule_removed">Rule removed</string>
 </resources>

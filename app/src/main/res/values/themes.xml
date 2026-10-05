@@ -9,6 +9,20 @@
         <item name="android:textColorPrimary">@color/label</item>
         <item name="android:textColorSecondary">@color/label_secondary</item>
         <item name="android:textColorHint">@color/label_secondary</item>
+        <!-- ダイアログの背景を Material の薄紫ではなく、カードと同じ色にする -->
+        <item name="colorSurface">@color/bg_card</item>
+        <item name="colorSurfaceContainerHigh">@color/bg_card</item>
+        <item name="colorOnSurface">@color/label</item>
+        <item name="colorOnSurfaceVariant">@color/label_secondary</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.AdBlocker.Dialog</item>
+    </style>
+
+    <!-- ダイアログ: 背景はカードと同じ色 (Material 3 の色付けを使わない)、ボタンは青 -->
+    <style name="ThemeOverlay.AdBlocker.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="backgroundTint">@color/bg_card</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="colorOnSurfaceVariant">@color/label</item>
+        <item name="colorControlActivated">@color/accent_blue</item>
     </style>
 
     <!-- 角丸カード (inset grouped) -->
@@ -103,6 +117,93 @@
         <item name="android:layout_height">0.5dp</item>
         <item name="android:layout_marginStart">16dp</item>
         <item name="android:background">@color/separator</item>
+    </style>
+
+    <!-- 下のタブバーの 1 項目。選択中は state_selected で青くする (color/tab_tint) -->
+    <style name="TabItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <style name="TabIcon">
+        <item name="android:layout_width">26dp</item>
+        <item name="android:layout_height">26dp</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">@color/tab_tint</item>
+    </style>
+
+    <style name="TabLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/tab_tint</item>
+    </style>
+
+    <!-- 件数を並べるカードの 1 列 -->
+    <style name="StatColumn">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="StatNumber">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:textColor">@color/label</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:maxLines">1</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">16sp</item>
+    </style>
+
+    <style name="StatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/label_secondary</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="StatDivider">
+        <item name="android:layout_width">0.5dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@color/separator</item>
+    </style>
+
+    <!-- セグメント (iOS の UISegmentedControl) の 1 項目 -->
+    <style name="SegmentItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_segment_selected</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textColor">@color/label</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <!-- 子画面の左上の「< 戻る」 -->
+    <style name="BackButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingHorizontal">12dp</item>
     </style>
 
     <style name="IosSwitch">

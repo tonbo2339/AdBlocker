@@ -17,4 +17,7 @@
     <color name="sys_gray">#8E8E93</color>
     <color name="row_pressed">#3A3A3C</color>
     <color name="nav_bar_bg">#FF000000</color>
+    <color name="segment_selected">#636366</color>
+    <color name="tab_bar_bg">#F01C1C1E</color>
+    <color name="row_pressed_overlay">#26FFFFFF</color>
 </resources>
