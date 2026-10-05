@@ -23,16 +23,21 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 ## 機能
 
 - **広告ブロック**: 約 24 万の広告・トラッカーのドメインへの接続を止める
+- **CNAME 隠しの検出**: サイト自身のサブドメインに見せかけたトラッカーも止める (CNAME の行き先がブロック対象のとき)
+- **ブロックリストの選択**: 組み込みのリストをオン / オフでき、URL で好きなリストを追加できる
 - **例外アプリ**: 選んだアプリは広告ブロックを通らず、普段どおり通信する (広告ブロックで動かなくなるアプリ用)
 - **自分のルール**: ドメインを自分でブロック・許可できる (サブドメインにも効く。許可が優先)
-- **一時停止**: VPN を止めずに、5 分・15 分・1 時間だけすべて通す
+- **一時停止**: VPN を止めずに、5 分・15 分・1 時間だけすべて通す。通知に再開の時刻と「再開」ボタンが出る
 - **問い合わせのログ**: 直近 500 件と、ブロックしたかどうか。タップするとブロック・許可を設定できる。メモリ上だけに持ち、オフにもできる
 - **統計**: 今日の件数、過去 7 日のグラフ、累計、よくブロックしたドメイン。保存するのは件数だけで、どのサイトを見たかは残さない
 - **プライベート DNS の警告**: 「プライベート DNS」が「ホスト名を指定」でブロックが効かないときに知らせる
+- **暗号化 DNS** (任意): 問い合わせを DNS over TLS で Cloudflare・Google・Quad9 に送る
+- **設定のバックアップ**: 自分のルール・例外アプリ・設定をファイルに書き出し、機種変更先で読み込める
 - **ブロックリストの自動更新**: 1 日 1 回、最新のリストを取得する
 - **アプリの自動更新**: 1 日 1 回 GitHub Releases を確認し、新しいバージョンがあれば自動でインストール (設定で「通知のみ」にもできる)
 - **Wi-Fi のときだけ更新**: 自動更新 (ブロックリスト・アプリ) をモバイル通信では行わないようにできる
 - **クイック設定タイル**: 通知パネルから ON / OFF (一時停止中にタップすると再開)
+- **ランチャーのショートカット**: アプリのアイコンを長押しして「一時停止 / 再開」「オン / オフ」
 - **通知の設定**: アプリの更新・ブロックリストの更新・動作中の表示を、それぞれオン / オフできる
 - 端末の再起動後・アプリの更新後に自動で再開、常時接続 VPN にも対応
 - ライト / ダークモード対応
@@ -52,11 +57,13 @@ Android 用の広告ブロッカーです。端末内にローカル VPN を作�
 |---|---|
 | [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | MIT |
 | [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) | GPL-3.0 |
+| [HaGeZi Multi NORMAL](https://github.com/hagezi/dns-blocklists) (既定はオフ) | GPL-3.0 |
 
+- 設定 → ブロックリスト でオン / オフでき、自分のリスト (hosts・ドメイン・Adblock 形式) を https の URL で追加できる
 - 1 日 1 回 (と画面の「今すぐ更新」) で取得。ETag で変更が無ければダウンロードしない
-- 取得元ごとに保存し、取得できなくなった取得元は前回の内容を使い続ける。ルールが 1,000 件未満なら異常とみなして使わない
+- 取得元ごとに保存し、取得できなくなった取得元は前回の内容を使い続ける。組み込みのリストはルールが 1,000 件未満なら異常とみなして使わない
 - 例外ルール (`@@||domain^`) も反映する
-- 初回のダウンロードまでは、アプリに同梱した StevenBlack のリスト (`app/src/main/assets/blocklist.txt`) を使う
+- 初回のダウンロードまでは、アプリに同梱した StevenBlack のリスト (`app/src/main/assets/blocklist.txt`) を使う (StevenBlack がオンのときだけ)
 
 同梱リストを作り直すとき:
 
@@ -73,7 +80,7 @@ Android Studio でこのフォルダを開いて実行します。コマンド�
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較 / 自分のルール)
+gradlew testDebugUnitTest      # 単体テスト (パケット / DNS / ルール解析 / バージョン比較 / 自分のルール / ブロックリストの取得元)
 gradlew lintDebug
 ```
 
@@ -97,12 +104,15 @@ Android 12 以上では、2 回目以降の更新は確認なしで入ります 
 | `RuleParser.kt` | hosts / ドメイン / Adblock 形式の 1 行を解釈 |
 | `BlockListUpdater.kt` / `BlockListWorker.kt` | ブロックリストのダウンロードと 1 日 1 回の自動更新 |
 | `UpstreamDns.kt` | 転送先 DNS の選択 (回線の DNS を優先、公開 DNS は予備) |
+| `DotClient.kt` | 暗号化 DNS (DNS over TLS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | GitHub Releases からの自動更新 |
 | `Filter.kt` / `UserRules.kt` / `Pause.kt` | 問い合わせごとの判定 (一時停止・自分のルール・ブロックリスト) |
 | `QueryLog.kt` / `StatsStore.kt` | 問い合わせのログ (メモリ上) / 日ごとの件数 |
 | `PrivateDnsMonitor.kt` | 「プライベート DNS」が「ホスト名を指定」かの検知 |
-| `MainActivity.kt` | ホーム / 統計 / ログのタブ |
-| `SettingsActivity.kt` / `RulesActivity.kt` / `AppListActivity.kt` | 設定 / 自分のルール / 例外アプリ |
+| `MainActivity.kt` / `LogAdapter.kt` | ホーム / 統計 / ログのタブ |
+| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | 設定 / 自分のルール / ブロックリスト / 例外アプリ |
+| `SettingsBackup.kt` | 設定の書き出しと読み込み |
+| `ShortcutActivity.kt` / `ResumeReceiver.kt` | ランチャーのショートカット / 通知の「再開」ボタン |
 | `DomainActions.kt` | ドメインのブロック・許可のメニュー |
 | `CardLayout.kt` / `BarChartView.kt` | 角丸カード / 過去 7 日のグラフ |
 | `AdBlockTileService.kt` | クイック設定タイル |

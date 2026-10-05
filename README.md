@@ -23,16 +23,21 @@ After that, the app checks for new versions and updates itself.
 ## Features
 
 - **Ad blocking**: blocks connections to about 240,000 ad and tracker domains
+- **CNAME cloaking detection**: also blocks trackers disguised as a site's own subdomain (when the CNAME target is on the blocklist)
+- **Choose blocklists**: turn the built-in lists on / off, or add any list by URL
 - **Excluded apps**: chosen apps bypass ad blocking and connect as usual (for apps that break with ad blocking)
 - **My rules**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win)
-- **Pause**: let everything through for 5 minutes, 15 minutes or 1 hour without turning the VPN off
+- **Pause**: let everything through for 5 minutes, 15 minutes or 1 hour without turning the VPN off. The notification shows when it resumes and has a Resume button
 - **Query log**: the last 500 lookups and whether each was blocked. Tap one to block or allow it. Kept only in memory, and can be turned off
 - **Statistics**: today's counts, a 7-day chart, all-time totals, and the most-blocked domains. Only counts are saved, not which sites you visited
 - **Private DNS warning**: tells you when "Private DNS" is set to a hostname, which stops blocking from working
+- **Encrypted DNS** (optional): send lookups to Cloudflare, Google or Quad9 over DNS over TLS
+- **Settings backup**: export your rules, excluded apps and settings to a file and import them on a new phone
 - **Automatic blocklist updates**: fetches the latest lists once a day
 - **Automatic app updates**: checks GitHub Releases once a day and installs new versions automatically (or just notifies you, if you prefer)
 - **Wi-Fi only**: keep automatic updates (blocklist and app) off mobile data
 - **Quick Settings tile**: turn blocking on / off from the notification shade (tap it while paused to resume)
+- **Launcher shortcuts**: long-press the app icon for "Pause / Resume" and "On / Off"
 - **Notification settings**: app updates, blocklist updates and the running indicator can each be turned on / off
 - Resumes automatically after a reboot or an app update; works with Always-on VPN
 - Light / dark mode
@@ -52,11 +57,13 @@ After that, the app checks for new versions and updates itself.
 |---|---|
 | [StevenBlack/hosts](https://github.com/StevenBlack/hosts) | MIT |
 | [AdGuard DNS filter](https://github.com/AdguardTeam/AdGuardSDNSFilter) | GPL-3.0 |
+| [HaGeZi Multi NORMAL](https://github.com/hagezi/dns-blocklists) (off by default) | GPL-3.0 |
 
+- Lists can be turned on / off in Settings → Blocklists, and you can add your own list (hosts, domain or Adblock format) by its https URL
 - Fetched once a day (and with "Update Now" in the app). Nothing is downloaded if the ETag hasn't changed
-- Each source is stored separately; if a source can't be fetched, its previous copy keeps being used. A list with fewer than 1,000 rules is treated as broken and ignored
+- Each source is stored separately; if a source can't be fetched, its previous copy keeps being used. A built-in list with fewer than 1,000 rules is treated as broken and ignored
 - Allow rules (`@@||domain^`) are honored
-- Until the first download, the StevenBlack list bundled with the app (`app/src/main/assets/blocklist.txt`) is used
+- Until the first download, the StevenBlack list bundled with the app (`app/src/main/assets/blocklist.txt`) is used (only while StevenBlack is turned on)
 
 To regenerate the bundled list:
 
@@ -73,7 +80,7 @@ Open this folder in Android Studio and run it. From the command line:
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / my rules)
+gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / my rules / blocklist sources)
 gradlew lintDebug
 ```
 
@@ -97,12 +104,15 @@ On Android 12 and later, updates after the first one install without asking (the
 | `RuleParser.kt` | Parses one line in hosts / domain / Adblock format |
 | `BlockListUpdater.kt` / `BlockListWorker.kt` | Downloading blocklists and the daily automatic update |
 | `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) |
+| `DotClient.kt` | Encrypted DNS (DNS over TLS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
 | `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, my rules, blocklist) |
 | `QueryLog.kt` / `StatsStore.kt` | Query log (in memory) / daily counts |
 | `PrivateDnsMonitor.kt` | Detecting "Private DNS" set to a hostname |
-| `MainActivity.kt` | Home / Statistics / Log tabs |
-| `SettingsActivity.kt` / `RulesActivity.kt` / `AppListActivity.kt` | Settings / my rules / excluded apps |
+| `MainActivity.kt` / `LogAdapter.kt` | Home / Statistics / Log tabs |
+| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | Settings / my rules / blocklists / excluded apps |
+| `SettingsBackup.kt` | Exporting and importing settings |
+| `ShortcutActivity.kt` / `ResumeReceiver.kt` | Launcher shortcuts / the Resume button in the notification |
 | `DomainActions.kt` | The block / allow menu for a domain |
 | `CardLayout.kt` / `BarChartView.kt` | Rounded cards / the 7-day chart |
 | `AdBlockTileService.kt` | Quick Settings tile |
