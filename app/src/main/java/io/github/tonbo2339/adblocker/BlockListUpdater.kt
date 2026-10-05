@@ -62,6 +62,17 @@ object BlockListUpdater {
         return BlockListSource(id, name, url, builtIn = false)
     }
 
+    /**
+     * 追加できる URL か確かめて整える。https だけを受け付ける (平文の http だと途中で書き換えられる恐れがある)。
+     * 画面からの追加と設定の読み込みの両方で使う。
+     */
+    fun normalizeUrl(text: String): String? {
+        val url = text.trim()
+        val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return null
+        if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrEmpty()) return null
+        return url
+    }
+
     /** 今使う取得元 (オンの組み込み + 追加した URL)。 */
     fun sources(context: Context): List<BlockListSource> =
         BUILT_IN.filter { Prefs.isSourceEnabled(context, it) } +

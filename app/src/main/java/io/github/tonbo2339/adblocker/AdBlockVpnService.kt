@@ -113,6 +113,9 @@ class AdBlockVpnService : VpnService() {
     private var dot: DotClient? = null
     private val dotLock = Any()
 
+    /** onDestroy() の後か (dotLock の中で読み書きする)。 */
+    private var destroyed = false
+
     /** 現在のワーカー。作り直しで置き換わった古いワーカーは、終了時に状態を書き換えない。 */
     @Volatile
     private var worker: Thread? = null
@@ -199,7 +202,11 @@ class AdBlockVpnService : VpnService() {
         shutdown()
         state = State.STOPPED
         upstream.stop()
-        dot?.close()
+        synchronized(dotLock) {
+            destroyed = true
+            dot?.close()
+            dot = null
+        }
         super.onDestroy()
     }
 
@@ -382,6 +389,8 @@ class AdBlockVpnService : VpnService() {
         if (current?.server == server) return current
         // VPN の作り直しと同じロック (this) を使うと、tun を作っている間の問い合わせが待たされる
         synchronized(dotLock) {
+            // 終了後に残った転送が新しいクライアントを作ると、その接続は誰も閉じない
+            if (destroyed) return null
             val again = dot
             if (again?.server == server) return again
             again?.close()

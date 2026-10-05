@@ -5,10 +5,10 @@ enum class Verdict(val blocked: Boolean) {
     /** ブロックリストに当たった */
     LIST(true),
 
-    /** 自分のルールでブロック */
+    /** 手動でブロック (「ブロック・許可するドメイン」) */
     USER_BLOCK(true),
 
-    /** 自分のルールで許可 */
+    /** 手動で許可 (「ブロック・許可するドメイン」) */
     USER_ALLOW(false),
 
     /** 一時停止中なので通した */
@@ -22,7 +22,7 @@ enum class Verdict(val blocked: Boolean) {
 }
 
 object Filter {
-    /** 優先順位: 一時停止 > 自分の許可 > 自分のブロック > ブロックリスト。 */
+    /** 優先順位: 一時停止 > 手動の許可 > 手動のブロック > ブロックリスト。 */
     fun decide(name: String): Verdict {
         if (Pause.isPaused()) return Verdict.PAUSED
         return when (UserRules.ruleFor(name)) {

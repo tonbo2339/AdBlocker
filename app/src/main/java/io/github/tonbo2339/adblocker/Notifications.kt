@@ -27,7 +27,7 @@ object Notifications {
 
     // ---------------------------------------------------------------- アプリのアップデート
 
-    /** 新しいバージョンがある (「自動でインストール」がオフのとき)。タップでインストールを始める。 */
+    /** 新しいバージョンがある (「自動でアップデート」がオフのとき)。タップでインストールを始める。 */
     fun updateAvailable(context: Context, version: String) {
         val intent = Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_INSTALL_UPDATE)

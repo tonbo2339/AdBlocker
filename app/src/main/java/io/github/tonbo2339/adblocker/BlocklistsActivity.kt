@@ -8,7 +8,6 @@ import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.ActivityBlocklistsBinding
 import io.github.tonbo2339.adblocker.databinding.ItemSourceRowBinding
-import java.net.URI
 import java.text.NumberFormat
 import kotlin.concurrent.thread
 
@@ -118,20 +117,12 @@ class BlocklistsActivity : AppCompatActivity() {
             title = R.string.list_add,
             hint = R.string.list_url_hint,
             error = R.string.list_url_invalid,
-            parse = ::normalizeUrl,
+            parse = BlockListUpdater::normalizeUrl,
         ) { url ->
             Prefs.setCustomSourceUrls(this, Prefs.customSourceUrls(this) + url)
             selectionChanged()
             show()
         }
-    }
-
-    /** https の URL だけを受け付ける (平文の http だと途中で書き換えられる恐れがある)。 */
-    private fun normalizeUrl(text: String): String? {
-        val url = text.trim()
-        val uri = runCatching { URI(url) }.getOrNull() ?: return null
-        if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrEmpty()) return null
-        return url
     }
 
     private fun confirmDelete(url: String, name: String) {

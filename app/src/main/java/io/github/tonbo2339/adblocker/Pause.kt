@@ -22,8 +22,10 @@ object Pause {
 
     fun removeListener(listener: () -> Unit) = listeners.remove(listener)
 
+    /** プロセスの開始時に呼ぶ。一時停止中なら、期限が来たときの表示の戻しも予約し直す。 */
     fun load(context: Context) {
         until = Prefs.pausedUntil(context)
+        scheduleExpiry(context.applicationContext)
     }
 
     /** 再開する時刻。 */
@@ -43,11 +45,17 @@ object Pause {
         until = time
         Prefs.setPausedUntil(app, time)
         changed(app)
-        // 期限が来たらタイルの「一時停止中」を戻す (プロセスが終了していたら、次にパネルを開いたときに戻る)
+        scheduleExpiry(app)
+    }
+
+    /**
+     * 期限が来たらタイルの「一時停止中」と常駐通知を戻す (プロセスが終了していたら、次にパネルを開いたときに戻る)。
+     * 一時停止中にプロセスが作り直されたとき (常時接続 VPN・再起動後の再開) も、load() から予約し直す。
+     */
+    private fun scheduleExpiry(app: Context) {
         handler.removeCallbacksAndMessages(null)
-        if (time > System.currentTimeMillis()) {
-            handler.postDelayed({ changed(app) }, time - System.currentTimeMillis())
-        }
+        val delay = until - System.currentTimeMillis()
+        if (delay > 0) handler.postDelayed({ changed(app) }, delay)
     }
 
     private fun changed(context: Context) {

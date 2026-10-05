@@ -9,7 +9,7 @@ import kotlin.concurrent.thread
 
 /**
  * 設定の書き出しと読み込み (端末の引っ越しや、入れ直したとき用)。
- * 自分のルール・例外アプリ・設定を JSON にする。ON/OFF や統計、ダウンロードしたリストは含めない。
+ * ブロック・許可するドメイン、例外アプリ、設定を JSON にする。ON/OFF や統計、ダウンロードしたリストは含めない。
  */
 object SettingsBackup {
     private const val APP = "AdBlocker"
@@ -52,30 +52,32 @@ object SettingsBackup {
 
         root.optJSONObject("rules")?.let { rules ->
             for (kind in UserRules.Kind.entries) {
-                val domains = strings(rules.optJSONArray(kind.key)).mapNotNull { UserRules.normalize(it) }.toSet()
-                UserRules.replace(app, kind, domains)
+                // ファイルに無い種類は今のまま残す
+                val array = rules.optJSONArray(kind.key) ?: continue
+                UserRules.replace(app, kind, strings(array).mapNotNull { UserRules.normalize(it) }.toSet())
             }
         }
         val oldExcluded = Prefs.excluded(app)
         root.optJSONArray("excluded_apps")?.let { Prefs.setExcluded(app, strings(it).toSet()) }
 
+        // 値の型が違う項目は読み飛ばす (getBoolean の JSONException で途中まで反映したまま止まらないように)
         root.optJSONObject("settings")?.let { s ->
-            if (s.has("query_log")) Prefs.setQueryLogEnabled(app, s.getBoolean("query_log"))
-            if (s.has("update_on_wifi_only")) Prefs.setUpdateOnWifiOnly(app, s.getBoolean("update_on_wifi_only"))
-            if (s.has("auto_install_updates")) Prefs.setAutoInstallUpdates(app, s.getBoolean("auto_install_updates"))
+            bool(s, "query_log")?.let { Prefs.setQueryLogEnabled(app, it) }
+            bool(s, "update_on_wifi_only")?.let { Prefs.setUpdateOnWifiOnly(app, it) }
+            bool(s, "auto_install_updates")?.let { Prefs.setAutoInstallUpdates(app, it) }
             if (s.has("encrypted_dns")) Prefs.setEncryptedDns(app, EncryptedDns.of(s.optString("encrypted_dns")))
             s.optJSONObject("notifications")?.let { n ->
                 for (kind in NotificationKind.entries) {
-                    if (n.has(kind.key)) Prefs.setNotificationEnabled(app, kind, n.getBoolean(kind.key))
+                    bool(n, kind.key)?.let { Prefs.setNotificationEnabled(app, kind, it) }
                 }
             }
             s.optJSONObject("blocklists")?.let { b ->
                 for (source in BlockListUpdater.BUILT_IN) {
-                    if (b.has(source.id)) Prefs.setSourceEnabled(app, source, b.getBoolean(source.id))
+                    bool(b, source.id)?.let { Prefs.setSourceEnabled(app, source, it) }
                 }
             }
             s.optJSONArray("custom_blocklists")?.let { urls ->
-                Prefs.setCustomSourceUrls(app, strings(urls).filter { it.startsWith("https://") }.toSet())
+                Prefs.setCustomSourceUrls(app, strings(urls).mapNotNull { BlockListUpdater.normalizeUrl(it) }.toSet())
             }
         }
 
@@ -89,6 +91,8 @@ object SettingsBackup {
             if (BlockListUpdater.hasMissing(app)) BlockListWorker.runNow(app)
         }
     }
+
+    private fun bool(obj: JSONObject, key: String): Boolean? = obj.opt(key) as? Boolean
 
     private fun strings(array: JSONArray?): List<String> =
         if (array == null) emptyList() else (0 until array.length()).mapNotNull { array.optString(it).takeIf(String::isNotBlank) }

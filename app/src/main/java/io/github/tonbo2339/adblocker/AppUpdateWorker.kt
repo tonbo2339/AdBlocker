@@ -11,7 +11,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import java.util.concurrent.TimeUnit
 
-/** アプリの更新を確認する。定期実行は設定に従い「自動でインストール」か「通知のみ」。 */
+/** アプリの更新を確認する。定期実行は設定に従い「自動でアップデート」か「通知のみ」。 */
 class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
 
     companion object {
