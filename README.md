@@ -97,7 +97,7 @@ APKs in Releases are signed with the debug key on the author's PC. An app can on
 | `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
 | `MainActivity.kt` / `AppListActivity.kt` | Main screen / excluded apps screen |
-| `CardLayout.kt` | Rounded cards (sections in the style of iOS Settings) |
+| `CardLayout.kt` | Rounded cards |
 | `AdBlockTileService.kt` | Quick Settings tile |
 | `BootReceiver.kt` | Resuming after a reboot or an update |
 | `Notifications.kt` / `Prefs.kt` | Notifications / saved settings |

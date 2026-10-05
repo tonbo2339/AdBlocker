@@ -97,7 +97,7 @@ Releases の APK は作者の PC のデバッグ鍵で署名しています。�
 | `UpstreamDns.kt` | 転送先 DNS の選択 (回線の DNS を優先、公開 DNS は予備) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | GitHub Releases からの自動更新 |
 | `MainActivity.kt` / `AppListActivity.kt` | メイン画面 / 例外アプリの選択画面 |
-| `CardLayout.kt` | 角丸カード (iOS の設定画面風のセクション) |
+| `CardLayout.kt` | 角丸カード |
 | `AdBlockTileService.kt` | クイック設定タイル |
 | `BootReceiver.kt` | 再起動後・更新後の自動再開 |
 | `Notifications.kt` / `Prefs.kt` | 通知 / 設定の保存 |
