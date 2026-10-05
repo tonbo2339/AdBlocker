@@ -32,6 +32,11 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
+    // 端末の設定 (Android 13 以上) でアプリごとに言語を選べるようにする
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 kotlin {
