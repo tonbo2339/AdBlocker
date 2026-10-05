@@ -1,7 +1,6 @@
 package io.github.tonbo2339.adblocker
 
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -14,6 +13,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.text.format.DateUtils
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -71,9 +71,8 @@ class MainActivity : AppCompatActivity() {
     /** updateHome() がスイッチを同期している間は true (リスナーで無視する)。 */
     private var syncingSwitch = false
 
-    /** よくブロックしたドメインの表示中の内容 (変わったときだけ作り直す)。 */
-    private var shownTopDomains: List<Pair<String, Int>>? = null
-    private var shownTopEnabled = true
+    /** よくブロックしたドメイン・アプリの表示中の内容 (変わったときだけ作り直す)。 */
+    private var shownTop: Triple<List<Pair<String, Int>>, List<Pair<String, Int>>, Boolean>? = null
 
     private val logAdapter = LogAdapter(this)
 
@@ -198,8 +197,6 @@ class MainActivity : AppCompatActivity() {
                 Tab.LOG -> R.string.tab_log
             }
         )
-        // 設定ボタンはホームにだけ出す
-        binding.menuButton.isVisible = tab == Tab.HOME
         // 表示したばかりのページはまだ大きさが決まっていないので、配置が済んでから判定する
         binding.root.post { updateNavBar() }
         refreshCurrentTab()
@@ -289,23 +286,8 @@ class MainActivity : AppCompatActivity() {
                 choosePauseDuration()
             }
         }
-        home.exclusionsRow.setOnClickListener { startActivity(Intent(this, AppListActivity::class.java)) }
-        // 端末によっては VPN 設定画面が無いので、ネットワーク設定 → 設定アプリの順に試す
-        home.alwaysOnRow.setOnClickListener {
-            openSettings(Settings.ACTION_VPN_SETTINGS, Settings.ACTION_WIRELESS_SETTINGS, Settings.ACTION_SETTINGS)
-        }
         home.privateDnsRow.setOnClickListener {
-            openSettings(Settings.ACTION_WIRELESS_SETTINGS, Settings.ACTION_SETTINGS)
-        }
-    }
-
-    private fun openSettings(vararg actions: String) {
-        for (action in actions) {
-            try {
-                startActivity(Intent(action))
-                return
-            } catch (_: ActivityNotFoundException) {
-            }
+            openSystemSettings(Settings.ACTION_WIRELESS_SETTINGS, Settings.ACTION_SETTINGS)
         }
     }
 
@@ -373,7 +355,6 @@ class MainActivity : AppCompatActivity() {
         val today = StatsStore.today(this)
         home.blockedCount.text = numberFormat.format(today.blocked)
         home.queryCount.text = numberFormat.format(today.queries)
-        home.exclusionValue.text = getString(R.string.exclusion_value, Prefs.excluded(this).size)
     }
 
     private fun updatePrivateDnsCard() {
@@ -426,12 +407,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTopDomains() {
-        val top = SessionStats.top(TOP_DOMAINS)
+        val domains = SessionStats.top(TOP_DOMAINS)
+        val apps = SessionStats.topApps(TOP_DOMAINS)
         val enabled = QueryLog.enabled
-        if (top == shownTopDomains && enabled == shownTopEnabled) return
-        shownTopDomains = top
-        shownTopEnabled = enabled
-        val card = binding.stats.topDomains
+        val shown = Triple(domains, apps, enabled)
+        if (shown == shownTop) return
+        shownTop = shown
+        fillTopCard(binding.stats.topDomains, domains, enabled, { it }) { domain ->
+            DomainActions.show(this, domain, blocked = true)
+        }
+        // アプリはタップしても何もしない (例外アプリにするかは「例外アプリ」の画面で選ぶ)
+        fillTopCard(binding.stats.topApps, apps, enabled, { AppLabels.of(this, it) }, null)
+    }
+
+    /** よくブロックしたもの (ドメイン・アプリ) の一覧を作り直す。 */
+    private fun fillTopCard(
+        card: ViewGroup,
+        top: List<Pair<String, Int>>,
+        enabled: Boolean,
+        title: (String) -> String,
+        onClick: ((String) -> Unit)?,
+    ) {
         card.removeAllViews()
         if (top.isEmpty()) {
             val row = ItemValueRowBinding.inflate(layoutInflater, card, true)
@@ -442,12 +438,12 @@ class MainActivity : AppCompatActivity() {
             return
         }
         for ((i, entry) in top.withIndex()) {
-            val (domain, count) = entry
+            val (key, count) = entry
             val row = ItemValueRowBinding.inflate(layoutInflater, card, true)
-            row.title.text = domain
+            row.title.text = title(key)
             row.value.text = numberFormat.format(count)
             row.separator.isVisible = i != top.lastIndex
-            row.row.setOnClickListener { DomainActions.show(this, domain, blocked = true) }
+            if (onClick != null) row.row.setOnClickListener { onClick(key) } else row.row.isClickable = false
         }
     }
 

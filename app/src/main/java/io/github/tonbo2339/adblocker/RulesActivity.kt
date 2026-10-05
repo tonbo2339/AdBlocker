@@ -8,7 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.ActivityRulesBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
 
-/** 自分で追加するブロック / 許可のルール。 */
+/** 手動で追加するブロック / 許可のルール (「ブロック・許可するドメイン」)。 */
 class RulesActivity : AppCompatActivity() {
 
     private companion object {
@@ -66,8 +66,9 @@ class RulesActivity : AppCompatActivity() {
         showInputDialog(
             title = if (kind == UserRules.Kind.BLOCK) R.string.rule_add_title_block else R.string.rule_add_title_allow,
             hint = R.string.rule_hint,
-            error = R.string.rule_invalid,
-            parse = UserRules::normalize,
+            // IP アドレスはブロックにだけ使える (許可しても意味が無い)
+            error = if (kind == UserRules.Kind.BLOCK) R.string.rule_invalid else R.string.rule_invalid_allow,
+            parse = { UserRules.normalize(it, allowIp = kind == UserRules.Kind.BLOCK) },
         ) { domain ->
             UserRules.add(this, kind, domain)
             showRules()

@@ -12,7 +12,6 @@
     <string name="row_adblock">Ad Blocking</string>
     <string name="stat_blocked">Blocked</string>
     <string name="stat_queries">Queries</string>
-    <string name="row_blocklist">Blocklist</string>
     <string name="row_domains">Blocked Domains</string>
     <string name="blocklist_value">%1$s</string>
     <string name="row_last_checked">Last Checked</string>
@@ -35,8 +34,11 @@
     <string name="exclusions_applied">Exclusions applied</string>
 
     <string name="section_auto_update">Automatic Updates</string>
+    <string name="row_update_time">Update Time</string>
+    <string name="update_time_any">Any Time</string>
+    <string name="update_time_pick">Choose a Time…</string>
     <string name="row_wifi_only">Update on Wi-Fi Only</string>
-    <string name="wifi_only_footer">When on, automatic blocklist and app updates only run on Wi-Fi (or other unmetered networks), not on mobile data. \"Update Now\" and \"Check for Update\" always work.</string>
+    <string name="wifi_only_footer">Automatic blocklist and app updates run once a day, around the time you choose (the phone may delay them a little to save battery). When Update on Wi-Fi Only is on, they only run on Wi-Fi (or other unmetered networks), not on mobile data. \"Update Now\" and \"Check for Update\" always work.</string>
     <string name="section_app">App</string>
     <string name="row_version">Version</string>
     <string name="version_value">v%1$s</string>
@@ -127,21 +129,22 @@
     <string name="verdict_paused">Allowed while paused</string>
     <string name="verdict_pass">Allowed</string>
     <string name="log_detail_count">%1$s (×%2$d)</string>
+    <string name="log_detail_app" translatable="false">%1$s · %2$s</string>
 
     <string name="section_filtering">Filtering</string>
     <string name="title_rules">Block &amp; Allow Domains</string>
     <string name="rules_value">%1$d</string>
     <string name="row_query_log">Query Log</string>
-    <string name="query_log_footer">Keeps the last 500 lookups and the most-blocked domains in memory only. Nothing is written to storage.</string>
+    <string name="query_log_footer">Keeps the last 500 lookups and the most-blocked domains and apps in memory only. Nothing is written to storage.</string>
     <string name="rules_block">Block</string>
     <string name="rules_allow">Allow</string>
     <string name="rule_add">Add Domain</string>
     <string name="rule_add_title_block">Domain to Block</string>
     <string name="rule_add_title_allow">Domain to Allow</string>
-    <string name="rule_hint" translatable="false">example.com</string>
-    <string name="rule_invalid">That isn\'t a valid domain</string>
-    <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on the blocklist.</string>
-    <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. Allow rules win over block rules.</string>
+    <string name="rule_hint" translatable="false">example.com / ads.* / 203.0.113.7</string>
+    <string name="rule_invalid">That isn\'t a valid domain, pattern or IP address</string>
+    <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on the blocklist. Use * to match anything (ads.* or *tracker*). An IP address (or a range like 203.0.113.0/24) blocks any name whose answer is that address.</string>
+    <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. Use * to match anything. Allow rules win over block rules.</string>
     <string name="rules_empty">Nothing added yet</string>
     <string name="rule_delete_title">Delete %1$s?</string>
     <string name="rule_added_block">Blocking %1$s</string>
@@ -178,6 +181,31 @@
     <string name="backup_footer">Saves your blocked and allowed domains, excluded apps, blocklists and settings to a file, for moving to a new phone. Statistics and the log are not included.</string>
     <string name="export_done">Settings exported</string>
     <string name="export_failed">Couldn\'t save the file</string>
+    <string name="query_log_footer_saved">Keeps the last 500 lookups and the most-blocked domains and apps in memory, and also saves the log to a file on this phone for %1$s (it never leaves the phone). Older entries are deleted automatically. Export the log to see all of it.</string>
+    <string name="log_footer_saved">The last %1$s lookups. The log is also saved on this phone for %2$s. Tap a row to block or allow it.</string>
+    <string name="row_log_retention">Keep Log</string>
+    <string name="log_retention_memory">Don\'t Save</string>
+    <string name="log_retention_1">1 Day</string>
+    <string name="log_retention_7">7 Days</string>
+    <string name="log_retention_30">30 Days</string>
+    <string name="log_period_1">1 day</string>
+    <string name="log_period_7">7 days</string>
+    <string name="log_period_30">30 days</string>
+    <string name="row_export_log">Export Log</string>
+    <string name="export_log_done">Log exported</string>
+    <string name="row_capture_dns">Block Apps\' Own DNS</string>
+    <string name="capture_dns_footer">Some apps send lookups straight to public DNS servers (such as 8.8.8.8 or 1.1.1.1), which gets around ad blocking. When on, those lookups are filtered too, and encrypted lookups to these servers (DNS over HTTPS / TLS) are refused so the app falls back to your phone\'s DNS. While it\'s on, ping to these addresses doesn\'t work.</string>
+    <string name="section_top_apps">Top Blocked Apps</string>
+    <string name="title_dns">DNS</string>
+    <string name="section_vpn">VPN</string>
+    <string name="title_log">Log</string>
+    <string name="title_updates">Updates</string>
+    <string name="section_blocklist_status">Status</string>
+    <string name="log_off_value">Off</string>
+    <string name="settings_footer">AdBlocker v%1$s</string>
+    <string name="top_apps_footer">Apps whose lookups were blocked most since ad blocking was last turned on. Kept only in memory. Needs Android 10 or later.</string>
+    <string name="verdict_ip">Blocked by IP address (%1$s)</string>
+    <string name="rule_invalid_allow">That isn\'t a valid domain or pattern (IP addresses can only be blocked)</string>
     <string name="import_done">Settings imported</string>
     <string name="import_failed">This file isn\'t an AdBlocker settings file</string>
 </resources>

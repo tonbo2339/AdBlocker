@@ -16,6 +16,9 @@ object Prefs {
     private const val KEY_QUERY_LOG = "query_log"
     private const val KEY_PAUSED_UNTIL = "paused_until"
     private const val KEY_ENCRYPTED_DNS = "encrypted_dns"
+    private const val KEY_CAPTURE_DNS = "capture_hardcoded_dns"
+    private const val KEY_LOG_RETENTION_DAYS = "log_retention_days"
+    private const val KEY_UPDATE_TIME = "update_time_minutes"
     private const val KEY_SOURCE_ON = "source_on_"
     private const val KEY_CUSTOM_SOURCES = "custom_sources"
     private const val KEY_ETAG = "etag_"
@@ -63,6 +66,8 @@ object Prefs {
     fun setQueryLogEnabled(context: Context, enabled: Boolean) {
         prefs(context).edit { putBoolean(KEY_QUERY_LOG, enabled) }
         QueryLog.enabled = enabled
+        // オフにしたら、ファイルに残したログも消す (オンに戻したら、選んである期間で残し始める)
+        QueryLogFiles.configure(context, if (enabled) logRetentionDays(context) else 0)
     }
 
     /** 自動更新 (ブロックリスト・アプリ) を Wi-Fi などの従量制でない回線のときだけ行うか。手動の更新には効かない。 */
@@ -70,6 +75,14 @@ object Prefs {
 
     fun setUpdateOnWifiOnly(context: Context, enabled: Boolean) {
         prefs(context).edit { putBoolean(KEY_WIFI_ONLY, enabled) }
+    }
+
+    /** 自動更新を行う時刻 (0 時からの分)。null なら指定なし (WorkManager に任せる)。 */
+    fun updateTimeMinutes(context: Context): Int? =
+        prefs(context).getInt(KEY_UPDATE_TIME, -1).takeIf { it in 0 until 24 * 60 }
+
+    fun setUpdateTimeMinutes(context: Context, minutes: Int?) {
+        prefs(context).edit { putInt(KEY_UPDATE_TIME, minutes ?: -1) }
     }
 
     /** 新しいバージョンを見つけたら自動でインストールするか (false なら通知だけ)。 */
@@ -99,6 +112,24 @@ object Prefs {
     fun setEncryptedDns(context: Context, server: EncryptedDns?) {
         prefs(context).edit { putString(KEY_ENCRYPTED_DNS, server?.id) }
     }
+
+    /** DNS サーバーを直接指定しているアプリの問い合わせも捕まえるか (主な公開 DNS 宛てを VPN に通す)。既定はオフ。 */
+    fun captureHardcodedDns(context: Context): Boolean = prefs(context).getBoolean(KEY_CAPTURE_DNS, false)
+
+    fun setCaptureHardcodedDns(context: Context, enabled: Boolean) {
+        prefs(context).edit { putBoolean(KEY_CAPTURE_DNS, enabled) }
+    }
+
+    /** ログをファイルに残す日数。0 ならメモリ上だけ (既定)。選べるのは LOG_RETENTION_CHOICES。 */
+    fun logRetentionDays(context: Context): Int =
+        prefs(context).getInt(KEY_LOG_RETENTION_DAYS, 0).takeIf { it in LOG_RETENTION_CHOICES } ?: 0
+
+    fun setLogRetentionDays(context: Context, days: Int) {
+        prefs(context).edit { putInt(KEY_LOG_RETENTION_DAYS, days) }
+        if (queryLogEnabled(context)) QueryLogFiles.configure(context, days)
+    }
+
+    val LOG_RETENTION_CHOICES = listOf(0, 1, 7, 30)
 
     /** 組み込みのブロックリストを使うか。 */
     fun isSourceEnabled(context: Context, source: BlockListSource): Boolean =

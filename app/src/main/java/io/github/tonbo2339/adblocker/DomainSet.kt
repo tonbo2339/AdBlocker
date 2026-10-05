@@ -44,8 +44,17 @@ class DomainSet private constructor(private val hashes: LongArray) {
         }
     }
 
+    /** 保存用の中身 (ソート済みのハッシュ)。fromSorted() で戻せる。 */
+    fun toArray(): LongArray = hashes.copyOf()
+
     companion object {
         val EMPTY = DomainSet(LongArray(0))
+
+        /** toArray() で取り出した中身から作る。ソート済みで重複が無いこと (壊れていれば null)。 */
+        fun fromSorted(hashes: LongArray): DomainSet? {
+            for (i in 1 until hashes.size) if (hashes[i - 1] >= hashes[i]) return null
+            return DomainSet(hashes)
+        }
 
         /** FNV-1a (64bit)。部分文字列を作らずに親ドメインのハッシュを計算できるよう範囲を受け取る。 */
         private fun hash(s: String, from: Int, end: Int): Long {

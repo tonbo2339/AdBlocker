@@ -1,15 +1,12 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import java.util.concurrent.TimeUnit
 
 /** アプリの更新を確認する。定期実行は設定に従い「自動でアップデート」か「通知のみ」。 */
 class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
@@ -26,12 +23,9 @@ class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(conte
         const val RESULT_INSTALLING = "installing"
         const val RESULT_FAILED = "failed"
 
-        fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<AppUpdateWorker>(1, TimeUnit.DAYS)
-                .setConstraints(UpdateConstraints.automatic(context))
-                .build()
-            WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
+        /** 1 日 1 回の確認を登録する (時刻を変えたときは retime = true で予定を作り直す)。 */
+        fun schedule(context: Context, retime: Boolean = false) {
+            UpdateConstraints.schedulePeriodic(context, PERIODIC, AppUpdateWorker::class.java, retime)
         }
 
         /** 今すぐ確認して、新しい版があればインストールする (ユーザー操作から呼ぶ)。 */

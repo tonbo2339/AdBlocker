@@ -139,16 +139,73 @@ class PacketsTest {
     }
 
     @Test
-    fun nxdomainKeepsIdAndQuestion() {
+    fun blockedIsNodataWithShortSoa() {
         val query = dnsQuery()
         val q = Dns.parseQuestion(query)!!
-        val r = Dns.nxdomain(query, q)
-        assertEquals(query.size, r.size)
+        assertEquals(Dns.TYPE_A, q.type)
+        val r = Dns.blocked(query, q)
         assertEquals(0x1234, u16(r, 0))
         assertTrue(r[2].toInt() and 0x80 != 0) // QR
         assertTrue(r[2].toInt() and 0x01 != 0) // RD を維持
-        assertEquals(3, r[3].toInt() and 0x0F) // NXDOMAIN
+        assertEquals(Dns.RCODE_NOERROR, Dns.rcode(r))
         assertEquals(1, u16(r, 4))
         assertEquals(0, u16(r, 6))
+        assertEquals(1, u16(r, 8)) // 権威セクションに SOA が 1 つ
+        val records = Dns.records(r)!!
+        assertEquals(1, records.size)
+        assertEquals(Dns.TYPE_SOA, records[0].type)
+        // OS が 5 秒だけ覚えておける否定応答
+        assertEquals(5L, Dns.cacheTtl(r))
+    }
+
+    @Test
+    fun servfailHasNoRecords() {
+        val query = dnsQuery()
+        val r = Dns.servfail(query, Dns.parseQuestion(query)!!)
+        assertEquals(Dns.RCODE_SERVFAIL, Dns.rcode(r))
+        assertEquals(query.size, r.size)
+        assertEquals(0L, Dns.cacheTtl(r)) // 失敗は覚えない
+    }
+
+    private fun tcpSyn(): ByteArray {
+        val p = ByteArray(40)
+        p[0] = 0x45
+        put16(p, 2, p.size)
+        p[8] = 64
+        p[9] = 6
+        byteArrayOf(10, 111, 222.toByte(), 1).copyInto(p, 12)
+        byteArrayOf(8, 8, 8, 8).copyInto(p, 16)
+        put16(p, 20, 40000)
+        put16(p, 22, 443)
+        put32(p, 24, 1000) // SEQ
+        p[32] = 0x50
+        p[33] = 0x02 // SYN
+        return p
+    }
+
+    @Test
+    fun tcpSynGetsReset() {
+        val syn = tcpSyn()
+        val r = Packets.tcpReset(syn, syn.size)!!
+        assertEquals(40, r.size)
+        assertEquals(0xFFFF, onesSum(r, 0, 20)) // IP のチェックサム
+        assertArrayEquals(byteArrayOf(8, 8, 8, 8), r.copyOfRange(12, 16))
+        assertEquals(443, u16(r, 20))
+        assertEquals(40000, u16(r, 22))
+        assertEquals(1001L, u32(r, 28)) // ACK = SEQ + 1
+        assertEquals(0x14, r[33].toInt()) // RST + ACK
+        // TCP のチェックサム (疑似ヘッダー込み)
+        var pseudo = 0L
+        for (i in 12 until 20 step 2) pseudo += u16(r, i)
+        pseudo += 20 + 6
+        assertEquals(0xFFFF, onesSum(r, 20, 20, pseudo))
+    }
+
+    @Test
+    fun onlySynIsReset() {
+        val ack = tcpSyn().also { it[33] = 0x10 }
+        assertNull(Packets.tcpReset(ack, ack.size))
+        val udp = ipv4Udp(dnsQuery())
+        assertNull(Packets.tcpReset(udp, udp.size))
     }
 }

@@ -16,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap
  * VPN 以外のネットワーク (Wi-Fi / モバイル回線) に設定されている DNS サーバーを優先し、
  * それで解決できないときだけ公開 DNS を使う。公開 DNS への通信を塞いでいるネットワークでも名前解決が止まらないようにするため。
  */
-class UpstreamDns(context: Context) {
+/** onChange: 回線の DNS が変わったとき (別のスレッドから呼ばれる)。 */
+class UpstreamDns(context: Context, private val onChange: () -> Unit = {}) {
 
     companion object {
         private const val TAG = "UpstreamDns"
@@ -29,11 +30,12 @@ class UpstreamDns(context: Context) {
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-            networkDns[network] = linkProperties.dnsServers
+            val servers = linkProperties.dnsServers
+            if (networkDns.put(network, servers) != servers) onChange()
         }
 
         override fun onLost(network: Network) {
-            networkDns.remove(network)
+            if (networkDns.remove(network) != null) onChange()
         }
     }
 
@@ -75,4 +77,20 @@ class UpstreamDns(context: Context) {
     fun markWorking(server: InetAddress) {
         lastWorking = server
     }
+}
+
+/** 主な公開 DNS のアドレス。「DNS を直接指定しているアプリもブロック」がオンのとき、ここ宛ての通信を VPN に通す。 */
+object PublicDns {
+    val ADDRESSES = listOf(
+        // Google
+        "8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844",
+        // Cloudflare
+        "1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001",
+        // Quad9
+        "9.9.9.9", "149.112.112.112", "2620:fe::fe", "2620:fe::9",
+        // OpenDNS
+        "208.67.222.222", "208.67.220.220", "2620:119:35::35", "2620:119:53::53",
+        // AdGuard DNS
+        "94.140.14.14", "94.140.15.15", "2a10:50c0::ad1:ff", "2a10:50c0::ad2:ff",
+    )
 }

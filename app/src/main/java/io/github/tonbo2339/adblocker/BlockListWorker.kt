@@ -1,15 +1,12 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import java.util.concurrent.TimeUnit
 
 /** ブロックリストを定期的に更新する。WorkManager が端末の再起動後も続けて実行する。 */
 class BlockListWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
@@ -20,13 +17,9 @@ class BlockListWorker(context: Context, params: WorkerParameters) : Worker(conte
         private const val MAX_RETRIES = 3
         private const val KEY_MANUAL = "manual"
 
-        /** 1 日 1 回の自動更新を登録する (登録済みなら次回の実行予定は保ったまま設定だけ更新)。 */
-        fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<BlockListWorker>(1, TimeUnit.DAYS)
-                .setConstraints(UpdateConstraints.automatic(context))
-                .build()
-            WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
+        /** 1 日 1 回の自動更新を登録する (時刻を変えたときは retime = true で予定を作り直す)。 */
+        fun schedule(context: Context, retime: Boolean = false) {
+            UpdateConstraints.schedulePeriodic(context, PERIODIC, BlockListWorker::class.java, retime)
         }
 
         /** 今すぐ更新する。進み具合は getWorkInfosForUniqueWorkLiveData(ONE_TIME) で見られる。 */

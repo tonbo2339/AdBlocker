@@ -3,6 +3,7 @@ package io.github.tonbo2339.adblocker
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import kotlin.concurrent.thread
 
 class AdBlockerApp : Application() {
 
@@ -21,6 +22,10 @@ class AdBlockerApp : Application() {
         UserRules.load(this)
         Pause.load(this)
         QueryLog.enabled = Prefs.queryLogEnabled(this)
+        val retention = if (QueryLog.enabled) Prefs.logRetentionDays(this) else 0
+        QueryLogFiles.configure(this, retention)
+        // ファイルに残したログがあれば、画面のログに戻す (プロセスが作り直されても続きから見られるように)
+        if (retention > 0) thread(name = "QueryLogLoad") { QueryLog.prepend(QueryLogFiles.recent(QueryLog.CAPACITY)) }
         BlockListWorker.schedule(this)
         AppUpdateWorker.schedule(this)
     }

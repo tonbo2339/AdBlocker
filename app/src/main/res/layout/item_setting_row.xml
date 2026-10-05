@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  設定の 1 行 (SettingsBuilder が使う)。使わない部品は隠す:
+  行頭アイコン / 名前 / 値 / 進み具合 / スイッチ / チェックマーク / 「>」
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/row"
+    style="@style/Row"
+    tools:ignore="ContentDescription">
+
+    <ImageView
+        android:id="@+id/icon"
+        style="@style/IconBadge" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/RowTitle" />
+
+    <TextView
+        android:id="@+id/value"
+        style="@style/RowValue"
+        android:layout_marginStart="8dp"
+        android:ellipsize="end"
+        android:fontFeatureSettings="tnum"
+        android:maxWidth="200dp"
+        android:singleLine="true" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/toggle"
+        style="@style/IosSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp" />
+
+    <ImageView
+        android:id="@+id/check"
+        android:layout_width="16dp"
+        android:layout_height="14dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_check" />
+
+    <ImageView
+        android:id="@+id/chevron"
+        style="@style/Chevron" />
+</LinearLayout>

@@ -24,16 +24,18 @@ After that, the app checks for new versions and updates itself.
 
 - **Ad blocking**: blocks connections to about 240,000 ad and tracker domains
 - **CNAME cloaking detection**: also blocks trackers disguised as a site's own subdomain (when the CNAME target is on the blocklist)
+- **Apps that use their own DNS** (optional): lookups sent straight to public DNS servers such as 8.8.8.8 or 1.1.1.1 are filtered too, and encrypted DNS to them (DNS over HTTPS / TLS) is refused so the app falls back to the phone's DNS
+- **Fast lookups**: answers are cached for their TTL, several DNS servers are asked in parallel when one is slow, and a failure is reported right away instead of making apps wait for a timeout
 - **Choose blocklists**: turn the built-in lists on / off, or add any list by URL
 - **Excluded apps**: chosen apps bypass ad blocking and connect as usual (for apps that break with ad blocking)
-- **Block & allow domains**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win)
+- **Block & allow domains**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win). Use `*` as a wildcard (`ads.*`, `*tracker*`), or block an IP address or range (`203.0.113.0/24`) to stop any name whose answer is that address
 - **Pause**: let everything through for 5 minutes, 15 minutes or 1 hour without turning the VPN off. The notification shows when it resumes and has a Resume button
-- **Query log**: the last 500 lookups and whether each was blocked. Tap one to block or allow it. Kept only in memory, and can be turned off
-- **Statistics**: today's counts, a 7-day chart, all-time totals, and the most-blocked domains. Only counts are saved, not which sites you visited
+- **Query log**: the last 500 lookups, which app made each one (Android 10+), and whether it was blocked. Tap one to block or allow it. Kept only in memory by default; you can also keep it in a file on the phone for 1, 7 or 30 days and export it as CSV. Can be turned off
+- **Statistics**: today's counts, a 7-day chart, all-time totals, and the most-blocked domains and apps. Only counts are saved, not which sites you visited
 - **Private DNS warning**: tells you when "Private DNS" is set to a hostname, which stops blocking from working
 - **Encrypted DNS** (optional): send lookups to Cloudflare, Google or Quad9 over DNS over TLS
 - **Settings backup**: export your blocked and allowed domains, excluded apps and settings to a file and import them on a new phone
-- **Automatic blocklist updates**: fetches the latest lists once a day
+- **Automatic blocklist updates**: fetches the latest lists once a day, at a time you can choose
 - **Automatic app updates**: checks GitHub Releases once a day and installs new versions automatically (or just notifies you, if you prefer)
 - **Update on Wi-Fi only**: keep automatic updates (blocklist and app) off mobile data (on by default)
 - **Quick Settings tile**: turn blocking on / off from the notification shade (tap it while paused to resume)
@@ -48,7 +50,7 @@ After that, the app checks for new versions and updates itself.
 - Android allows only one VPN at a time. Starting another VPN app turns AdBlocker off
 - Blocking doesn't work while "Private DNS" in Settings is set to a hostname (use "Automatic" or "Off"). The app shows a warning when this happens
 - **The blank space where an ad was can't be removed** (DNS blocking only stops the connection; it can't change page layouts). For browsers, use something like Firefox + uBlock Origin as well
-- Ads served from the same domain as the content (such as YouTube video ads), hard-coded IP addresses, and apps' own DNS-over-HTTPS can't be blocked
+- Ads served from the same domain as the content (such as YouTube video ads), hard-coded IP addresses, and apps' own DNS-over-HTTPS to servers other than the major public DNS can't be blocked
 - DNS lookups that fall back to TCP for large responses (rare) aren't supported
 
 ## Blocklists
@@ -80,7 +82,7 @@ Open this folder in Android Studio and run it. From the command line:
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources)
+gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources / DNS cache / update time)
 gradlew lintDebug
 ```
 
@@ -99,18 +101,19 @@ On Android 12 and later, updates after the first one install without asking (the
 | File | Contents |
 |---|---|
 | `AdBlockVpnService.kt` | The VPN itself (reads / writes the tun, decides what to block, forwards to upstream DNS) |
-| `Packets.kt` / `Dns.kt` | Parsing and building IPv4 / IPv6 + UDP packets and DNS messages |
+| `Packets.kt` / `Dns.kt` / `DnsCache.kt` | Parsing and building IPv4 / IPv6 packets and DNS messages / caching answers |
 | `BlockList.kt` / `DomainSet.kt` | Loading and matching the blocklist (parent domains and allow rules) |
 | `RuleParser.kt` | Parses one line in hosts / domain / Adblock format |
-| `BlockListUpdater.kt` / `BlockListWorker.kt` | Downloading blocklists and the daily automatic update |
-| `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) |
+| `BlockListUpdater.kt` / `BlockListWorker.kt` / `UpdateConstraints.kt` | Downloading blocklists, the daily automatic update and its time / network conditions |
+| `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) and the public DNS list |
 | `DotClient.kt` | Encrypted DNS (DNS over TLS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
 | `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, your blocked / allowed domains, blocklist) |
-| `QueryLog.kt` / `StatsStore.kt` | Query log (in memory) / daily counts |
+| `QueryLog.kt` / `QueryLogFiles.kt` / `QueryOwners.kt` / `StatsStore.kt` | Query log (in memory) / keeping it in files / which app made a lookup / daily counts |
 | `PrivateDnsMonitor.kt` | Detecting "Private DNS" set to a hostname |
 | `MainActivity.kt` / `LogAdapter.kt` | Home / Statistics / Log tabs |
-| `SettingsActivity.kt` / `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | Settings / blocked and allowed domains / blocklists / excluded apps |
+| `SettingsActivity.kt` / `SettingsPages.kt` / `SettingsBuilder.kt` | Settings (top page, the DNS / Log / Updates / Notifications / Backup pages, and the grouped-list builder they share) |
+| `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | Blocked and allowed domains / blocklists / excluded apps |
 | `SettingsBackup.kt` | Exporting and importing settings |
 | `ShortcutActivity.kt` / `ResumeReceiver.kt` | Launcher shortcuts / the Resume button in the notification |
 | `DomainActions.kt` | The block / allow menu for a domain |

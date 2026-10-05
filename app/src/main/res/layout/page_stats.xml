@@ -173,6 +173,23 @@
             android:layout_height="wrap_content"
             android:text="@string/top_domains_footer" />
 
+        <!-- よくブロックしたアプリ -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_top_apps" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            android:id="@+id/topApps"
+            style="@style/Card" />
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/top_apps_footer" />
+
         <io.github.tonbo2339.adblocker.CardLayout
             style="@style/Card"
             android:layout_marginTop="28dp">

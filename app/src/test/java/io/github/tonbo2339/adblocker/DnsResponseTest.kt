@@ -66,4 +66,37 @@ class DnsResponseTest {
         val msg = header(1, 1) + question + record(byteArrayOf(0xC0.toByte(), 12), 5, rdata)
         assertEquals(emptyList<String>(), Dns.cnameTargets(msg))
     }
+
+    /** a.example.com の A (1.2.3.4、TTL 60) と AAAA (TTL 60) を返す応答。 */
+    private fun addressResponse(): ByteArray {
+        val question = name("a", "example", "com") + u16(1) + u16(1)
+        val ptr = byteArrayOf(0xC0.toByte(), 12)
+        val v6 = ByteArray(16).also { it[0] = 0x20; it[15] = 1 }
+        return header(1, 2) + question + record(ptr, 1, byteArrayOf(1, 2, 3, 4)) + record(ptr, 28, v6)
+    }
+
+    @Test
+    fun answerAddresses() {
+        val addresses = Dns.answerAddresses(addressResponse())
+        assertEquals(2, addresses.size)
+        assertEquals(listOf<Byte>(1, 2, 3, 4), addresses[0].toList())
+        assertEquals(16, addresses[1].size)
+    }
+
+    @Test
+    fun cacheTtlAndReuse() {
+        val response = addressResponse()
+        assertEquals(60L, Dns.cacheTtl(response))
+        // 問い合わせ (ID 0xABCD、名前の大文字小文字が違う) に合わせて、TTL を経過分だけ減らす
+        val query = u16(0xABCD) + u16(0x0100) + u16(1) + u16(0) + u16(0) + u16(0) +
+            name("A", "Example", "com") + u16(1) + u16(1)
+        val q = Dns.parseQuestion(query)!!
+        val r = Dns.reuse(response, query, q, 25)
+        assertEquals(0xABCD, u16(r, 0))
+        assertEquals(query.copyOfRange(12, q.end).toList(), r.copyOfRange(12, q.end).toList())
+        assertEquals(listOf(35L, 35L), Dns.records(r)!!.map { u32(r, it.ttlAt) })
+        // 切り詰められた応答は覚えない
+        val truncated = response.copyOf().also { it[2] = (it[2].toInt() or 0x02).toByte() }
+        assertEquals(0L, Dns.cacheTtl(truncated))
+    }
 }

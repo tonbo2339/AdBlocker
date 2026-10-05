@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 12 以降のクラウドバックアップと端末間の移行。端末ごとの状態とダウンロードしたブロックリストは含めない -->
+<!-- Android 12 以降のクラウドバックアップと端末間の移行。端末ごとの状態・ダウンロードしたブロックリスト・保存したログは含めない -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="state.xml" />
         <exclude domain="file" path="blocklists/" />
+        <exclude domain="file" path="blocklist.cache" />
+        <exclude domain="file" path="querylog/" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="state.xml" />
         <exclude domain="file" path="blocklists/" />
+        <exclude domain="file" path="blocklist.cache" />
+        <exclude domain="file" path="querylog/" />
     </device-transfer>
 </data-extraction-rules>

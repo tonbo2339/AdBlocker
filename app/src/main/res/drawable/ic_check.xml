@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 選択中の項目に付けるチェックマーク (iOS の設定と同じ青) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="14dp"
+    android:viewportWidth="16"
+    android:viewportHeight="14">
+    <path
+        android:pathData="M1.5,7.5 L6,12 L14.5,1.5"
+        android:strokeWidth="2.2"
+        android:strokeColor="@color/accent_blue"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

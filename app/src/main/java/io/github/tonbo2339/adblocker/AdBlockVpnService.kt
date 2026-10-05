@@ -52,7 +52,12 @@ class AdBlockVpnService : VpnService() {
         private const val VPN_ADDR6 = "fd00:6164:626c:6f63::1"
         private const val VPN_DNS6 = "fd00:6164:626c:6f63::2"
         private const val MTU = 16384
-        private const val UPSTREAM_TIMEOUT_MS = 2000
+        /** 通常の DNS で答えを待つ時間 (すべての転送先を合わせて)。 */
+        private const val UPSTREAM_TIMEOUT_MS = 3000
+
+        /** 答えが無ければ次の転送先にも送るまでの時間と、同時に送る台数の上限。 */
+        private const val STAGGER_MS = 400L
+        private const val MAX_PARALLEL = 3
         private const val FORWARD_THREADS = 8
         private const val STATS_FLUSH_INTERVAL_MS = 30_000L
         private const val PREVIOUS_WORKER_WAIT_MS = 3000L
@@ -107,6 +112,10 @@ class AdBlockVpnService : VpnService() {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private lateinit var upstream: UpstreamDns
+    private lateinit var apps: QueryOwners
+
+    /** 転送先の答えのキャッシュ。回線が変わったら消す。 */
+    private val cache = DnsCache()
 
     /** 暗号化 DNS のクライアント。設定が変わったら作り直す (VPN は作り直さない)。 */
     @Volatile
@@ -133,6 +142,7 @@ class AdBlockVpnService : VpnService() {
     private val statsFlusher = object : Runnable {
         override fun run() {
             StatsStore.flush(applicationContext)
+            QueryLogFiles.flush()
             mainHandler.postDelayed(this, STATS_FLUSH_INTERVAL_MS)
         }
     }
@@ -148,7 +158,8 @@ class AdBlockVpnService : VpnService() {
         super.onCreate()
         Pause.addListener(pauseListener)
         locales = resources.configuration.locales
-        upstream = UpstreamDns(this).apply { start() }
+        upstream = UpstreamDns(this) { cache.clear() }.apply { start() }
+        apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
     }
 
@@ -199,6 +210,7 @@ class AdBlockVpnService : VpnService() {
         Pause.removeListener(pauseListener)
         mainHandler.removeCallbacks(statsFlusher)
         StatsStore.flush(applicationContext)
+        QueryLogFiles.flush()
         shutdown()
         state = State.STOPPED
         upstream.stop()
@@ -223,6 +235,7 @@ class AdBlockVpnService : VpnService() {
     @Synchronized
     private fun restart() {
         shutdown()
+        cache.clear()
         val previous = stopping
         state = State.STARTING
         val pipe = Os.pipe()
@@ -303,6 +316,11 @@ class AdBlockVpnService : VpnService() {
             .addDnsServer(VPN_DNS6)
             .addRoute(VPN_DNS6, 128)
             .setConfigureIntent(mainActivityIntent())
+        // DNS サーバーを直接指定しているアプリ対策: 主な公開 DNS 宛ても VPN に通す。
+        // 53 番の問い合わせは同じように判定して答え、それ以外 (DNS over HTTPS / TLS) は断って、端末の DNS に戻らせる
+        if (Prefs.captureHardcodedDns(this)) {
+            for (address in PublicDns.ADDRESSES) builder.addRoute(address, if (':' in address) 128 else 32)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(false)
 
         for (pkg in Prefs.excluded(this)) {
@@ -347,39 +365,64 @@ class AdBlockVpnService : VpnService() {
                 if (e.errno == OsConstants.EAGAIN || e.errno == OsConstants.EINTR) continue
                 throw e
             }
-            val query = Packets.parse(buf, n) ?: continue
+            val query = Packets.parse(buf, n)
+            if (query == null) {
+                // 公開 DNS 宛ての TCP (DNS over HTTPS / TLS など) は、すぐ断ってアプリを待たせない
+                Packets.tcpReset(buf, n)?.let { writePacket(out, it) }
+                continue
+            }
             handleQuery(query, out, executor)
         }
     }
 
     private fun handleQuery(query: DnsQuery, out: FileOutputStream, executor: ExecutorService) {
         val question = Dns.parseQuestion(query.dns) ?: return
+        // どのアプリの問い合わせか。応答を返すとアプリがソケットを閉じて分からなくなるので、先に調べる
+        val app = if (QueryLog.enabled) apps.ownerOf(query) else null
         val verdict = Filter.decide(question.name)
         if (verdict.blocked) {
-            record(question.name, verdict)
-            writePacket(out, Packets.buildResponse(query, Dns.nxdomain(query.dns, question)))
+            record(question.name, verdict, app = app)
+            writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
+            return
+        }
+        // 覚えている答えがあれば、転送せずにすぐ返す (答えの中身による判定はルールが変わることがあるので毎回行う)
+        cache.get(query.dns, question)?.let { cached ->
+            answer(query, question, verdict, cached, app, out)
             return
         }
         executor.execute {
             val response = forward(query.dns)
-            // 自社のサブドメインに見せかけたトラッカー (CNAME 隠し) も、行き先で止める
-            if (response != null && verdict == Verdict.PASS) {
-                val cloaked = Filter.cnameBlocked(Dns.cnameTargets(response))
-                if (cloaked != null) {
-                    record(question.name, Verdict.CNAME, cloaked)
-                    writePacket(out, Packets.buildResponse(query, Dns.nxdomain(query.dns, question)))
-                    return@execute
-                }
+            if (response == null) {
+                // 転送先が 1 つも答えなかった。何も返さないとアプリはタイムアウトまで待つので、すぐ失敗を知らせる
+                record(question.name, verdict, app = app)
+                writePacket(out, Packets.buildResponse(query, Dns.servfail(query.dns, question)))
+                return@execute
             }
-            record(question.name, verdict)
-            if (response != null) writePacket(out, Packets.buildResponse(query, response))
+            cache.put(query.dns, question, response)
+            answer(query, question, verdict, response, app, out)
         }
     }
 
-    private fun record(name: String, verdict: Verdict, via: String? = null) {
+    /** 転送先 (またはキャッシュ) の答えを返す。答えの中身 (CNAME 隠し・IP) でブロックすることもある。 */
+    private fun answer(query: DnsQuery, question: Question, verdict: Verdict, response: ByteArray, app: String?, out: FileOutputStream) {
+        if (verdict == Verdict.PASS) {
+            Filter.checkResponse(response)?.let { block ->
+                record(question.name, block.verdict, block.via, app)
+                writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
+                return
+            }
+        }
+        record(question.name, verdict, app = app)
+        writePacket(out, Packets.buildResponse(query, response))
+    }
+
+    private fun record(name: String, verdict: Verdict, via: String? = null, app: String? = null) {
         StatsStore.record(verdict.blocked)
-        QueryLog.add(name, verdict, via)
-        if (verdict.blocked && QueryLog.enabled) SessionStats.recordBlocked(name)
+        QueryLog.add(name, verdict, via, app)
+        if (verdict.blocked && QueryLog.enabled) {
+            SessionStats.recordBlocked(name)
+            if (app != null) SessionStats.recordBlockedApp(app)
+        }
     }
 
     /** 設定に合った暗号化 DNS のクライアント (オフなら null)。 */
@@ -405,25 +448,62 @@ class AdBlockVpnService : VpnService() {
     private fun forward(dns: ByteArray): ByteArray? {
         // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがあるので、そのときは UDP で取り直す
         dotClient()?.query(dns)?.takeIf { it.size <= MAX_RESPONSE }?.let { return it }
-        for (server in upstream.servers()) {
-            try {
-                DatagramSocket().use { socket ->
-                    protect(socket)
-                    // 問い合わせ先に固定して、ほかの相手からのパケットを受け取らないようにする
-                    socket.connect(server, 53)
-                    socket.soTimeout = UPSTREAM_TIMEOUT_MS
-                    socket.send(DatagramPacket(dns, dns.size))
-                    val rb = ByteArray(MAX_RESPONSE)
-                    val rp = DatagramPacket(rb, rb.size)
-                    socket.receive(rp)
-                    upstream.markWorking(server)
-                    return rb.copyOf(rp.length)
+        return forwardUdp(dns)
+    }
+
+    /**
+     * 通常の DNS (UDP) で問い合わせる。1 台目に送り、STAGGER_MS 待っても答えが無ければ 2 台目にも送る、というふうに
+     * 最大 MAX_PARALLEL 台まで重ねて送り、最初に届いた答えを使う。応答しないサーバーがあっても、そのタイムアウトを待たない。
+     */
+    private fun forwardUdp(dns: ByteArray): ByteArray? {
+        val servers = upstream.servers().take(MAX_PARALLEL)
+        if (servers.isEmpty() || dns.size < 2) return null
+        try {
+            DatagramSocket().use { socket ->
+                protect(socket)
+                val sent = HashSet<java.net.InetAddress>()
+                val rb = ByteArray(MAX_RESPONSE)
+                val rp = DatagramPacket(rb, rb.size)
+                val deadline = System.currentTimeMillis() + UPSTREAM_TIMEOUT_MS
+                var next = 0
+                while (true) {
+                    if (next < servers.size) {
+                        val server = servers[next++]
+                        try {
+                            socket.send(DatagramPacket(dns, dns.size, server, 53))
+                            sent += server
+                        } catch (e: IOException) {
+                            // その回線では届かないアドレス (IPv6 が無い等)。待たずに次へ
+                            Log.d(TAG, "send to $server failed: $e")
+                            continue
+                        }
+                    }
+                    if (sent.isEmpty()) return null // どこにも送れなかった
+                    val waitUntil = if (next < servers.size) minOf(System.currentTimeMillis() + STAGGER_MS, deadline) else deadline
+                    while (true) {
+                        val remaining = waitUntil - System.currentTimeMillis()
+                        if (remaining <= 0) break
+                        socket.soTimeout = remaining.toInt()
+                        // 前の受信で長さが縮んでいるので、毎回バッファ全体に戻す
+                        rp.setLength(rb.size)
+                        try {
+                            socket.receive(rp)
+                        } catch (_: java.net.SocketTimeoutException) {
+                            break
+                        }
+                        // 送った相手からの、同じ ID の答えだけを受け取る (ほかからのパケットは無視)
+                        if (rp.address in sent && rp.length >= 12 && rb[0] == dns[0] && rb[1] == dns[1]) {
+                            upstream.markWorking(rp.address)
+                            return rb.copyOf(rp.length)
+                        }
+                    }
+                    if (System.currentTimeMillis() >= deadline) return null
                 }
-            } catch (e: IOException) {
-                Log.d(TAG, "upstream $server failed: $e")
             }
+        } catch (e: IOException) {
+            Log.d(TAG, "upstream query failed: $e")
+            return null
         }
-        return null
     }
 
     private fun writePacket(out: FileOutputStream, packet: ByteArray) {

@@ -39,7 +39,7 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
         shownVersion = version
         val q = query
         val list = QueryLog.snapshot().filter { e ->
-            (!blockedOnly || e.verdict.blocked) && (q.isEmpty() || e.domain.contains(q))
+            (!blockedOnly || e.verdict.blocked) && (q.isEmpty() || e.domain.contains(q) || e.app?.contains(q) == true)
         }
         val old = entries.size
         entries = list
@@ -57,9 +57,13 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
         h.filterBlocked.isSelected = blockedOnly
         val enabled = QueryLog.enabled
         h.logFooter.isVisible = enabled
-        h.logFooter.text = activity.getString(
-            R.string.log_footer, NumberFormat.getIntegerInstance().format(QueryLog.CAPACITY),
-        )
+        val capacity = NumberFormat.getIntegerInstance().format(QueryLog.CAPACITY)
+        val days = QueryLogFiles.retentionDays
+        h.logFooter.text = if (days == 0) {
+            activity.getString(R.string.log_footer, capacity)
+        } else {
+            activity.getString(R.string.log_footer_saved, capacity, activity.logPeriodText(days))
+        }
         h.emptyText.isVisible = entries.isEmpty()
         h.emptyText.setText(
             when {
@@ -112,14 +116,17 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
             Verdict.USER_ALLOW -> activity.getString(R.string.verdict_user_allow)
             Verdict.PAUSED -> activity.getString(R.string.verdict_paused)
             Verdict.CNAME -> activity.getString(R.string.verdict_cname, e.via)
+            Verdict.IP -> activity.getString(R.string.verdict_ip, e.via)
             Verdict.PASS -> activity.getString(R.string.verdict_pass)
         }
-        b.detail.text = if (e.count > 1) activity.getString(R.string.log_detail_count, verdict, e.count) else verdict
+        val counted = if (e.count > 1) activity.getString(R.string.log_detail_count, verdict, e.count) else verdict
+        // 問い合わせたアプリが分かれば、先頭に出す
+        b.detail.text = e.app?.let { activity.getString(R.string.log_detail_app, AppLabels.of(activity, it), counted) } ?: counted
         b.time.text = timeFormat.format(Date(e.time))
         b.dot.backgroundTintList = ColorStateList.valueOf(
             activity.getColor(
                 when (e.verdict) {
-                    Verdict.LIST, Verdict.USER_BLOCK, Verdict.CNAME -> R.color.sys_red
+                    Verdict.LIST, Verdict.USER_BLOCK, Verdict.CNAME, Verdict.IP -> R.color.sys_red
                     Verdict.USER_ALLOW -> R.color.sys_green
                     Verdict.PAUSED -> R.color.sys_orange
                     Verdict.PASS -> R.color.status_off

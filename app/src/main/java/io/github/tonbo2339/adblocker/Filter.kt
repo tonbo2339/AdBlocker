@@ -17,6 +17,9 @@ enum class Verdict(val blocked: Boolean) {
     /** CNAME の行き先がブロック対象 (CNAME 隠し) */
     CNAME(true),
 
+    /** 答えの IP アドレスが、手動でブロックした IP に当たった */
+    IP(true),
+
     /** どのルールにも当たらなかった */
     PASS(false),
 }
@@ -32,10 +35,21 @@ object Filter {
         }
     }
 
+    /** 転送先の答えを見てブロックした理由 (verdict) と、当たったもの (CNAME の行き先や IP のルール)。 */
+    class ResponseBlock(val verdict: Verdict, val via: String)
+
     /**
-     * CNAME の行き先のうち、ブロック対象の最初のもの (無ければ null)。
-     * 問い合わせた名前そのものが PASS だったときだけ呼ぶ (自分で許可した名前・一時停止中は見ない)。
+     * 答えの中身でブロックするか。問い合わせた名前そのものが PASS だったときだけ呼ぶ (許可した名前・一時停止中は見ない)。
+     * - CNAME の行き先がブロック対象 (自社のサブドメインに見せかけたトラッカー)
+     * - 答えの IP アドレスが、手動でブロックした IP に当たる
      */
+    fun checkResponse(response: ByteArray): ResponseBlock? {
+        cnameBlocked(Dns.cnameTargets(response))?.let { return ResponseBlock(Verdict.CNAME, it) }
+        UserRules.blockedAddress(Dns.answerAddresses(response))?.let { return ResponseBlock(Verdict.IP, it) }
+        return null
+    }
+
+    /** CNAME の行き先のうち、ブロック対象の最初のもの (無ければ null)。 */
     fun cnameBlocked(targets: List<String>): String? = targets.firstOrNull { t ->
         when (UserRules.ruleFor(t)) {
             UserRules.Kind.ALLOW -> false

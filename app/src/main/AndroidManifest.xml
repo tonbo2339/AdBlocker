@@ -52,13 +52,43 @@
             android:name=".AppListActivity"
             android:exported="false"
             android:label="@string/title_exclusions"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".SettingsActivity" />
 
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/title_settings"
             android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".DnsSettingsActivity"
+            android:exported="false"
+            android:label="@string/title_dns"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".LogSettingsActivity"
+            android:exported="false"
+            android:label="@string/title_log"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".UpdateSettingsActivity"
+            android:exported="false"
+            android:label="@string/title_updates"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".NotificationSettingsActivity"
+            android:exported="false"
+            android:label="@string/section_notifications"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".BackupSettingsActivity"
+            android:exported="false"
+            android:label="@string/section_backup"
+            android:parentActivityName=".SettingsActivity" />
 
         <activity
             android:name=".BlocklistsActivity"
