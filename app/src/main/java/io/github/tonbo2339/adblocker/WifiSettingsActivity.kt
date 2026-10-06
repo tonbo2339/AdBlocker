@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +17,10 @@ import io.github.tonbo2339.adblocker.WifiNetworks.Permission
  * Wi-Fi の名前を読むには位置情報の許可が要る。画面を閉じている間も切り替えるには「常に許可」。
  */
 class WifiSettingsActivity : SettingsPageActivity() {
+    private companion object {
+        const val NO_DIALOG_MS = 500L
+    }
+
     override val pageTitle = R.string.title_unblocked_wifi
 
     private lateinit var permissionRow: SettingRow
@@ -25,6 +30,9 @@ class WifiSettingsActivity : SettingsPageActivity() {
     private lateinit var listCard: SettingsBuilder.Card
     private lateinit var monitor: SsidMonitor
 
+    /** 許可を尋ねた時刻。これより NO_DIALOG_MS 以内に断られたら、ダイアログは出ていない。 */
+    private var requestedAt = 0L
+
     /** この画面で見ている、今つながっている Wi-Fi の名前。 */
     private var current: String? = null
 
@@ -33,8 +41,9 @@ class WifiSettingsActivity : SettingsPageActivity() {
             permissionChanged()
             if (result[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
                 askAlways()
-            } else if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // 「今後表示しない」などで、もう尋ねられない。アプリの設定で許可してもらう
+            } else if (SystemClock.elapsedRealtime() - requestedAt < NO_DIALOG_MS) {
+                // すぐに断られた = 2 回断ったなどで、もうダイアログを出せない。アプリの設定で許可してもらう
+                // (ダイアログを閉じただけのときは何もしない)
                 openAppSettings()
             }
         }
@@ -136,9 +145,12 @@ class WifiSettingsActivity : SettingsPageActivity() {
 
     private fun requestPermission() {
         when (WifiNetworks.permission(this)) {
-            Permission.NONE -> foregroundPermission.launch(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            )
+            Permission.NONE -> {
+                requestedAt = SystemClock.elapsedRealtime()
+                foregroundPermission.launch(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                )
+            }
             Permission.WHILE_IN_USE -> askAlways()
             // 許可をやめるときなど
             Permission.ALWAYS -> openAppSettings()

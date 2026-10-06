@@ -97,9 +97,9 @@ object WifiNetworks {
 
 /**
  * つながっている Wi-Fi の名前を見張る。onChange は名前が変わったときに別のスレッドから呼ばれる
- * (読めないとき・Wi-Fi でないときは null)。
+ * (読めないとき・Wi-Fi でないときは null)。logHidden なら、名前が伏せられたことをデバッグログに残す (VPN サービス用)。
  */
-class SsidMonitor(context: Context, private val onChange: (String?) -> Unit) {
+class SsidMonitor(context: Context, private val logHidden: Boolean = false, private val onChange: (String?) -> Unit) {
 
     private val connectivity = context.getSystemService(ConnectivityManager::class.java)
     private val wifi = context.applicationContext.getSystemService(WifiManager::class.java)
@@ -138,7 +138,7 @@ class SsidMonitor(context: Context, private val onChange: (String?) -> Unit) {
         val nowHidden = raw != null && name == null
         if (nowHidden != hidden) {
             hidden = nowHidden
-            if (nowHidden) DebugLog.w("SsidMonitor", "Wi-Fi name is hidden (location permission missing or location off)")
+            if (nowHidden && logHidden) DebugLog.w("SsidMonitor", "Wi-Fi name is hidden (location permission missing or location off)")
         }
         if (name != null) ssids[network] = name else ssids.remove(network)
         val now = ssid
@@ -168,6 +168,7 @@ class SsidMonitor(context: Context, private val onChange: (String?) -> Unit) {
         }
         ssids.clear()
         last = null
+        hidden = false
     }
 
     companion object {

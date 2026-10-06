@@ -29,8 +29,6 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * DNS だけを通すローカル VPN。
@@ -65,6 +63,8 @@ class AdBlockVpnService : VpnService() {
         private const val MAX_PARALLEL = 3
         private const val FORWARD_THREADS = 8
         private const val STATS_FLUSH_INTERVAL_MS = 30_000L
+        /** 何回目の保存ごとにデバッグログへ DNS の集計を書くか (30 秒 × 10 = 5 分)。 */
+        private const val SUMMARY_EVERY = 10
         private const val PREVIOUS_WORKER_WAIT_MS = 3000L
 
         /** tun に書ける DNS 応答の最大サイズ (MTU から IPv6 + UDP のヘッダー分を引く)。 */
@@ -164,37 +164,15 @@ class AdBlockVpnService : VpnService() {
     /** 常駐通知を出したときの言語。 */
     private lateinit var locales: LocaleList
 
-    /** デバッグログ用の件数 (5 分ごとにまとめて書き、0 に戻す)。 */
-    private object Counters {
-        val queries = AtomicInteger()
-        val blocked = AtomicInteger()
-        val cached = AtomicInteger()
-        val forwarded = AtomicInteger()
-        val failed = AtomicInteger()
-        val dot = AtomicInteger()
-        val latencyTotal = AtomicLong()
-        val latencyMax = AtomicLong()
-    }
-
+    /** statsFlusher の実行回数 (SUMMARY_EVERY 回ごとにデバッグログへ集計を書く)。 */
     private var flushTicks = 0
-
-    private fun logSummary() {
-        val queries = Counters.queries.getAndSet(0)
-        val forwarded = Counters.forwarded.getAndSet(0)
-        val total = Counters.latencyTotal.getAndSet(0)
-        val line = "last 5 min: $queries queries, ${Counters.blocked.getAndSet(0)} blocked, ${Counters.cached.getAndSet(0)} cached, " +
-            "$forwarded forwarded (${Counters.dot.getAndSet(0)} over DoT), ${Counters.failed.getAndSet(0)} failed; " +
-            "upstream ${if (forwarded > 0) total / forwarded else 0} ms avg, ${Counters.latencyMax.getAndSet(0)} ms max; " +
-            "servers ${upstream.servers().map { it.hostAddress }}; unblocked Wi-Fi: ${WifiNetworks.isUnblocked()}"
-        if (queries > 0) DebugLog.i(TAG, line)
-    }
 
     /** 日ごとの件数を定期的に保存する。 */
     private val statsFlusher = object : Runnable {
         override fun run() {
             StatsStore.flush(applicationContext)
             QueryLogFiles.flush()
-            if (++flushTicks % 10 == 0 && DebugLog.enabled && state == State.RUNNING) logSummary()
+            if (++flushTicks % SUMMARY_EVERY == 0 && state == State.RUNNING) DnsDebugStats.summary("5 min", upstream.servers())
             mainHandler.postDelayed(this, STATS_FLUSH_INTERVAL_MS)
         }
     }
@@ -209,11 +187,6 @@ class AdBlockVpnService : VpnService() {
     /** つながっている Wi-Fi の名前 (広告ブロックをしない Wi-Fi の判定に使う)。 */
     private lateinit var ssidMonitor: SsidMonitor
 
-    /** 転送先が 1 つも答えなかった回数と、最後にデバッグログに書いた時刻 (回線が切れている間に何千行も書かないため)。 */
-    private val forwardFailures = AtomicInteger()
-    @Volatile
-    private var forwardFailureLoggedAt = 0L
-
     override fun onCreate() {
         super.onCreate()
         DebugLog.i(TAG, "service created")
@@ -221,7 +194,7 @@ class AdBlockVpnService : VpnService() {
         WifiNetworks.addListener(statusListener)
         locales = resources.configuration.locales
         upstream = UpstreamDns(this) { cache.clear() }.apply { start() }
-        ssidMonitor = SsidMonitor(this) { WifiNetworks.setCurrent(this, it) }.apply { start() }
+        ssidMonitor = SsidMonitor(this, logHidden = true) { WifiNetworks.setCurrent(this, it) }.apply { start() }
         apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
         registerReceiver(packageAdded, IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") })
@@ -363,7 +336,6 @@ class AdBlockVpnService : VpnService() {
         var stoppedByRequest = false
         try {
             BlockList.load(this)
-            DebugLog.i(TAG, "blocklist: ${BlockList.size} domains")
             // 古い tun が開いたまま新しい tun を作ると、端末がどちらに問い合わせを送るかが不安定になる
             previous?.join(PREVIOUS_WORKER_WAIT_MS)
             // 停止・作り直しが要求されていたら VPN を作らない (新しいワーカーの VPN を上書きしないため)。
@@ -484,16 +456,15 @@ class AdBlockVpnService : VpnService() {
         // どのアプリの問い合わせか。応答を返すとアプリがソケットを閉じて分からなくなるので、先に調べる
         val app = if (QueryLog.enabled) apps.ownerOf(query) else null
         val verdict = Filter.decide(question.name)
-        Counters.queries.incrementAndGet()
+        DnsDebugStats.query(verdict.blocked)
         if (verdict.blocked) {
-            Counters.blocked.incrementAndGet()
             record(question.name, verdict, app = app)
             writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
             return
         }
         // 覚えている答えがあれば、転送せずにすぐ返す (答えの中身による判定はルールが変わることがあるので毎回行う)
         cache.get(query.dns, question)?.let { cached ->
-            Counters.cached.incrementAndGet()
+            DnsDebugStats.cached()
             answer(query, question, verdict, cached, app, out)
             return
         }
@@ -501,17 +472,13 @@ class AdBlockVpnService : VpnService() {
             val started = System.nanoTime()
             val response = forward(query.dns)
             if (response == null) {
-                Counters.failed.incrementAndGet()
-                noteForwardFailure()
+                DnsDebugStats.failed { upstream.servers() }
                 // 転送先が 1 つも答えなかった。何も返さないとアプリはタイムアウトまで待つので、すぐ失敗を知らせる
                 record(question.name, verdict, app = app)
                 writePacket(out, Packets.buildResponse(query, Dns.servfail(query.dns, question)))
                 return@execute
             }
-            val ms = (System.nanoTime() - started) / 1_000_000
-            Counters.forwarded.incrementAndGet()
-            Counters.latencyTotal.addAndGet(ms)
-            Counters.latencyMax.accumulateAndGet(ms, ::maxOf)
+            DnsDebugStats.forwarded((System.nanoTime() - started) / 1_000_000)
             cache.put(query.dns, question, response)
             answer(query, question, verdict, response, app, out)
         }
@@ -528,29 +495,6 @@ class AdBlockVpnService : VpnService() {
         }
         record(question.name, verdict, app = app)
         writePacket(out, Packets.buildResponse(query, response))
-    }
-
-    /** 転送先ごとに、送れなかった理由 (届かないアドレス・Android 17 の LAN 制限の EPERM など) を 1 分に 1 回残す。 */
-    private val sendFailureLoggedAt = java.util.concurrent.ConcurrentHashMap<java.net.InetAddress, Long>()
-
-    private fun noteSendFailure(server: java.net.InetAddress, e: IOException) {
-        if (!DebugLog.enabled) return
-        val now = System.currentTimeMillis()
-        val last = sendFailureLoggedAt[server]
-        if (last != null && now - last < 60_000) return
-        sendFailureLoggedAt[server] = now
-        DebugLog.w(TAG, "send to ${server.hostAddress} failed", e)
-    }
-
-    /** 転送の失敗をデバッグログに残す。続いたときは 10 秒に 1 行にまとめる。 */
-    private fun noteForwardFailure() {
-        if (!DebugLog.enabled) return
-        val count = forwardFailures.incrementAndGet()
-        val now = System.currentTimeMillis()
-        if (now - forwardFailureLoggedAt < 10_000) return
-        forwardFailureLoggedAt = now
-        forwardFailures.set(0)
-        DebugLog.w(TAG, "no upstream answered ($count queries; servers ${upstream.servers().map { it.hostAddress }})")
     }
 
     private fun record(name: String, verdict: Verdict, via: String? = null, app: String? = null) {
@@ -585,7 +529,7 @@ class AdBlockVpnService : VpnService() {
     private fun forward(dns: ByteArray): ByteArray? {
         // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがあるので、そのときは UDP で取り直す
         dotClient()?.query(dns)?.takeIf { it.size <= MAX_RESPONSE }?.let {
-            Counters.dot.incrementAndGet()
+            DnsDebugStats.answeredOverDot()
             return it
         }
         return forwardUdp(dns)
@@ -615,7 +559,7 @@ class AdBlockVpnService : VpnService() {
                         } catch (e: IOException) {
                             // その回線では届かないアドレス (IPv6 が無い等)。待たずに次へ
                             Log.d(TAG, "send to $server failed: $e")
-                            noteSendFailure(server, e)
+                            DnsDebugStats.sendFailed(server, e)
                             continue
                         }
                     }

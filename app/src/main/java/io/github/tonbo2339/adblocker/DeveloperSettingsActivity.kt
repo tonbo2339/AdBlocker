@@ -41,9 +41,7 @@ class DeveloperSettingsActivity : SettingsPageActivity() {
                 exportLauncher.launch("AdBlocker-debug-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date()) + ".txt")
             }
             action(R.string.row_clear_debug_log, R.drawable.ic_g_refresh, R.color.sys_gray) {
-                DebugLog.clear()
-                // 消し終わってから大きさを出し直す
-                page.root.postDelayed({ if (!isDestroyed) refresh() }, 200)
+                DebugLog.clear { runOnUiThread { if (!isDestroyed) refresh() } }
             }
         }
         sizeFooter = footer()

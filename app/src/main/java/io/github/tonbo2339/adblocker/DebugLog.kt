@@ -89,8 +89,12 @@ object DebugLog {
         for (f in files().reversed()) f.inputStream().use { it.copyTo(out) }
     }
 
-    fun clear() {
-        writer.execute { files().forEach { it.delete() } }
+    /** 残したログを消す。onDone は消し終わったあとに書き込み用のスレッドから呼ばれる。 */
+    fun clear(onDone: () -> Unit = {}) {
+        writer.execute {
+            files().forEach { it.delete() }
+            onDone()
+        }
     }
 
     /** 新しい順。 */
