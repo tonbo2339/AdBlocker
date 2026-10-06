@@ -14,6 +14,9 @@ enum class Verdict(val blocked: Boolean) {
     /** 一時停止中なので通した */
     PAUSED(false),
 
+    /** 広告ブロックをしない Wi-Fi につながっているので通した */
+    NETWORK(false),
+
     /** CNAME の行き先がブロック対象 (CNAME 隠し) */
     CNAME(true),
 
@@ -25,9 +28,10 @@ enum class Verdict(val blocked: Boolean) {
 }
 
 object Filter {
-    /** 優先順位: 一時停止 > 手動の許可 > 手動のブロック > ブロックリスト。 */
+    /** 優先順位: 一時停止 > 広告ブロックをしない Wi-Fi > 手動の許可 > 手動のブロック > ブロックリスト。 */
     fun decide(name: String): Verdict {
         if (Pause.isPaused()) return Verdict.PAUSED
+        if (WifiNetworks.isUnblocked()) return Verdict.NETWORK
         return when (UserRules.ruleFor(name)) {
             UserRules.Kind.ALLOW -> Verdict.USER_ALLOW
             UserRules.Kind.BLOCK -> Verdict.USER_BLOCK

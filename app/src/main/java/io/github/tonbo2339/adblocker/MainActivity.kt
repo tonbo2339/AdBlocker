@@ -328,6 +328,9 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.status_detail_paused, DateFormat.getTimeFormat(this).format(Date(Pause.resumesAt))),
                 R.color.sys_orange, R.drawable.ic_shield_status,
             )
+            AdBlockVpnService.isRunning && WifiNetworks.isUnblocked() -> StatusLook(
+                R.string.status_wifi_unblocked, getString(R.string.status_detail_wifi_unblocked), R.color.sys_orange, R.drawable.ic_shield_status,
+            )
             AdBlockVpnService.isRunning -> StatusLook(
                 R.string.status_on, getString(R.string.status_detail_on), R.color.sys_green, R.drawable.ic_shield_status,
             )

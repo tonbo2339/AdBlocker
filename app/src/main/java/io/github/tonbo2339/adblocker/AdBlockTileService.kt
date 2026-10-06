@@ -65,6 +65,7 @@ class AdBlockTileService : TileService() {
                 when {
                     !enabled -> R.string.tile_off
                     Pause.isPaused() -> R.string.tile_paused
+                    WifiNetworks.isUnblocked() -> R.string.tile_wifi_unblocked
                     else -> R.string.tile_on
                 }
             )

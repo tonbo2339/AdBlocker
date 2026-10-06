@@ -208,4 +208,49 @@
     <string name="rule_invalid_allow">ドメイン・パターンとして正しくありません (IP アドレスはブロックにだけ使えます)</string>
     <string name="import_done">設定を読み込みました</string>
     <string name="import_failed">AdBlocker の設定ファイルではありません</string>
+    <!-- 広告ブロックをしない Wi-Fi -->
+    <string name="title_unblocked_wifi">ブロックしない Wi-Fi</string>
+    <string name="section_current_wifi">今の Wi-Fi</string>
+    <string name="row_current_wifi">接続中</string>
+    <string name="wifi_add_current">この Wi-Fi ではブロックしない</string>
+    <string name="section_unblocked_wifi">ブロックしない Wi-Fi</string>
+    <string name="wifi_add_by_name">名前で追加</string>
+    <string name="wifi_add_title">Wi-Fi の名前 (SSID)</string>
+    <string name="wifi_name_hint">MyHomeWiFi</string>
+    <string name="wifi_name_invalid">32 バイト以内の名前を入力してください</string>
+    <string name="wifi_remove_title">%1$s でも広告をブロックしますか?</string>
+    <string name="unblocked_wifi_footer">ここにある Wi-Fi につながっている間は、広告をブロックしません (一時停止と同じく、VPN はオンのままです)。すでに広告を止めている Wi-Fi や、ブロックすると困る Wi-Fi に使ってください。名前をタップすると削除できます。</string>
+    <string name="wifi_not_connected">つながっていません</string>
+    <string name="wifi_name_needs_permission">位置情報の許可が必要です</string>
+    <string name="wifi_name_location_off">位置情報をオンにしてください</string>
+    <string name="row_location_permission">位置情報の許可</string>
+    <string name="location_permission_none">許可していません</string>
+    <string name="location_permission_while_in_use">アプリの使用中のみ</string>
+    <string name="location_permission_always">常に許可</string>
+    <string name="wifi_permission_footer">Android では、Wi-Fi の名前を読むのに位置情報の許可が必要です。アプリを閉じている間も切り替えるには「常に許可」を選んでください。位置は使いません。端末の位置情報もオンにしておく必要があります。</string>
+    <string name="wifi_permission_footer_ok">Wi-Fi の名前を読むためだけに使い、位置は使いません。名前を読むには、端末の位置情報をオンにしておく必要があります。</string>
+    <string name="location_always_title">「常に許可」にしますか?</string>
+    <string name="location_always_message">アプリを閉じている間も、この Wi-Fi ではブロックしないようにするには、バックグラウンドで Wi-Fi の名前を読む必要があります。次の画面で「常に許可」を選んでください。位置は使いません。</string>
+    <string name="location_always_open">続ける</string>
+    <string name="status_wifi_unblocked">この Wi-Fi ではブロックしません</string>
+    <string name="status_detail_wifi_unblocked">「ブロックしない Wi-Fi」につながっています</string>
+    <string name="notif_wifi_unblocked_text">この Wi-Fi ではブロックしていません</string>
+    <string name="tile_wifi_unblocked">この Wi-Fi ではオフ</string>
+    <string name="verdict_network">この Wi-Fi ではブロックしないため許可</string>
+
+    <!-- 開発者モード -->
+    <string name="title_developer">開発者向け</string>
+    <plurals name="developer_taps_left">
+        <item quantity="other">あと %1$d 回で開発者モードになります</item>
+    </plurals>
+    <string name="developer_on">開発者モードをオンにしました。設定から開けます</string>
+    <string name="developer_already_on">開発者モードはオンです</string>
+    <string name="developer_off">開発者モードをオフにしました</string>
+    <string name="row_debug_log">デバッグログ</string>
+    <string name="debug_log_footer">アプリの動き (VPN の開始と停止、DNS サーバー、エラー、アップデート) をこの端末のファイルに記録し、不具合の原因を調べられるようにします。ドメイン名と Wi-Fi の名前は記録せず、どこにも送りません。最大 1MB で、オフにするとログを消します。</string>
+    <string name="row_export_debug_log">デバッグログを書き出す</string>
+    <string name="row_clear_debug_log">デバッグログを消去</string>
+    <string name="debug_log_size">保存中: %1$s</string>
+    <string name="export_debug_log_done">デバッグログを書き出しました</string>
+    <string name="row_developer_off">開発者モードをオフにする</string>
 </resources>

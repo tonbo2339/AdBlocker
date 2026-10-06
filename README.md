@@ -30,11 +30,12 @@ After that, the app checks for new versions and updates itself.
 - **Excluded apps**: chosen apps bypass ad blocking and connect as usual (for apps that break with ad blocking)
 - **Block & allow domains**: block or allow domains yourself (a rule covers the domain and its subdomains; allow rules win). Use `*` as a wildcard (`ads.*`, `*tracker*`), or block an IP address or range (`203.0.113.0/24`) to stop any name whose answer is that address
 - **Pause**: let everything through for 5 minutes, 15 minutes or 1 hour without turning the VPN off. The notification shows when it resumes and has a Resume button
+- **Wi-Fi without blocking**: choose Wi-Fi networks (by name) where ads are not blocked, such as a home network that already blocks ads. Switches automatically, even while the app is closed. Reading the Wi-Fi name needs location access ("Allow all the time"); your location is never used
 - **Query log**: the last 500 lookups, which app made each one (Android 10+), and whether it was blocked. Search by domain or app name, and tap one to block or allow it. Kept only in memory by default; you can also keep it in a file on the phone for 1, 7 or 30 days and export it as CSV (turning the log off or shortening the period asks before deleting the saved log). Can be turned off
 - **Statistics**: today's counts, a 7-day chart, all-time totals, and the most-blocked domains and apps. Only counts are saved, not which sites you visited
 - **Private DNS warning**: tells you when "Private DNS" is set to a hostname, which stops blocking from working
 - **Encrypted DNS** (optional): send lookups to Cloudflare, Google or Quad9 over DNS over TLS
-- **Settings backup**: export your blocked and allowed domains, excluded apps and settings to a file and import them on a new phone
+- **Settings backup**: export your blocked and allowed domains, excluded apps, Wi-Fi networks without blocking and settings to a file and import them on a new phone
 - **Automatic blocklist updates**: fetches the latest lists once a day, at a time you can choose
 - **Automatic app updates**: checks GitHub Releases once a day and installs new versions automatically (or just notifies you, if you prefer)
 - **Update on Wi-Fi only**: keep automatic updates (blocklist and app) off mobile data (on by default)
@@ -86,7 +87,7 @@ Open this folder in Android Studio and run it. From the command line:
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources / DNS cache / update time)
+gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources / DNS cache / update time / Wi-Fi names)
 gradlew lintDebug
 ```
 
@@ -112,7 +113,8 @@ On Android 12 and later, updates after the first one install without asking (the
 | `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) and the public DNS list |
 | `DotClient.kt` | Encrypted DNS (DNS over TLS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
-| `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, your blocked / allowed domains, blocklist) |
+| `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, Wi-Fi without blocking, your blocked / allowed domains, blocklist) |
+| `WifiNetworks.kt` / `WifiSettingsActivity.kt` | Wi-Fi without blocking (watching the connected Wi-Fi name, the settings page) |
 | `QueryLog.kt` / `QueryLogFiles.kt` / `QueryOwners.kt` / `StatsStore.kt` | Query log (in memory) / keeping it in files / which app made a lookup / daily counts |
 | `PrivateDnsMonitor.kt` | Detecting "Private DNS" set to a hostname |
 | `MainActivity.kt` / `LogAdapter.kt` | Home / Statistics / Log tabs |
@@ -125,6 +127,7 @@ On Android 12 and later, updates after the first one install without asking (the
 | `AdBlockTileService.kt` | Quick Settings tile |
 | `BootReceiver.kt` | Resuming after a reboot or an update |
 | `Notifications.kt` / `Prefs.kt` | Notifications / saved settings |
+| `DebugLog.kt` / `DeveloperSettingsActivity.kt` | Debug log for troubleshooting (developer mode: tap the version in Settings → Updates 5 times). Records no domain or Wi-Fi names |
 
 ## License
 

@@ -119,6 +119,7 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
             Verdict.USER_BLOCK -> activity.getString(R.string.verdict_user_block)
             Verdict.USER_ALLOW -> activity.getString(R.string.verdict_user_allow)
             Verdict.PAUSED -> activity.getString(R.string.verdict_paused)
+            Verdict.NETWORK -> activity.getString(R.string.verdict_network)
             Verdict.CNAME -> activity.getString(R.string.verdict_cname, e.via)
             Verdict.IP -> activity.getString(R.string.verdict_ip, e.via)
             Verdict.PASS -> activity.getString(R.string.verdict_pass)
@@ -132,7 +133,7 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
                 when (e.verdict) {
                     Verdict.LIST, Verdict.USER_BLOCK, Verdict.CNAME, Verdict.IP -> R.color.sys_red
                     Verdict.USER_ALLOW -> R.color.sys_green
-                    Verdict.PAUSED -> R.color.sys_orange
+                    Verdict.PAUSED, Verdict.NETWORK -> R.color.sys_orange
                     Verdict.PASS -> R.color.status_off
                 }
             )

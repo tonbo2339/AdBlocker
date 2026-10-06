@@ -41,6 +41,7 @@ object Pause {
     fun resume(context: Context) = set(context, 0)
 
     private fun set(context: Context, time: Long) {
+        DebugLog.i("Pause", if (time == 0L) "resumed" else "paused for ${(time - System.currentTimeMillis()) / 1000} s")
         val app = context.applicationContext
         until = time
         Prefs.setPausedUntil(app, time)

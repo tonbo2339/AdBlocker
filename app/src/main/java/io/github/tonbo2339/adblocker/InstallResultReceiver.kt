@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
-import android.util.Log
 
 /** AppUpdater が始めたインストールの結果を受け取る。 */
 class InstallResultReceiver : BroadcastReceiver() {
@@ -26,7 +25,7 @@ class InstallResultReceiver : BroadcastReceiver() {
             }
             else -> {
                 val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                Log.w("InstallResult", "install failed: $status $message")
+                DebugLog.w("InstallResult", "install failed: $status $message")
                 Notifications.updateFailed(context)
             }
         }

@@ -82,7 +82,7 @@ object BlockList {
             BlockListCache.write(cacheFile, key, rules.blocked, rules.allowed)
         }
         loaded = true
-        Log.i(TAG, "${rules.blocked.size} domains (${if (cached != null) "cache" else "lists"}, ${SystemClock.elapsedRealtime() - started} ms)")
+        DebugLog.i(TAG, "${rules.blocked.size} domains (${if (cached != null) "cache" else "lists"}, ${SystemClock.elapsedRealtime() - started} ms)")
     }
 
     /**

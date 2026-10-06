@@ -74,7 +74,7 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
             val conn = (if (attempt == 0) takeIdle() else null) ?: try {
                 connect()
             } catch (e: IOException) {
-                Log.d(TAG, "connect to ${server.host} failed: $e")
+                DebugLog.w(TAG, "connect to ${server.host} failed; using normal DNS for 30 s", e)
                 failedUntil = System.currentTimeMillis() + RETRY_AFTER_FAILURE_MS
                 return null
             }
@@ -86,7 +86,10 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
                 Log.d(TAG, "query over ${server.host} failed: $e")
                 close(conn)
                 // 新しい接続でも答えなければ、しばらく通常の DNS にする (問い合わせのたびにタイムアウトを待たない)
-                if (attempt == 1) failedUntil = System.currentTimeMillis() + RETRY_AFTER_FAILURE_MS
+                if (attempt == 1) {
+                    DebugLog.w(TAG, "${server.host} did not answer; using normal DNS for 30 s", e)
+                    failedUntil = System.currentTimeMillis() + RETRY_AFTER_FAILURE_MS
+                }
             }
         }
         return null

@@ -1,7 +1,6 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
-import android.util.Log
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -130,7 +129,7 @@ object BlockListUpdater {
             try {
                 if (fetch(context, source, dir)) updated++ else unchanged++
             } catch (e: Exception) {
-                Log.w(TAG, "update failed: ${source.id}", e)
+                DebugLog.w(TAG, "update failed: ${source.id}", e)
                 failed += source.name
             }
         }
@@ -138,6 +137,7 @@ object BlockListUpdater {
         val removed = removeUnused(context, dir)
 
         if (updated > 0 || removed) BlockList.reload(context)
+        DebugLog.i(TAG, "update: $updated updated, $unchanged unchanged, ${failed.size} failed")
         if (failed.isEmpty()) Prefs.setBlocklistCheckedAt(context, System.currentTimeMillis())
         return Result(updated, unchanged, failed)
     }
@@ -188,7 +188,7 @@ object BlockListUpdater {
                 context, source.id,
                 Prefs.SourceCache(conn.getHeaderField("ETag"), conn.getHeaderField("Last-Modified")),
             )
-            Log.i(TAG, "${source.id}: $count rules")
+            DebugLog.i(TAG, "${source.id}: $count rules")
             return true
         } finally {
             conn.disconnect()

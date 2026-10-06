@@ -165,6 +165,7 @@ class UpdateSettingsActivity : SettingsPageActivity() {
         /** 「新しいバージョンがあります」の通知から開いたときに、すぐ更新を確認する。 */
         private const val EXTRA_CHECK_UPDATE = "check_update"
         private const val KEY_AWAITING = "awaiting_app_update"
+        private const val DEVELOPER_TAPS = 5
 
         fun intent(context: Context, checkUpdate: Boolean = false): Intent =
             Intent(context, UpdateSettingsActivity::class.java).putExtra(EXTRA_CHECK_UPDATE, checkUpdate)
@@ -200,8 +201,12 @@ class UpdateSettingsActivity : SettingsPageActivity() {
 
         header(R.string.section_app)
         card {
-            info(R.string.row_version, R.drawable.ic_g_info, R.color.sys_gray).value =
-                getString(R.string.version_value, BuildConfig.VERSION_NAME)
+            info(R.string.row_version, R.drawable.ic_g_info, R.color.sys_gray).apply {
+                value = getString(R.string.version_value, BuildConfig.VERSION_NAME)
+                // 隠し機能: 5 回タップで開発者モード
+                binding.row.setBackgroundResource(R.drawable.bg_row_pressed)
+                binding.row.setOnClickListener { onVersionTapped() }
+            }
             toggle(R.string.row_auto_install, R.drawable.ic_g_download, R.color.accent_blue, Prefs.autoInstallUpdates(context)) {
                 Prefs.setAutoInstallUpdates(context, it)
             }
@@ -219,6 +224,29 @@ class UpdateSettingsActivity : SettingsPageActivity() {
 
     override fun refresh() {
         timeRow.value = updateTimeLabel()
+    }
+
+    private var versionTaps = 0
+    private var tapToast: Toast? = null
+
+    /** バージョンを 5 回タップすると開発者モード (2 回目から残りの回数を出す)。 */
+    private fun onVersionTapped() {
+        val message = if (Prefs.developerMode(this)) {
+            getString(R.string.developer_already_on)
+        } else {
+            versionTaps++
+            val left = DEVELOPER_TAPS - versionTaps
+            when {
+                left <= 0 -> {
+                    Prefs.setDeveloperMode(this, true)
+                    getString(R.string.developer_on)
+                }
+                versionTaps >= 2 -> resources.getQuantityString(R.plurals.developer_taps_left, left, left)
+                else -> return
+            }
+        }
+        tapToast?.cancel()
+        tapToast = Toast.makeText(this, message, Toast.LENGTH_SHORT).also { it.show() }
     }
 
     private fun checkAppUpdate() {

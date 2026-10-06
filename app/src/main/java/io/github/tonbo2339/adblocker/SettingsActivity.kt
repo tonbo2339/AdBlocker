@@ -4,12 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import androidx.core.view.isVisible
 
 /**
  * 設定のトップ (ホームの右上の ≡ から開く)。iOS の設定アプリと同じく、項目ごとのページへの入り口だけを並べる。
  *
- * - ブロック: ブロック・許可するドメイン / ブロックリスト / DNS
- * - ログ・アップデート・通知・バックアップ
+ * - ブロック: ブロック・許可するドメイン / ブロックリスト / DNS / 例外アプリ
+ * - VPN: 常時接続 VPN / 広告ブロックをしない Wi-Fi
+ * - ログ・アップデート・通知・バックアップ (開発者モードなら開発者向け)
  */
 class SettingsActivity : SettingsPageActivity() {
 
@@ -30,6 +32,8 @@ class SettingsActivity : SettingsPageActivity() {
     private lateinit var exclusions: SettingRow
     private lateinit var log: SettingRow
     private lateinit var updates: SettingRow
+    private lateinit var wifi: SettingRow
+    private lateinit var developer: SettingsBuilder.Card
 
     override fun SettingsBuilder.build(savedInstanceState: Bundle?) {
         header(R.string.section_filtering)
@@ -49,12 +53,19 @@ class SettingsActivity : SettingsPageActivity() {
         }
         footer(R.string.always_on_footer)
         card(spaced = true) {
+            wifi = link(R.string.title_unblocked_wifi, R.drawable.ic_g_wifi, R.color.accent_blue) { open(WifiSettingsActivity::class.java) }
+        }
+        card(spaced = true) {
             log = link(R.string.title_log, R.drawable.ic_g_doc, R.color.sys_gray) { open(LogSettingsActivity::class.java) }
             updates = link(R.string.title_updates, R.drawable.ic_g_refresh, R.color.accent_blue) { open(UpdateSettingsActivity::class.java) }
             link(R.string.section_notifications, R.drawable.ic_g_bell, R.color.sys_red) { open(NotificationSettingsActivity::class.java) }
         }
         card(spaced = true) {
             link(R.string.section_backup, R.drawable.ic_g_download, R.color.sys_gray) { open(BackupSettingsActivity::class.java) }
+        }
+        // 開発者モードのときだけ出す (refresh で切り替える)
+        developer = card(spaced = true) {
+            link(R.string.title_developer, R.drawable.ic_g_info, R.color.sys_gray) { open(DeveloperSettingsActivity::class.java) }
         }
         footer(getString(R.string.settings_footer, BuildConfig.VERSION_NAME))
 
@@ -73,6 +84,8 @@ class SettingsActivity : SettingsPageActivity() {
         exclusions.value = getString(R.string.exclusion_value, Prefs.installedExcluded(this).size)
         log.value = if (Prefs.queryLogEnabled(this)) logRetentionLabel(Prefs.logRetentionDays(this)) else getString(R.string.log_off_value)
         updates.value = updateTimeLabel()
+        wifi.value = getString(R.string.rules_value, WifiNetworks.list.size)
+        developer.layout.isVisible = Prefs.developerMode(this)
     }
 }
 

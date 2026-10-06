@@ -11,6 +11,13 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- GitHub Releases から自分自身を更新する -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!--
+        「広告ブロックをしない Wi-Fi」でつながっている Wi-Fi の名前を読む (Android の仕様で位置情報の許可が要る。位置は使わない)。
+        画面を閉じている間も切り替えるので「常に許可」も使う。どれも利用者がその機能を使うときだけ尋ねる
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <!-- 例外アプリを選ぶためにインストール済みアプリの一覧を取得する -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -88,6 +95,18 @@
             android:name=".BackupSettingsActivity"
             android:exported="false"
             android:label="@string/section_backup"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".WifiSettingsActivity"
+            android:exported="false"
+            android:label="@string/title_unblocked_wifi"
+            android:parentActivityName=".SettingsActivity" />
+
+        <activity
+            android:name=".DeveloperSettingsActivity"
+            android:exported="false"
+            android:label="@string/title_developer"
             android:parentActivityName=".SettingsActivity" />
 
         <activity

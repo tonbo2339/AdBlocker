@@ -24,6 +24,9 @@ object Prefs {
     private const val KEY_CUSTOM_SOURCES = "custom_sources"
     private const val KEY_ETAG = "etag_"
     private const val KEY_LAST_MODIFIED = "last_modified_"
+    private const val KEY_UNBLOCKED_WIFI = "unblocked_wifi"
+    private const val KEY_DEVELOPER_MODE = "developer_mode"
+    private const val KEY_DEBUG_LOG = "debug_log"
     private val STATE_KEYS = setOf(KEY_ENABLED, KEY_NOTIFICATION_PERMISSION_ASKED, KEY_PAUSED_UNTIL, KEY_BLOCKLIST_CHECKED_AT)
 
     /** 例外アプリ (VPN を通さないアプリ) のパッケージ名。 */
@@ -168,6 +171,30 @@ object Prefs {
 
     fun setBlocklistCheckedAt(context: Context, time: Long) {
         state(context).edit { putLong(KEY_BLOCKLIST_CHECKED_AT, time) }
+    }
+
+    /** 広告ブロックをしない Wi-Fi の名前 (SSID)。 */
+    fun unblockedWifi(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_UNBLOCKED_WIFI, null)?.toSet().orEmpty()
+
+    fun setUnblockedWifi(context: Context, ssids: Set<String>) {
+        prefs(context).edit { putStringSet(KEY_UNBLOCKED_WIFI, HashSet(ssids)) }
+    }
+
+    /** 開発者モード (アップデートの画面でバージョンを 5 回タップすると出る)。端末ごとの状態なのでバックアップしない。 */
+    fun developerMode(context: Context): Boolean = state(context).getBoolean(KEY_DEVELOPER_MODE, false)
+
+    fun setDeveloperMode(context: Context, enabled: Boolean) {
+        state(context).edit { putBoolean(KEY_DEVELOPER_MODE, enabled) }
+        if (!enabled) setDebugLog(context, false)
+    }
+
+    /** デバッグログを残すか (開発者モードのときだけ選べる)。 */
+    fun debugLog(context: Context): Boolean = developerMode(context) && state(context).getBoolean(KEY_DEBUG_LOG, false)
+
+    fun setDebugLog(context: Context, enabled: Boolean) {
+        state(context).edit { putBoolean(KEY_DEBUG_LOG, enabled) }
+        DebugLog.configure(context, debugLog(context))
     }
 
     /** 条件付きリクエスト (変更が無ければダウンロードしない) に使う、前回の応答ヘッダー。 */

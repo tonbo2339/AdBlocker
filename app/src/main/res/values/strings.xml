@@ -211,4 +211,50 @@
     <string name="rule_invalid_allow">That isn\'t a valid domain or pattern (IP addresses can only be blocked)</string>
     <string name="import_done">Settings imported</string>
     <string name="import_failed">This file isn\'t an AdBlocker settings file</string>
+    <!-- 広告ブロックをしない Wi-Fi -->
+    <string name="title_unblocked_wifi">Wi-Fi Without Blocking</string>
+    <string name="section_current_wifi">Current Wi-Fi</string>
+    <string name="row_current_wifi">Connected to</string>
+    <string name="wifi_add_current">Don\'t Block on This Wi-Fi</string>
+    <string name="section_unblocked_wifi">Don\'t block on</string>
+    <string name="wifi_add_by_name">Add by Name</string>
+    <string name="wifi_add_title">Wi-Fi name (SSID)</string>
+    <string name="wifi_name_hint">MyHomeWiFi</string>
+    <string name="wifi_name_invalid">Enter a name of up to 32 bytes</string>
+    <string name="wifi_remove_title">Block ads on %1$s again?</string>
+    <string name="unblocked_wifi_footer">While connected to one of these Wi-Fi networks, ads are not blocked (the VPN stays on, like when paused). Use this for a network that already blocks ads, or where blocking causes problems. Tap a name to remove it.</string>
+    <string name="wifi_not_connected">Not connected</string>
+    <string name="wifi_name_needs_permission">Needs location access</string>
+    <string name="wifi_name_location_off">Turn on location</string>
+    <string name="row_location_permission">Location Access</string>
+    <string name="location_permission_none">Not allowed</string>
+    <string name="location_permission_while_in_use">While using the app</string>
+    <string name="location_permission_always">Allowed all the time</string>
+    <string name="wifi_permission_footer">Android only lets apps read the Wi-Fi name with location access. To switch while the app is closed, choose \"Allow all the time\". AdBlocker never uses your location. Location must also be turned on.</string>
+    <string name="wifi_permission_footer_ok">AdBlocker only reads the Wi-Fi name and never uses your location. Location must be turned on to read the name.</string>
+    <string name="location_always_title">Allow all the time?</string>
+    <string name="location_always_message">To stop blocking on these Wi-Fi networks even while the app is closed, AdBlocker needs to read the Wi-Fi name in the background. On the next screen, choose \"Allow all the time\". Your location is never used.</string>
+    <string name="location_always_open">Continue</string>
+    <string name="status_wifi_unblocked">Not Blocking on This Wi-Fi</string>
+    <string name="status_detail_wifi_unblocked">This Wi-Fi is in \"Wi-Fi Without Blocking\"</string>
+    <string name="notif_wifi_unblocked_text">Not blocking on this Wi-Fi</string>
+    <string name="tile_wifi_unblocked">Off on this Wi-Fi</string>
+    <string name="verdict_network">Allowed on this Wi-Fi</string>
+
+    <!-- 開発者モード -->
+    <string name="title_developer">Developer</string>
+    <plurals name="developer_taps_left">
+        <item quantity="one">%1$d more tap to turn on developer mode</item>
+        <item quantity="other">%1$d more taps to turn on developer mode</item>
+    </plurals>
+    <string name="developer_on">Developer mode is on. Open it from Settings.</string>
+    <string name="developer_already_on">Developer mode is already on</string>
+    <string name="developer_off">Developer mode is off</string>
+    <string name="row_debug_log">Debug Log</string>
+    <string name="debug_log_footer">Records what the app does (starting and stopping the VPN, DNS servers, errors, updates) to a file on this device, to find the cause of problems. Domain names and Wi-Fi names are not recorded, and nothing is sent anywhere. Up to 1 MB; turning it off deletes the log.</string>
+    <string name="row_export_debug_log">Export Debug Log</string>
+    <string name="row_clear_debug_log">Clear Debug Log</string>
+    <string name="debug_log_size">Saved: %1$s</string>
+    <string name="export_debug_log_done">Exported the debug log</string>
+    <string name="row_developer_off">Turn Off Developer Mode</string>
 </resources>

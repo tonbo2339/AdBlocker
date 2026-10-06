@@ -9,7 +9,7 @@ import kotlin.concurrent.thread
 
 /**
  * 設定の書き出しと読み込み (端末の引っ越しや、入れ直したとき用)。
- * ブロック・許可するドメイン、例外アプリ、設定を JSON にする。ON/OFF や統計、ダウンロードしたリストは含めない。
+ * ブロック・許可するドメイン、例外アプリ、広告ブロックをしない Wi-Fi、設定を JSON にする。ON/OFF や統計、ダウンロードしたリストは含めない。
  */
 object SettingsBackup {
     private const val APP = "AdBlocker"
@@ -39,6 +39,7 @@ object SettingsBackup {
                 .put("blocked", JSONArray(UserRules.list(UserRules.Kind.BLOCK)))
                 .put("allowed", JSONArray(UserRules.list(UserRules.Kind.ALLOW))))
             .put("excluded_apps", JSONArray(Prefs.excluded(context).sorted()))
+            .put("unblocked_wifi", JSONArray(WifiNetworks.list.sorted()))
             .put("settings", settings)
             .toString(2)
     }
@@ -65,6 +66,7 @@ object SettingsBackup {
         val oldCapture = Prefs.captureHardcodedDns(app)
         val oldUpdateTime = Prefs.updateTimeMinutes(app)
         root.optJSONArray("excluded_apps")?.let { Prefs.setExcluded(app, strings(it).toSet()) }
+        root.optJSONArray("unblocked_wifi")?.let { WifiNetworks.replace(app, strings(it).toSet()) }
 
         // 値の型が違う項目は読み飛ばす (getBoolean の JSONException で途中まで反映したまま止まらないように)
         root.optJSONObject("settings")?.let { s ->

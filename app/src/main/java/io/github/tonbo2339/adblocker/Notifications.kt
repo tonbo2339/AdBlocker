@@ -87,6 +87,8 @@ object Notifications {
                         context.getString(R.string.row_resume), resume,
                     ).build()
                 )
+        } else if (WifiNetworks.isUnblocked()) {
+            builder.setContentText(context.getString(R.string.notif_wifi_unblocked_text))
         } else {
             builder.setContentText(context.getString(R.string.notif_text))
         }

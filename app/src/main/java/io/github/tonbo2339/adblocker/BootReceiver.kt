@@ -12,6 +12,7 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
             intent.action != Intent.ACTION_MY_PACKAGE_REPLACED
         ) return
+        DebugLog.i("AdBlockBoot", "${intent.action}; enabled ${Prefs.isEnabled(context)}")
         if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) Notifications.updated(context)
         if (!Prefs.isEnabled(context)) return
         // 許可が取り消されている (別の VPN アプリで上書きされた等) なら OFF に戻すだけ

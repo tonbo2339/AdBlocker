@@ -7,7 +7,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.pm.PackageInfoCompat
 import org.json.JSONObject
@@ -60,7 +59,7 @@ object AppUpdater {
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "update failed", e)
+            DebugLog.w(TAG, "update failed", e)
             Result.Failed(e.message ?: e.javaClass.simpleName)
         } finally {
             // インストーラーには中身をコピー済み。検証で弾いた場合も含めて消す

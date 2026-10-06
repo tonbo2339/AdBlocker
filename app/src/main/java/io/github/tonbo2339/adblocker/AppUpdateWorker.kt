@@ -44,7 +44,9 @@ class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(conte
         val periodic = KEY_INSTALL !in inputData.keyValueMap
         val install = if (periodic) Prefs.autoInstallUpdates(applicationContext) else inputData.getBoolean(KEY_INSTALL, true)
 
-        val output = when (val r = AppUpdater.check(applicationContext, install)) {
+        val result = AppUpdater.check(applicationContext, install)
+        DebugLog.i("AppUpdateWorker", "${if (periodic) "daily" else "manual"} check: $result")
+        val output = when (val r = result) {
             AppUpdater.Result.UpToDate -> workDataOf(KEY_RESULT to RESULT_UP_TO_DATE)
             is AppUpdater.Result.Available -> {
                 if (periodic) Notifications.updateAvailable(applicationContext, r.version)

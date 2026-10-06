@@ -21,6 +21,9 @@ class AdBlockerApp : Application() {
         // VPN と画面の両方から使うので、プロセスの開始時に読み込む
         UserRules.load(this)
         Pause.load(this)
+        WifiNetworks.load(this)
+        DebugLog.configure(this, Prefs.debugLog(this))
+        DebugLog.i("AdBlockerApp", "process started: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}), Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT})")
         QueryLog.enabled = Prefs.queryLogEnabled(this)
         val retention = if (QueryLog.enabled) Prefs.logRetentionDays(this) else 0
         QueryLogFiles.configure(this, retention)

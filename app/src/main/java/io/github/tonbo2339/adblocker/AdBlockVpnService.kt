@@ -29,6 +29,8 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * DNS だけを通すローカル VPN。
@@ -48,6 +50,7 @@ class AdBlockVpnService : VpnService() {
         private const val ACTION_REBUILD = "io.github.tonbo2339.adblocker.REBUILD"
         private const val ACTION_STOP = "io.github.tonbo2339.adblocker.STOP"
         private const val ACTION_REFRESH_NOTIFICATION = "io.github.tonbo2339.adblocker.REFRESH_NOTIFICATION"
+        private const val ACTION_REFRESH_WIFI = "io.github.tonbo2339.adblocker.REFRESH_WIFI"
 
         private const val VPN_ADDR4 = "10.111.222.1"
         private const val VPN_DNS4 = "10.111.222.2"
@@ -115,14 +118,20 @@ class AdBlockVpnService : VpnService() {
         }
 
         /** 「動作中の表示」の設定を変えたときに、常駐通知を差し替える。 */
-        fun refreshNotification(context: Context) {
+        fun refreshNotification(context: Context) = send(context, ACTION_REFRESH_NOTIFICATION)
+
+        /**
+         * 位置情報の許可を変えたときに、Wi-Fi の名前を読み直す
+         * (名前は見張りを登録したときの許可で伏せられるかが決まり、許可を変えても届き直さない)。
+         */
+        fun refreshWifi(context: Context) = send(context, ACTION_REFRESH_WIFI)
+
+        private fun send(context: Context, action: String) {
             if (state == State.STOPPED) return
             try {
-                context.startService(
-                    Intent(context, AdBlockVpnService::class.java).setAction(ACTION_REFRESH_NOTIFICATION)
-                )
+                context.startService(Intent(context, AdBlockVpnService::class.java).setAction(action))
             } catch (e: IllegalStateException) {
-                Log.w(TAG, "refresh notification failed", e)
+                Log.w(TAG, "$action failed", e)
             }
         }
     }
@@ -155,27 +164,64 @@ class AdBlockVpnService : VpnService() {
     /** 常駐通知を出したときの言語。 */
     private lateinit var locales: LocaleList
 
+    /** デバッグログ用の件数 (5 分ごとにまとめて書き、0 に戻す)。 */
+    private object Counters {
+        val queries = AtomicInteger()
+        val blocked = AtomicInteger()
+        val cached = AtomicInteger()
+        val forwarded = AtomicInteger()
+        val failed = AtomicInteger()
+        val dot = AtomicInteger()
+        val latencyTotal = AtomicLong()
+        val latencyMax = AtomicLong()
+    }
+
+    private var flushTicks = 0
+
+    private fun logSummary() {
+        val queries = Counters.queries.getAndSet(0)
+        val forwarded = Counters.forwarded.getAndSet(0)
+        val total = Counters.latencyTotal.getAndSet(0)
+        val line = "last 5 min: $queries queries, ${Counters.blocked.getAndSet(0)} blocked, ${Counters.cached.getAndSet(0)} cached, " +
+            "$forwarded forwarded (${Counters.dot.getAndSet(0)} over DoT), ${Counters.failed.getAndSet(0)} failed; " +
+            "upstream ${if (forwarded > 0) total / forwarded else 0} ms avg, ${Counters.latencyMax.getAndSet(0)} ms max; " +
+            "servers ${upstream.servers().map { it.hostAddress }}; unblocked Wi-Fi: ${WifiNetworks.isUnblocked()}"
+        if (queries > 0) DebugLog.i(TAG, line)
+    }
+
     /** 日ごとの件数を定期的に保存する。 */
     private val statsFlusher = object : Runnable {
         override fun run() {
             StatsStore.flush(applicationContext)
             QueryLogFiles.flush()
+            if (++flushTicks % 10 == 0 && DebugLog.enabled && state == State.RUNNING) logSummary()
             mainHandler.postDelayed(this, STATS_FLUSH_INTERVAL_MS)
         }
     }
 
-    /** 一時停止・再開したら、常駐通知の文言と「再開」ボタンを差し替える。 */
-    private val pauseListener: () -> Unit = {
+    /** 一時停止・再開したとき、広告ブロックをしない Wi-Fi に出入りしたときに、常駐通知の文言と「再開」ボタンを差し替える。 */
+    private val statusListener: () -> Unit = {
         if (state == State.RUNNING && Prefs.isNotificationEnabled(this, NotificationKind.RUNNING)) {
             startForegroundWithNotification()
         }
     }
 
+    /** つながっている Wi-Fi の名前 (広告ブロックをしない Wi-Fi の判定に使う)。 */
+    private lateinit var ssidMonitor: SsidMonitor
+
+    /** 転送先が 1 つも答えなかった回数と、最後にデバッグログに書いた時刻 (回線が切れている間に何千行も書かないため)。 */
+    private val forwardFailures = AtomicInteger()
+    @Volatile
+    private var forwardFailureLoggedAt = 0L
+
     override fun onCreate() {
         super.onCreate()
-        Pause.addListener(pauseListener)
+        DebugLog.i(TAG, "service created")
+        Pause.addListener(statusListener)
+        WifiNetworks.addListener(statusListener)
         locales = resources.configuration.locales
         upstream = UpstreamDns(this) { cache.clear() }.apply { start() }
+        ssidMonitor = SsidMonitor(this) { WifiNetworks.setCurrent(this, it) }.apply { start() }
         apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
         registerReceiver(packageAdded, IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") })
@@ -189,11 +235,21 @@ class AdBlockVpnService : VpnService() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
             val pkg = intent.data?.schemeSpecificPart ?: return
-            if (state != State.STOPPED && pkg in Prefs.excluded(context)) restart()
+            if (state != State.STOPPED && pkg in Prefs.excluded(context)) {
+                DebugLog.i(TAG, "excluded app reinstalled: rebuilding")
+                restart()
+            }
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_REFRESH_WIFI) {
+            ssidMonitor.stop()
+            WifiNetworks.setCurrent(this, null)
+            ssidMonitor.start()
+            return START_STICKY
+        }
+        if (intent?.action != ACTION_REFRESH_NOTIFICATION) DebugLog.i(TAG, "start command: ${intent?.action ?: "restarted by system"}")
         if (intent?.action == ACTION_STOP) {
             stopVpn()
             return START_NOT_STICKY
@@ -233,12 +289,17 @@ class AdBlockVpnService : VpnService() {
 
     override fun onRevoke() {
         // 別の VPN が有効になった、またはユーザーが設定から切断した
+        DebugLog.i(TAG, "VPN revoked")
         stopVpn()
     }
 
     override fun onDestroy() {
+        DebugLog.i(TAG, "service destroyed")
         unregisterReceiver(packageAdded)
-        Pause.removeListener(pauseListener)
+        Pause.removeListener(statusListener)
+        WifiNetworks.removeListener(statusListener)
+        ssidMonitor.stop()
+        WifiNetworks.setCurrent(this, null)
         mainHandler.removeCallbacks(statsFlusher)
         StatsStore.flush(applicationContext)
         QueryLogFiles.flush()
@@ -302,6 +363,7 @@ class AdBlockVpnService : VpnService() {
         var stoppedByRequest = false
         try {
             BlockList.load(this)
+            DebugLog.i(TAG, "blocklist: ${BlockList.size} domains")
             // 古い tun が開いたまま新しい tun を作ると、端末がどちらに問い合わせを送るかが不安定になる
             previous?.join(PREVIOUS_WORKER_WAIT_MS)
             // 停止・作り直しが要求されていたら VPN を作らない (新しいワーカーの VPN を上書きしないため)。
@@ -312,6 +374,15 @@ class AdBlockVpnService : VpnService() {
                     return
                 }
                 tun = buildInterface()
+                DebugLog.i(
+                    TAG,
+                    if (tun != null) {
+                        "VPN established (excluded apps ${Prefs.excluded(this).size}, capture public DNS ${Prefs.captureHardcodedDns(this)}, " +
+                            "encrypted DNS ${Prefs.encryptedDns(this)?.id ?: "off"})"
+                    } else {
+                        "establish() returned null"
+                    },
+                )
                 if (tun != null) {
                     state = State.RUNNING
                     mainHandler.post { applyRunningNotificationSetting() }
@@ -322,8 +393,10 @@ class AdBlockVpnService : VpnService() {
                 return
             }
             stoppedByRequest = loop(fd, stopFd, executor)
+            DebugLog.i(TAG, if (stoppedByRequest) "worker stopped" else "tun closed")
         } catch (e: Exception) {
             Log.e(TAG, "VPN loop stopped", e)
+            DebugLog.w(TAG, "VPN loop stopped", e)
         } finally {
             executor.shutdownNow()
             try {
@@ -411,24 +484,34 @@ class AdBlockVpnService : VpnService() {
         // どのアプリの問い合わせか。応答を返すとアプリがソケットを閉じて分からなくなるので、先に調べる
         val app = if (QueryLog.enabled) apps.ownerOf(query) else null
         val verdict = Filter.decide(question.name)
+        Counters.queries.incrementAndGet()
         if (verdict.blocked) {
+            Counters.blocked.incrementAndGet()
             record(question.name, verdict, app = app)
             writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
             return
         }
         // 覚えている答えがあれば、転送せずにすぐ返す (答えの中身による判定はルールが変わることがあるので毎回行う)
         cache.get(query.dns, question)?.let { cached ->
+            Counters.cached.incrementAndGet()
             answer(query, question, verdict, cached, app, out)
             return
         }
         executor.execute {
+            val started = System.nanoTime()
             val response = forward(query.dns)
             if (response == null) {
+                Counters.failed.incrementAndGet()
+                noteForwardFailure()
                 // 転送先が 1 つも答えなかった。何も返さないとアプリはタイムアウトまで待つので、すぐ失敗を知らせる
                 record(question.name, verdict, app = app)
                 writePacket(out, Packets.buildResponse(query, Dns.servfail(query.dns, question)))
                 return@execute
             }
+            val ms = (System.nanoTime() - started) / 1_000_000
+            Counters.forwarded.incrementAndGet()
+            Counters.latencyTotal.addAndGet(ms)
+            Counters.latencyMax.accumulateAndGet(ms, ::maxOf)
             cache.put(query.dns, question, response)
             answer(query, question, verdict, response, app, out)
         }
@@ -445,6 +528,29 @@ class AdBlockVpnService : VpnService() {
         }
         record(question.name, verdict, app = app)
         writePacket(out, Packets.buildResponse(query, response))
+    }
+
+    /** 転送先ごとに、送れなかった理由 (届かないアドレス・Android 17 の LAN 制限の EPERM など) を 1 分に 1 回残す。 */
+    private val sendFailureLoggedAt = java.util.concurrent.ConcurrentHashMap<java.net.InetAddress, Long>()
+
+    private fun noteSendFailure(server: java.net.InetAddress, e: IOException) {
+        if (!DebugLog.enabled) return
+        val now = System.currentTimeMillis()
+        val last = sendFailureLoggedAt[server]
+        if (last != null && now - last < 60_000) return
+        sendFailureLoggedAt[server] = now
+        DebugLog.w(TAG, "send to ${server.hostAddress} failed", e)
+    }
+
+    /** 転送の失敗をデバッグログに残す。続いたときは 10 秒に 1 行にまとめる。 */
+    private fun noteForwardFailure() {
+        if (!DebugLog.enabled) return
+        val count = forwardFailures.incrementAndGet()
+        val now = System.currentTimeMillis()
+        if (now - forwardFailureLoggedAt < 10_000) return
+        forwardFailureLoggedAt = now
+        forwardFailures.set(0)
+        DebugLog.w(TAG, "no upstream answered ($count queries; servers ${upstream.servers().map { it.hostAddress }})")
     }
 
     private fun record(name: String, verdict: Verdict, via: String? = null, app: String? = null) {
@@ -478,7 +584,10 @@ class AdBlockVpnService : VpnService() {
      */
     private fun forward(dns: ByteArray): ByteArray? {
         // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがあるので、そのときは UDP で取り直す
-        dotClient()?.query(dns)?.takeIf { it.size <= MAX_RESPONSE }?.let { return it }
+        dotClient()?.query(dns)?.takeIf { it.size <= MAX_RESPONSE }?.let {
+            Counters.dot.incrementAndGet()
+            return it
+        }
         return forwardUdp(dns)
     }
 
@@ -506,6 +615,7 @@ class AdBlockVpnService : VpnService() {
                         } catch (e: IOException) {
                             // その回線では届かないアドレス (IPv6 が無い等)。待たずに次へ
                             Log.d(TAG, "send to $server failed: $e")
+                            noteSendFailure(server, e)
                             continue
                         }
                     }
@@ -543,6 +653,7 @@ class AdBlockVpnService : VpnService() {
                 out.write(packet)
             } catch (e: IOException) {
                 Log.d(TAG, "tun write failed: $e")
+                if (DebugLog.enabled) DebugLog.w(TAG, "tun write failed (${packet.size} bytes)", e)
             }
         }
     }

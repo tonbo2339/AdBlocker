@@ -6,7 +6,7 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.util.Log
+import android.os.Build
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
@@ -31,12 +31,41 @@ class UpstreamDns(context: Context, private val onChange: () -> Unit = {}) {
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
             val servers = linkProperties.dnsServers
-            if (networkDns.put(network, servers) != servers) onChange()
+            if (networkDns.put(network, servers) != servers) {
+                if (DebugLog.enabled) logNetwork(network, linkProperties)
+                onChange()
+            }
         }
 
         override fun onLost(network: Network) {
-            if (networkDns.remove(network) != null) onChange()
+            if (networkDns.remove(network) != null) {
+                DebugLog.i(TAG, "network lost; network DNS: ${networkDns.values.flatten().map { it.hostAddress }}")
+                onChange()
+            }
         }
+    }
+
+    /** 回線の種類・DNS サーバー・プライベート DNS の状態をデバッグログに残す。 */
+    private fun logNetwork(network: Network, linkProperties: LinkProperties) {
+        val type = connectivity.getNetworkCapabilities(network)?.let { caps ->
+            when {
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+                else -> "other"
+            }
+        } ?: "unknown"
+        val privateDns = when {
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.P -> "n/a"
+            linkProperties.privateDnsServerName != null -> "hostname"
+            linkProperties.isPrivateDnsActive -> "automatic (active)"
+            else -> "off or inactive"
+        }
+        DebugLog.i(
+            TAG,
+            "$type: DNS ${linkProperties.dnsServers.map { it.hostAddress }}, private DNS $privateDns; " +
+                "all network DNS ${networkDns.values.flatten().map { it.hostAddress }}",
+        )
     }
 
     fun start() {
@@ -48,7 +77,7 @@ class UpstreamDns(context: Context, private val onChange: () -> Unit = {}) {
             connectivity.registerNetworkCallback(request, callback)
         } catch (e: RuntimeException) {
             // 登録数の上限など。公開 DNS だけで動かす
-            Log.w(TAG, "registerNetworkCallback failed", e)
+            DebugLog.w(TAG, "registerNetworkCallback failed", e)
         }
     }
 
