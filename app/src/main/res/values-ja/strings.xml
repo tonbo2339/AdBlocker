@@ -23,14 +23,14 @@
     <string name="update_waiting_network">ネットワークに接続すると更新します</string>
     <string name="sources_footer">1 日 1 回、自動で最新のリストに更新します。取得元: %1$s</string>
     <string name="row_always_on">常時接続 VPN を設定</string>
-    <string name="always_on_footer">VPN の設定で「常時接続 VPN」をオンにすると、アプリが終了させられても自動で再開します。</string>
+    <string name="always_on_footer">VPN の設定で「常時接続 VPN」をオンにすると、アプリが終了しても自動で再開します。</string>
     <string name="exclusion_value">%1$d 個</string>
     <string name="vpn_denied">VPN の許可がないため開始できません</string>
-    <string name="note">端末内のローカル VPN で、広告ドメインへの DNS 問い合わせを止めます。通信内容を外部に送ることはありません。\n\n設定の「プライベート DNS」が「ホスト名を指定」になっていると、ブロックが効きません。</string>
+    <string name="note">端末の中だけで動く VPN を使い、広告ドメインへの DNS 問い合わせを遮断します。通信の中身を外部へ送ることはありません。\n\n設定の「プライベート DNS」が「ホスト名を指定」になっていると、ブロックが効きません。</string>
 
     <string name="search_hint">検索</string>
     <string name="show_system_apps">システムアプリを表示</string>
-    <string name="exclusions_footer">オンにしたアプリは広告ブロックを通さず、通常どおり通信します。広告ブロックで動かなくなるアプリに使ってください。</string>
+    <string name="exclusions_footer">オンにしたアプリは広告ブロックの対象外になり、通常どおり通信します。広告ブロックで動かなくなるアプリに使ってください。</string>
     <string name="exclusions_applied">例外設定を反映しました</string>
 
     <string name="section_auto_update">自動更新</string>
@@ -38,7 +38,7 @@
     <string name="update_time_any">指定なし</string>
     <string name="update_time_pick">時刻を選ぶ…</string>
     <string name="row_wifi_only">Wi-Fi のときだけ自動更新</string>
-    <string name="wifi_only_footer">ブロックリストとアプリの自動更新は 1 日 1 回、選んだ時刻のころに行います (電池を節約するため、端末が少し遅らせることがあります)。「Wi-Fi のときだけ自動更新」をオンにすると、Wi-Fi などにつながっているときだけ行い、モバイル通信では行いません。「今すぐ更新」と「アップデートを確認」は、いつでも使えます。</string>
+    <string name="wifi_only_footer">ブロックリストとアプリの自動更新は、1 日 1 回、指定した時刻のころに行います (電池を節約するため、端末が少し遅らせることがあります)。「Wi-Fi のときだけ自動更新」をオンにすると、Wi-Fi など従量制でない回線のときだけ行い、モバイル通信では行いません。「今すぐ更新」と「アップデートを確認」は、いつでも使えます。</string>
     <string name="section_app">アプリ</string>
     <string name="row_version">バージョン</string>
     <string name="version_value">v%1$s</string>
@@ -48,9 +48,9 @@
     <string name="update_up_to_date">最新のバージョンです</string>
     <string name="update_installing">v%1$s をインストールしています</string>
     <string name="update_check_failed">アップデートを確認できませんでした</string>
-    <string name="app_update_footer">1 日 1 回、GitHub で新しいバージョンを確認します。「自動でアップデート」をオフにすると、新しいバージョンがあることを通知でお知らせするだけになります。</string>
+    <string name="app_update_footer">1 日 1 回、GitHub で新しいバージョンを確認します。「自動でアップデート」をオフにすると、新しいバージョンがあることを通知で知らせるだけになります。</string>
     <string name="notif_channel_updates">アップデート</string>
-    <string name="notif_update_available">AdBlocker v%1$s があります</string>
+    <string name="notif_update_available">AdBlocker v%1$s が利用できます</string>
     <string name="notif_update_available_text">タップしてインストール</string>
     <string name="notif_update_confirm">アップデートの準備ができました</string>
     <string name="notif_update_confirm_text">タップしてインストールを許可してください</string>
@@ -62,7 +62,7 @@
     <string name="notify_app_update">アプリのアップデート</string>
     <string name="notify_blocklist_update">ブロックリストの更新</string>
     <string name="notify_running">動作中の表示</string>
-    <string name="notifications_footer">「動作中の表示」をオフにすると、広告ブロックの開始後に常駐通知を消します。広告ブロックは動き続け、ステータスバーには VPN の鍵マークが出ます。</string>
+    <string name="notifications_footer">「動作中の表示」をオフにすると、広告ブロックの開始後に常駐通知を消します。広告ブロックは動き続け、ステータスバーには VPN の鍵アイコンが表示されます。</string>
     <string name="notif_channel_blocklist">ブロックリストの更新</string>
     <string name="notif_blocklist_updated">ブロックリストを更新しました</string>
     <string name="notif_blocklist_updated_text">%1$s 件のドメインをブロックしています</string>
@@ -105,16 +105,16 @@
     <string name="stat_rate">ブロック率</string>
     <string name="section_week">過去 7 日</string>
     <string name="week_summary">%2$s 件中 %1$s 件をブロック</string>
-    <string name="week_footer">灰色の棒は問い合わせの件数、緑の棒はブロックした件数です。保存するのは件数だけで、どのサイトを見たかは記録しません。</string>
+    <string name="week_footer">灰色の棒は問い合わせの件数、緑の棒はブロックした件数です。保存するのは件数だけで、閲覧したサイトは記録しません。</string>
     <string name="section_total">累計</string>
     <string name="stat_since">集計開始</string>
     <string name="section_top_domains">よくブロックしたドメイン</string>
-    <string name="top_domains_footer">広告ブロックを最後にオンにしてからの件数です。メモリ上にだけ保持します。タップすると、ブロック・許可を設定できます。</string>
+    <string name="top_domains_footer">広告ブロックを最後にオンにしてからの件数で、メモリ上にだけ保持します。タップすると、ブロック・許可を設定できます。</string>
     <string name="top_domains_empty">まだありません</string>
     <string name="top_domains_disabled">問い合わせのログがオフのため、記録していません</string>
     <string name="stats_reset">統計をリセット</string>
     <string name="stats_reset_title">統計をすべてリセットしますか?</string>
-    <string name="stats_reset_message">日ごとの件数と累計を消します。</string>
+    <string name="stats_reset_message">日ごとの件数と累計を削除します。</string>
 
     <string name="log_filter_all">すべて</string>
     <string name="log_filter_blocked">ブロック</string>
@@ -141,8 +141,8 @@
     <string name="rule_add_title_block">ブロックするドメイン</string>
     <string name="rule_add_title_allow">許可するドメイン</string>
     <string name="rule_invalid">ドメイン・パターン・IP アドレスとして正しくありません</string>
-    <string name="rules_footer_block">ドメインとそのサブドメインを、ブロックリストに無くてもブロックします。* は何にでも当たります (ads.* や *tracker*)。IP アドレス (203.0.113.0/24 のような範囲も可) を入れると、答えがそのアドレスになる名前をブロックします。</string>
-    <string name="rules_footer_allow">ドメインとそのサブドメインを常に許可します。ブロックでサイトやアプリが動かないときに使います。* は何にでも当たります。許可はブロックより優先します。</string>
+    <string name="rules_footer_block">ドメインとそのサブドメインを、ブロックリストに無くてもブロックします。ワイルドカード * も使えます (ads.* や *tracker* など)。IP アドレス (203.0.113.0/24 のような範囲も可) を指定すると、そのアドレスに解決される名前をブロックします。</string>
+    <string name="rules_footer_allow">ドメインとそのサブドメインを常に許可します。ブロックでサイトやアプリが動かないときに使います。ワイルドカード * も使えます。許可はブロックより優先されます。</string>
     <string name="rules_empty">まだ追加していません</string>
     <string name="rule_delete_title">%1$s を削除しますか?</string>
     <string name="rule_added_block">%1$s をブロックします</string>
@@ -150,9 +150,9 @@
     <string name="rule_removed">削除しました</string>
     <string name="title_blocklists">ブロックリスト</string>
     <string name="section_built_in_lists">組み込みのリスト</string>
-    <string name="built_in_lists_footer">オフにしたリストは、すぐに使われなくなります。HaGeZi Pro は、ほかのリストが通してしまう広告の多くと、トラッカーや詐欺サイトも止めます。Pro++ はさらに多く止めますが、サイトやアプリが動かなくなることが増えます。動かないものがあれば「ブロック・許可するドメイン」で許可するか、Pro++ をオフにしてください。</string>
+    <string name="built_in_lists_footer">オフにしたリストは、すぐに使われなくなります。HaGeZi Pro は、ほかのリストが見逃す広告の多くと、トラッカーや詐欺サイトもブロックします。Pro++ はさらに多くブロックしますが、サイトやアプリが動かなくなることが増えます。動かないものがあれば「ブロック・許可するドメイン」で許可するか、Pro++ をオフにしてください。</string>
     <string name="section_custom_lists">自分で追加したリスト</string>
-    <string name="custom_lists_footer">hosts・ドメイン・Adblock (||domain^) 形式のリストを、https の URL で追加できます。ほかのリストと同じく、1 日 1 回ダウンロードします。タップすると削除できます。</string>
+    <string name="custom_lists_footer">hosts・ドメイン・*.ドメイン・Adblock (||domain^) 形式のリストを、https の URL で追加できます。ほかのリストと一緒に、1 日 1 回ダウンロードします。タップすると削除できます。</string>
     <string name="list_add">リストの URL を追加</string>
     <string name="list_url_invalid">https:// で始まる URL を入力してください</string>
     <string name="list_delete_title">%1$s を削除しますか?</string>
@@ -175,10 +175,10 @@
     <string name="section_backup">バックアップ</string>
     <string name="row_export">設定を書き出す</string>
     <string name="row_import">設定を読み込む</string>
-    <string name="backup_footer">ブロック・許可するドメイン、例外アプリ、ブロックリスト、設定をファイルに保存します。機種変更のときに使えます。統計とログは含まれません。</string>
+    <string name="backup_footer">ブロック・許可するドメイン、例外アプリ、ブロックしない Wi-Fi、ブロックリスト、各種設定をファイルに保存します。機種変更のときに使えます。統計とログは含まれません。</string>
     <string name="export_done">設定を書き出しました</string>
     <string name="export_failed">ファイルを保存できませんでした</string>
-    <string name="query_log_footer_saved">直近 500 件の問い合わせと、よくブロックしたドメイン・アプリをメモリ上に保持し、ログを %1$s分、この端末のファイルにも保存します (端末の外には送りません)。古いものは自動で消します。すべてを見るときは書き出してください。</string>
+    <string name="query_log_footer_saved">直近 500 件の問い合わせと、よくブロックしたドメイン・アプリをメモリ上に保持し、ログを %1$s分、この端末のファイルにも保存します (端末の外へは送りません)。古いものは自動で削除します。すべてを見るには書き出してください。</string>
     <string name="log_footer_saved">直近 %1$s 件の問い合わせです。ログはこの端末に %2$s分保存しています。行をタップすると、ブロック・許可を設定できます。</string>
     <string name="row_log_retention">ログを残す期間</string>
     <string name="log_retention_memory">保存しない</string>
@@ -190,11 +190,11 @@
     <string name="log_period_30">30 日</string>
     <string name="row_export_log">ログを書き出す</string>
     <string name="export_log_done">ログを書き出しました</string>
-    <string name="log_delete_title">保存したログを消しますか?</string>
-    <string name="log_delete_all">この端末に保存したログをすべて消します。元に戻せません。</string>
-    <string name="log_delete_older">%1$sより前のログを消します。元に戻せません。</string>
+    <string name="log_delete_title">保存したログを削除しますか?</string>
+    <string name="log_delete_all">この端末に保存したログをすべて削除します。元に戻せません。</string>
+    <string name="log_delete_older">%1$sより前のログを削除します。元に戻せません。</string>
     <string name="row_capture_dns">DNS を自分で指定するアプリもブロック</string>
-    <string name="capture_dns_footer">アプリによっては、端末の設定を使わずに公開 DNS (8.8.8.8 や 1.1.1.1 など) へ直接問い合わせるため、広告ブロックが効きません。オンにすると、その問い合わせもブロックの対象にし、これらのサーバーへの暗号化した問い合わせ (DNS over HTTPS / TLS) は断って、端末の DNS を使わせます。オンの間は、これらのアドレスへの ping が届きません。</string>
+    <string name="capture_dns_footer">アプリによっては、端末の設定を使わずに公開 DNS (8.8.8.8 や 1.1.1.1 など) へ直接問い合わせるため、広告ブロックが効きません。オンにすると、その問い合わせもブロックの対象にし、これらのサーバーへの暗号化 DNS (DNS over HTTPS / TLS) は拒否して、端末の DNS を使わせます。オンの間は、これらのアドレスへの ping が届きません。</string>
     <string name="section_top_apps">よくブロックしたアプリ</string>
     <string name="title_dns">DNS</string>
     <string name="section_vpn">VPN</string>
@@ -203,7 +203,7 @@
     <string name="section_blocklist_status">状態</string>
     <string name="log_off_value">オフ</string>
     <string name="settings_footer">AdBlocker v%1$s</string>
-    <string name="top_apps_footer">広告ブロックを最後にオンにしてから、問い合わせがよくブロックされたアプリです。メモリ上にだけ保持します。Android 10 以上で使えます。</string>
+    <string name="top_apps_footer">広告ブロックを最後にオンにしてから、問い合わせがよくブロックされたアプリで、メモリ上にだけ保持します。Android 10 以上で使えます。</string>
     <string name="verdict_ip">IP アドレス (%1$s) でブロック</string>
     <string name="rule_invalid_allow">ドメイン・パターンとして正しくありません (IP アドレスはブロックにだけ使えます)</string>
     <string name="import_done">設定を読み込みました</string>
@@ -219,7 +219,7 @@
     <string name="wifi_name_hint">MyHomeWiFi</string>
     <string name="wifi_name_invalid">32 バイト以内の名前を入力してください</string>
     <string name="wifi_remove_title">%1$s でも広告をブロックしますか?</string>
-    <string name="unblocked_wifi_footer">ここにある Wi-Fi につながっている間は、広告をブロックしません (一時停止と同じく、VPN はオンのままです)。すでに広告を止めている Wi-Fi や、ブロックすると困る Wi-Fi に使ってください。名前をタップすると削除できます。</string>
+    <string name="unblocked_wifi_footer">ここにある Wi-Fi につながっている間は、広告をブロックしません (一時停止と同じく、VPN はオンのままです)。すでに広告を遮断している Wi-Fi や、ブロックすると困る Wi-Fi に使ってください。名前をタップすると削除できます。</string>
     <string name="wifi_not_connected">つながっていません</string>
     <string name="wifi_name_needs_permission">位置情報の許可が必要です</string>
     <string name="wifi_name_location_off">位置情報をオンにしてください</string>
@@ -227,10 +227,10 @@
     <string name="location_permission_none">許可していません</string>
     <string name="location_permission_while_in_use">アプリの使用中のみ</string>
     <string name="location_permission_always">常に許可</string>
-    <string name="wifi_permission_footer">Android では、Wi-Fi の名前を読むのに位置情報の許可が必要です。アプリを閉じている間も切り替えるには「常に許可」を選んでください。位置は使いません。端末の位置情報もオンにしておく必要があります。</string>
-    <string name="wifi_permission_footer_ok">Wi-Fi の名前を読むためだけに使い、位置は使いません。名前を読むには、端末の位置情報をオンにしておく必要があります。</string>
+    <string name="wifi_permission_footer">Android では、Wi-Fi の名前を取得するのに位置情報の許可が必要です。アプリを閉じている間も切り替えるには「常に許可」を選んでください。位置情報そのものは使いません。端末の位置情報もオンにしておく必要があります。</string>
+    <string name="wifi_permission_footer_ok">Wi-Fi の名前を取得するためだけに使い、位置情報そのものは使いません。名前を取得するには、端末の位置情報をオンにしておく必要があります。</string>
     <string name="location_always_title">「常に許可」にしますか?</string>
-    <string name="location_always_message">アプリを閉じている間も、この Wi-Fi ではブロックしないようにするには、バックグラウンドで Wi-Fi の名前を読む必要があります。次の画面で「常に許可」を選んでください。位置は使いません。</string>
+    <string name="location_always_message">アプリを閉じている間もこれらの Wi-Fi でブロックしないようにするには、バックグラウンドで Wi-Fi の名前を取得する必要があります。次の画面で「常に許可」を選んでください。位置情報そのものは使いません。</string>
     <string name="location_always_open">続ける</string>
     <string name="status_wifi_unblocked">この Wi-Fi ではブロックしません</string>
     <string name="status_detail_wifi_unblocked">「ブロックしない Wi-Fi」につながっています</string>
@@ -243,11 +243,11 @@
     <plurals name="developer_taps_left">
         <item quantity="other">あと %1$d 回で開発者モードになります</item>
     </plurals>
-    <string name="developer_on">開発者モードをオンにしました。設定から開けます</string>
+    <string name="developer_on">開発者モードをオンにしました。設定の「開発者向け」から開けます</string>
     <string name="developer_already_on">開発者モードはオンです</string>
     <string name="developer_off">開発者モードをオフにしました</string>
     <string name="row_debug_log">デバッグログ</string>
-    <string name="debug_log_footer">アプリの動き (VPN の開始と停止、DNS サーバー、エラー、アップデート) をこの端末のファイルに記録し、不具合の原因を調べられるようにします。ドメイン名と Wi-Fi の名前は記録せず、どこにも送りません。最大 1MB で、オフにするとログを消します。</string>
+    <string name="debug_log_footer">アプリの動作 (VPN の開始と停止、DNS サーバー、エラー、アップデート) をこの端末のファイルに記録し、不具合の原因を調べられるようにします。ドメイン名や Wi-Fi の名前は記録せず、どこにも送りません。最大 1MB で、オフにするとログを削除します。</string>
     <string name="row_export_debug_log">デバッグログを書き出す</string>
     <string name="row_clear_debug_log">デバッグログを消去</string>
     <string name="debug_log_size">保存中: %1$s</string>

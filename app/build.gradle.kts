@@ -28,8 +28,8 @@ android {
         applicationId = "io.github.tonbo2339.adblocker"
         minSdk = 26
         targetSdk = 37
-        versionCode = 13
-        versionName = "0.8"
+        versionCode = 14
+        versionName = "0.8.1"
     }
 
     signingConfigs {

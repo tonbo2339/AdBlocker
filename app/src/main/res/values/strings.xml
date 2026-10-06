@@ -23,10 +23,10 @@
     <string name="update_waiting_network">Will update when connected to a network</string>
     <string name="sources_footer">Updated to the latest lists automatically once a day. Sources: %1$s</string>
     <string name="row_always_on">Set Up Always-on VPN</string>
-    <string name="always_on_footer">Turn on \"Always-on VPN\" in the VPN settings to restart automatically if the app is stopped.</string>
+    <string name="always_on_footer">Turn on \"Always-on VPN\" in the VPN settings so that blocking restarts automatically if the app is stopped.</string>
     <string name="exclusion_value">%1$d</string>
     <string name="vpn_denied">Can\'t start without VPN permission</string>
-    <string name="note">Uses a local VPN on this device to stop DNS lookups for ad domains. Nothing you do is sent anywhere.\n\nBlocking doesn\'t work while \"Private DNS\" in Settings is set to a hostname.</string>
+    <string name="note">Uses a VPN that runs only on this device to block DNS lookups for ad domains. The contents of your traffic are never sent anywhere.\n\nBlocking doesn\'t work while \"Private DNS\" in Settings is set to a hostname.</string>
 
     <string name="search_hint">Search</string>
     <string name="show_system_apps">Show System Apps</string>
@@ -38,7 +38,7 @@
     <string name="update_time_any">Any Time</string>
     <string name="update_time_pick">Choose a Time…</string>
     <string name="row_wifi_only">Update on Wi-Fi Only</string>
-    <string name="wifi_only_footer">Automatic blocklist and app updates run once a day, around the time you choose (the phone may delay them a little to save battery). When Update on Wi-Fi Only is on, they only run on Wi-Fi (or other unmetered networks), not on mobile data. \"Update Now\" and \"Check for Update\" always work.</string>
+    <string name="wifi_only_footer">Automatic blocklist and app updates run once a day, around the time you choose (the phone may delay them a little to save battery). When \"Update on Wi-Fi Only\" is on, they run only on Wi-Fi (or other unmetered networks), not on mobile data. \"Update Now\" and \"Check for Update\" always work.</string>
     <string name="section_app">App</string>
     <string name="row_version">Version</string>
     <string name="version_value">v%1$s</string>
@@ -109,7 +109,7 @@
     <string name="section_total">All Time</string>
     <string name="stat_since">Counting Since</string>
     <string name="section_top_domains">Top Blocked Domains</string>
-    <string name="top_domains_footer">Since ad blocking was last turned on. Kept only in memory. Tap a domain to block or allow it.</string>
+    <string name="top_domains_footer">Counted since ad blocking was last turned on, and kept only in memory. Tap a domain to block or allow it.</string>
     <string name="top_domains_empty">None yet</string>
     <string name="top_domains_disabled">Off while the query log is off</string>
     <string name="stats_reset">Reset Statistics</string>
@@ -143,8 +143,8 @@
     <string name="rule_add_title_allow">Domain to Allow</string>
     <string name="rule_hint" translatable="false">example.com / ads.* / 203.0.113.7</string>
     <string name="rule_invalid">That isn\'t a valid domain, pattern or IP address</string>
-    <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on the blocklist. Use * to match anything (ads.* or *tracker*). An IP address (or a range like 203.0.113.0/24) blocks any name whose answer is that address.</string>
-    <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. Use * to match anything. Allow rules win over block rules.</string>
+    <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on a blocklist. You can use * as a wildcard (such as ads.* or *tracker*). An IP address (or a range such as 203.0.113.0/24) blocks any name that resolves to it.</string>
+    <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. You can use * as a wildcard. Allow rules win over block rules.</string>
     <string name="rules_empty">Nothing added yet</string>
     <string name="rule_delete_title">Delete %1$s?</string>
     <string name="rule_added_block">Blocking %1$s</string>
@@ -154,7 +154,7 @@
     <string name="section_built_in_lists">Built-in Lists</string>
     <string name="built_in_lists_footer">Turning a list off stops using it right away. HaGeZi Pro also blocks many ads the other lists miss, plus trackers and scams. Pro++ blocks even more but is more likely to break a site or app; if something stops working, allow it in \"Block &amp; Allow Domains\" or turn Pro++ off.</string>
     <string name="section_custom_lists">Your Lists</string>
-    <string name="custom_lists_footer">Add any list in hosts, domain or Adblock (||domain^) format by its https URL. It is downloaded with the others once a day. Tap a list to remove it.</string>
+    <string name="custom_lists_footer">Add a list in hosts, domain, *.domain or Adblock (||domain^) format by its https URL. It is downloaded with the other lists once a day. Tap a list to remove it.</string>
     <string name="list_add">Add List URL</string>
     <string name="list_url_hint" translatable="false">https://example.com/list.txt</string>
     <string name="list_url_invalid">Enter an https:// URL</string>
@@ -178,7 +178,7 @@
     <string name="section_backup">Backup</string>
     <string name="row_export">Export Settings</string>
     <string name="row_import">Import Settings</string>
-    <string name="backup_footer">Saves your blocked and allowed domains, excluded apps, blocklists and settings to a file, for moving to a new phone. Statistics and the log are not included.</string>
+    <string name="backup_footer">Saves your blocked and allowed domains, excluded apps, Wi-Fi networks without blocking, blocklists and other settings to a file, for moving to a new phone. Statistics and the log are not included.</string>
     <string name="export_done">Settings exported</string>
     <string name="export_failed">Couldn\'t save the file</string>
     <string name="query_log_footer_saved">Keeps the last 500 lookups and the most-blocked domains and apps in memory, and also saves the log to a file on this phone for %1$s (it never leaves the phone). Older entries are deleted automatically. Export the log to see all of it.</string>
@@ -197,7 +197,7 @@
     <string name="log_delete_all">The log saved on this phone will be deleted. This can\'t be undone.</string>
     <string name="log_delete_older">Log entries older than %1$s will be deleted. This can\'t be undone.</string>
     <string name="row_capture_dns">Block Apps\' Own DNS</string>
-    <string name="capture_dns_footer">Some apps send lookups straight to public DNS servers (such as 8.8.8.8 or 1.1.1.1), which gets around ad blocking. When on, those lookups are filtered too, and encrypted lookups to these servers (DNS over HTTPS / TLS) are refused so the app falls back to your phone\'s DNS. While it\'s on, ping to these addresses doesn\'t work.</string>
+    <string name="capture_dns_footer">Some apps send lookups straight to public DNS servers (such as 8.8.8.8 or 1.1.1.1), which gets around ad blocking. When this is on, those lookups are filtered too, and encrypted lookups to these servers (DNS over HTTPS / TLS) are refused so that apps fall back to the phone\'s DNS. While it\'s on, you can\'t ping these addresses.</string>
     <string name="section_top_apps">Top Blocked Apps</string>
     <string name="title_dns">DNS</string>
     <string name="section_vpn">VPN</string>
@@ -206,7 +206,7 @@
     <string name="section_blocklist_status">Status</string>
     <string name="log_off_value">Off</string>
     <string name="settings_footer">AdBlocker v%1$s</string>
-    <string name="top_apps_footer">Apps whose lookups were blocked most since ad blocking was last turned on. Kept only in memory. Needs Android 10 or later.</string>
+    <string name="top_apps_footer">Apps whose lookups were blocked most since ad blocking was last turned on, kept only in memory. Requires Android 10 or later.</string>
     <string name="verdict_ip">Blocked by IP address (%1$s)</string>
     <string name="rule_invalid_allow">That isn\'t a valid domain or pattern (IP addresses can only be blocked)</string>
     <string name="import_done">Settings imported</string>
@@ -216,13 +216,13 @@
     <string name="section_current_wifi">Current Wi-Fi</string>
     <string name="row_current_wifi">Connected to</string>
     <string name="wifi_add_current">Don\'t Block on This Wi-Fi</string>
-    <string name="section_unblocked_wifi">Don\'t block on</string>
+    <string name="section_unblocked_wifi">Wi-Fi Networks</string>
     <string name="wifi_add_by_name">Add by Name</string>
-    <string name="wifi_add_title">Wi-Fi name (SSID)</string>
+    <string name="wifi_add_title">Wi-Fi Name (SSID)</string>
     <string name="wifi_name_hint">MyHomeWiFi</string>
     <string name="wifi_name_invalid">Enter a name of up to 32 bytes</string>
     <string name="wifi_remove_title">Block ads on %1$s again?</string>
-    <string name="unblocked_wifi_footer">While connected to one of these Wi-Fi networks, ads are not blocked (the VPN stays on, like when paused). Use this for a network that already blocks ads, or where blocking causes problems. Tap a name to remove it.</string>
+    <string name="unblocked_wifi_footer">While connected to one of these Wi-Fi networks, ads are not blocked (like when paused, the VPN stays on). Use this for a network that already blocks ads, or where blocking causes problems. Tap a name to remove it.</string>
     <string name="wifi_not_connected">Not connected</string>
     <string name="wifi_name_needs_permission">Needs location access</string>
     <string name="wifi_name_location_off">Turn on location</string>
@@ -230,13 +230,13 @@
     <string name="location_permission_none">Not allowed</string>
     <string name="location_permission_while_in_use">While using the app</string>
     <string name="location_permission_always">Allowed all the time</string>
-    <string name="wifi_permission_footer">Android only lets apps read the Wi-Fi name with location access. To switch while the app is closed, choose \"Allow all the time\". AdBlocker never uses your location. Location must also be turned on.</string>
-    <string name="wifi_permission_footer_ok">AdBlocker only reads the Wi-Fi name and never uses your location. Location must be turned on to read the name.</string>
+    <string name="wifi_permission_footer">Android lets apps read the Wi-Fi name only with location access. To switch even while the app is closed, choose \"Allow all the time\". Your location itself is never used. Location must also be turned on.</string>
+    <string name="wifi_permission_footer_ok">Used only to read the Wi-Fi name; your location itself is never used. Location must be turned on to read the name.</string>
     <string name="location_always_title">Allow all the time?</string>
-    <string name="location_always_message">To stop blocking on these Wi-Fi networks even while the app is closed, AdBlocker needs to read the Wi-Fi name in the background. On the next screen, choose \"Allow all the time\". Your location is never used.</string>
+    <string name="location_always_message">To stop blocking on these Wi-Fi networks even while the app is closed, AdBlocker needs to read the Wi-Fi name in the background. On the next screen, choose \"Allow all the time\". Your location itself is never used.</string>
     <string name="location_always_open">Continue</string>
     <string name="status_wifi_unblocked">Not Blocking on This Wi-Fi</string>
-    <string name="status_detail_wifi_unblocked">This Wi-Fi is in \"Wi-Fi Without Blocking\"</string>
+    <string name="status_detail_wifi_unblocked">Connected to a network in \"Wi-Fi Without Blocking\"</string>
     <string name="notif_wifi_unblocked_text">Not blocking on this Wi-Fi</string>
     <string name="tile_wifi_unblocked">Off on this Wi-Fi</string>
     <string name="verdict_network">Allowed on this Wi-Fi</string>
@@ -247,14 +247,14 @@
         <item quantity="one">%1$d more tap to turn on developer mode</item>
         <item quantity="other">%1$d more taps to turn on developer mode</item>
     </plurals>
-    <string name="developer_on">Developer mode is on. Open it from Settings.</string>
+    <string name="developer_on">Developer mode is on. Find \"Developer\" in Settings.</string>
     <string name="developer_already_on">Developer mode is already on</string>
     <string name="developer_off">Developer mode is off</string>
     <string name="row_debug_log">Debug Log</string>
-    <string name="debug_log_footer">Records what the app does (starting and stopping the VPN, DNS servers, errors, updates) to a file on this device, to find the cause of problems. Domain names and Wi-Fi names are not recorded, and nothing is sent anywhere. Up to 1 MB; turning it off deletes the log.</string>
+    <string name="debug_log_footer">Records what the app does (starting and stopping the VPN, DNS servers, errors and updates) to a file on this phone, to help find the cause of problems. Domain names and Wi-Fi names are not recorded, and nothing is sent anywhere. Up to 1 MB. Turning it off deletes the log.</string>
     <string name="row_export_debug_log">Export Debug Log</string>
     <string name="row_clear_debug_log">Clear Debug Log</string>
     <string name="debug_log_size">Saved: %1$s</string>
-    <string name="export_debug_log_done">Exported the debug log</string>
+    <string name="export_debug_log_done">Debug log exported</string>
     <string name="row_developer_off">Turn Off Developer Mode</string>
 </resources>
