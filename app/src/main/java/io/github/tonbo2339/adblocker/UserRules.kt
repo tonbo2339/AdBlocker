@@ -188,9 +188,6 @@ class IpRule private constructor(private val network: ByteArray, private val pre
     }
 
     companion object {
-        private val IPV4 = Regex("""\d{1,3}(\.\d{1,3}){3}""")
-        private val IPV6 = Regex("""[0-9a-f:]*:[0-9a-f:.]*""")
-
         /** 保存している形 (normalize の出力) を読む。IP のルールでなければ null。 */
         fun parse(rule: String): IpRule? {
             val address = rule.substringBefore('/')
@@ -212,16 +209,64 @@ class IpRule private constructor(private val network: ByteArray, private val pre
         /** 数字の IP アドレスか (範囲の部分は含めない)。 */
         fun isLiteral(s: String): Boolean = literal(s) != null
 
-        /** 数字の IP アドレスだけを読む (名前は解決しない)。 */
-        private fun literal(s: String): ByteArray? {
-            if (!IPV4.matches(s) && !IPV6.matches(s)) return null
-            if (IPV4.matches(s) && s.split('.').any { it.toInt() > 255 }) return null
-            return try {
-                // 数字のアドレスだけを渡しているので、名前解決 (ネットワーク) は起きない
-                InetAddress.getByName(s).address
-            } catch (_: Exception) {
-                null
+        /**
+         * 数字の IP アドレスだけを読む (IPv4 は 4 バイト、IPv6 は 16 バイト。IPv4 射影アドレスは IPv4 の 4 バイト)。
+         * 自分で読む。InetAddress.getByName に数字でない文字列 (たとえば "a:b:c") を渡すと名前解決に回ることがあるため。
+         */
+        internal fun literal(s: String): ByteArray? {
+            val bytes = if (':' in s) ipv6(s) else ipv4(s)
+            if (bytes != null && bytes.size == 16 && bytes.take(10).all { it == 0.toByte() } && bytes[10] == 0xFF.toByte() && bytes[11] == 0xFF.toByte()) {
+                return bytes.copyOfRange(12, 16)
             }
+            return bytes
+        }
+
+        private fun ipv4(s: String): ByteArray? {
+            val parts = s.split('.')
+            if (parts.size != 4) return null
+            val out = ByteArray(4)
+            for (i in 0..3) {
+                val p = parts[i]
+                if (p.isEmpty() || p.length > 3 || !p.all { it in '0'..'9' }) return null
+                val v = p.toInt()
+                if (v > 255) return null
+                out[i] = v.toByte()
+            }
+            return out
+        }
+
+        private fun ipv6(s: String): ByteArray? {
+            if (s.count { it == ':' } < 2 || ":::" in s) return null
+            val gap = s.indexOf("::")
+            if (gap != s.lastIndexOf("::")) return null // "::" は 1 回だけ
+            // 16 ビットの組のリスト。最後の組は IPv4 の書き方 (1.2.3.4) でもよい (tailV4)
+            fun words(part: String, tailV4: Boolean): List<Int>? {
+                if (part.isEmpty()) return emptyList()
+                val items = part.split(':')
+                val out = ArrayList<Int>()
+                for ((idx, item) in items.withIndex()) {
+                    if ('.' in item) {
+                        if (!tailV4 || idx != items.lastIndex) return null
+                        val v4 = ipv4(item) ?: return null
+                        out += ((v4[0].toInt() and 0xFF) shl 8) or (v4[1].toInt() and 0xFF)
+                        out += ((v4[2].toInt() and 0xFF) shl 8) or (v4[3].toInt() and 0xFF)
+                    } else {
+                        if (item.isEmpty() || item.length > 4 || !item.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) return null
+                        out += item.toInt(16)
+                    }
+                }
+                return out
+            }
+            val all: List<Int> = if (gap >= 0) {
+                val head = words(s.substring(0, gap), tailV4 = false) ?: return null
+                val tail = words(s.substring(gap + 2), tailV4 = true) ?: return null
+                val missing = 8 - head.size - tail.size
+                if (missing < 1) return null // "::" は 1 組以上を省く
+                head + List(missing) { 0 } + tail
+            } else {
+                (words(s, tailV4 = true) ?: return null).also { if (it.size != 8) return null }
+            }
+            return ByteArray(16) { i -> (if (i % 2 == 0) all[i / 2] ushr 8 else all[i / 2]).toByte() }
         }
     }
 }

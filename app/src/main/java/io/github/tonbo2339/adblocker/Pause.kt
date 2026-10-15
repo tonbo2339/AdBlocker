@@ -13,6 +13,10 @@ object Pause {
     @Volatile
     private var until = 0L
 
+    /** 期限が来たことを (タイル・通知に) 知らせ終えたか。一時停止していない間も true。 */
+    @Volatile
+    private var expiryShown = true
+
     private val handler = Handler(Looper.getMainLooper())
 
     /** 一時停止・再開・期限切れのときに (メインスレッドで) 呼ばれる。 */
@@ -44,6 +48,7 @@ object Pause {
         DebugLog.i("Pause", if (time == 0L) "resumed" else "paused for ${(time - System.currentTimeMillis()) / 1000} s")
         val app = context.applicationContext
         until = time
+        expiryShown = time == 0L
         Prefs.setPausedUntil(app, time)
         changed(app)
         scheduleExpiry(app)
@@ -52,11 +57,23 @@ object Pause {
     /**
      * 期限が来たらタイルの「一時停止中」と常駐通知を戻す (プロセスが終了していたら、次にパネルを開いたときに戻る)。
      * 一時停止中にプロセスが作り直されたとき (常時接続 VPN・再起動後の再開) も、load() から予約し直す。
+     * Handler の待ち時間は端末が眠っている間は進まないので、眠っていた間に期限が過ぎたときは notifyIfExpired() が戻す。
      */
     private fun scheduleExpiry(app: Context) {
         handler.removeCallbacksAndMessages(null)
         val delay = until - System.currentTimeMillis()
-        if (delay > 0) handler.postDelayed({ changed(app) }, delay)
+        expiryShown = delay <= 0
+        if (delay > 0) handler.postDelayed({ notifyIfExpired(app) }, delay)
+    }
+
+    /**
+     * 一時停止の期限が過ぎているのに、まだ表示を戻していなければ戻す。メインスレッドで、定期的に (VPN サービスの保存と一緒に) 呼ぶ。
+     * 期限前に呼んでも何もしない。ブロックの再開そのものは isPaused() が時刻で判定するので、これは表示のため。
+     */
+    fun notifyIfExpired(context: Context) {
+        if (expiryShown || System.currentTimeMillis() < until) return
+        expiryShown = true
+        changed(context.applicationContext)
     }
 
     private fun changed(context: Context) {

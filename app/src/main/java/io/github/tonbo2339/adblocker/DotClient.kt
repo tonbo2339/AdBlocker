@@ -117,7 +117,8 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
     private fun connect(): Connection {
         val plain = Socket()
         try {
-            vpn.protect(plain)
+            // 保護できないと、この接続が自分の tun を通ってしまう (送らずに、通常の DNS に切り替える)
+            if (!vpn.protect(plain)) throw IOException("protect failed")
             plain.connect(InetSocketAddress(InetAddress.getByName(server.address), PORT), TIMEOUT_MS)
             plain.soTimeout = TIMEOUT_MS
             val factory = SSLSocketFactory.getDefault() as SSLSocketFactory

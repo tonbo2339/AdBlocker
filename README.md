@@ -35,7 +35,7 @@ Once installed, the app checks for new versions and updates itself.
 - **Statistics**: Shows today's counts, a 7-day chart, all-time totals, and the most-blocked domains and apps. Only counts are saved, not which sites you visited.
 - **Private DNS warning**: Tells you when "Private DNS" is set to a hostname, which stops blocking from working.
 - **Encrypted DNS** (optional): Sends lookups to Cloudflare, Google or Quad9 over DNS over TLS.
-- **Settings backup**: Exports your blocked and allowed domains, excluded apps, Wi-Fi networks without blocking and other settings to a file, which you can import on a new phone.
+- **Settings backup**: Exports your blocked and allowed domains, excluded apps, Wi-Fi networks without blocking and other settings to a file, which you can import on a new phone. Wi-Fi names are part of these settings, so they are also in the file and in Android's own cloud backup of the app's settings.
 - **Automatic blocklist updates**: Fetches the latest lists once a day (you can choose the time).
 - **Automatic app updates**: Checks GitHub Releases once a day and installs new versions automatically (you can choose to only be notified).
 - **Update on Wi-Fi Only**: Automatic updates of blocklists and the app don't run on mobile data (on by default).
@@ -86,7 +86,7 @@ Open this folder in Android Studio and run it. From the command line:
 ```
 gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
-gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources / DNS cache / update time / Wi-Fi names)
+gradlew testDebugUnitTest      # unit tests (packets / DNS / rule parsing / version comparison / blocked and allowed domains / blocklist sources and cache / DNS cache and size limits / IP rules / update time and signature check / Wi-Fi names)
 gradlew lintDebug
 ```
 

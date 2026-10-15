@@ -28,6 +28,9 @@ object StatsStore {
     private val pendingBlocked = AtomicLong()
     private val pendingQueries = AtomicLong()
 
+    /** 古い日を消し終えた日のキー (その日のうちは、flush のたびに調べ直さない)。flush() の中だけで読み書きする。 */
+    private var prunedFor = ""
+
     fun record(blocked: Boolean) {
         pendingQueries.incrementAndGet()
         if (blocked) pendingBlocked.incrementAndGet()
@@ -47,9 +50,12 @@ object StatsStore {
             putLong(KEY_TOTAL_BLOCKED, prefs.getLong(KEY_TOTAL_BLOCKED, 0) + blocked)
             putLong(KEY_TOTAL_QUERIES, prefs.getLong(KEY_TOTAL_QUERIES, 0) + queries)
             if (!prefs.contains(KEY_SINCE)) putLong(KEY_SINCE, now)
-            // 古い日を消す (キーは dYYYYMMDD なので文字列の比較で前後が分かる)
-            val oldest = dayKey(daysAgo(now, KEEP_DAYS))
-            for (k in prefs.all.keys) if (k.startsWith(DAY_PREFIX) && k < oldest) remove(k)
+            // 古い日を消す (キーは dYYYYMMDD なので文字列の比較で前後が分かる)。日が替わったときだけ (prefs.all は全部を読むため)
+            if (key != prunedFor) {
+                val oldest = dayKey(daysAgo(now, KEEP_DAYS))
+                for (k in prefs.all.keys) if (k.startsWith(DAY_PREFIX) && k < oldest) remove(k)
+                prunedFor = key
+            }
         }
     }
 

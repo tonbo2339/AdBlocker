@@ -172,6 +172,7 @@ class AdBlockVpnService : VpnService() {
         override fun run() {
             StatsStore.flush(applicationContext)
             QueryLogFiles.flush()
+            Pause.notifyIfExpired(applicationContext) // 端末が眠っている間に期限が過ぎた一時停止の表示を戻す
             if (++flushTicks % SUMMARY_EVERY == 0 && state == State.RUNNING) DnsDebugStats.summary("5 min", upstream.servers())
             mainHandler.postDelayed(this, STATS_FLUSH_INTERVAL_MS)
         }
@@ -193,7 +194,8 @@ class AdBlockVpnService : VpnService() {
         Pause.addListener(statusListener)
         WifiNetworks.addListener(statusListener)
         locales = resources.configuration.locales
-        upstream = UpstreamDns(this) { cache.clear() }.apply { start() }
+        // 回線の DNS が変わったら、覚えている答えと、暗号化 DNS の使い回し接続 (古い回線のもの) を捨てる
+        upstream = UpstreamDns(this) { cache.clear(); resetDot() }.apply { start() }
         ssidMonitor = SsidMonitor(this, logHidden = true) { WifiNetworks.setCurrent(this, it) }.apply { start() }
         apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
@@ -451,24 +453,35 @@ class AdBlockVpnService : VpnService() {
         }
     }
 
+    /**
+     * どのアプリの問い合わせか (ログがオンのときだけ)。応答を返すとアプリがソケットを閉じて分からなくなるので、返す前に調べる。
+     * binder 呼び出しなので、tun の読み取りスレッドで呼ぶのは、その場で答えるとき (ブロック・キャッシュ) だけにする。
+     */
+    private fun ownerOf(query: DnsQuery): String? = if (QueryLog.enabled) apps.ownerOf(query) else null
+
     private fun handleQuery(query: DnsQuery, out: FileOutputStream, executor: ExecutorService) {
-        val question = Dns.parseQuestion(query.dns) ?: return
-        // どのアプリの問い合わせか。応答を返すとアプリがソケットを閉じて分からなくなるので、先に調べる
-        val app = if (QueryLog.enabled) apps.ownerOf(query) else null
+        val question = Dns.parseQuestion(query.dns)
+        if (question == null) {
+            // 質問を読めない問い合わせ。黙って捨てるとアプリがタイムアウトまで待つので、FORMERR で知らせる (応答は無視)
+            Dns.formerr(query.dns)?.let { writePacket(out, Packets.buildResponse(query, it)) }
+            return
+        }
         val verdict = Filter.decide(question.name)
         DnsDebugStats.query(verdict.blocked)
         if (verdict.blocked) {
-            record(question.name, verdict, app = app)
+            record(question.name, verdict, app = ownerOf(query))
             writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
             return
         }
         // 覚えている答えがあれば、転送せずにすぐ返す (答えの中身による判定はルールが変わることがあるので毎回行う)
         cache.get(query.dns, question)?.let { cached ->
             DnsDebugStats.cached()
-            answer(query, question, verdict, cached, app, out)
+            answer(query, question, verdict, cached, ownerOf(query), out)
             return
         }
         executor.execute {
+            // 転送する間、アプリは答えを待ってソケットを開けたままなので、読み取りスレッドの外で調べてよい
+            val app = ownerOf(query)
             val started = System.nanoTime()
             val response = forward(query.dns)
             if (response == null) {
@@ -506,6 +519,14 @@ class AdBlockVpnService : VpnService() {
         }
     }
 
+    /** 暗号化 DNS の使い回し接続を閉じる (次の問い合わせで作り直す)。回線が替わったときに呼ぶ。 */
+    private fun resetDot() {
+        synchronized(dotLock) {
+            dot?.close()
+            dot = null
+        }
+    }
+
     /** 設定に合った暗号化 DNS のクライアント (オフなら null)。 */
     private fun dotClient(): DotClient? {
         val server = Prefs.encryptedDns(this)
@@ -527,8 +548,11 @@ class AdBlockVpnService : VpnService() {
      * protect() でこのソケット自体は VPN を通らないようにする。
      */
     private fun forward(dns: ByteArray): ByteArray? {
-        // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがあるので、そのときは UDP で取り直す
-        dotClient()?.query(dns)?.takeIf { it.size <= MAX_RESPONSE }?.let {
+        // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがある。さらに、問い合わせた側が受け取れる UDP の大きさ
+        // (EDNS が無ければ 512) を超える答えは、切り捨てられて名前解決に失敗しうる。どちらもそのときは UDP で取り直す
+        // (UDP の転送先は、問い合わせの EDNS の大きさに合わせて答えるので、大きすぎるときは切り詰め (TC) の答えが返る)
+        val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
+        dotClient()?.query(dns)?.takeIf { it.size <= limit }?.let {
             DnsDebugStats.answeredOverDot()
             return it
         }
@@ -544,7 +568,11 @@ class AdBlockVpnService : VpnService() {
         if (servers.isEmpty() || dns.size < 2) return null
         try {
             DatagramSocket().use { socket ->
-                protect(socket)
+                // 保護できないと、送った問い合わせが自分の tun に戻って、また転送してしまう (公開 DNS も捕まえる設定のとき)
+                if (!protect(socket)) {
+                    DebugLog.w(TAG, "protect(socket) failed: not forwarding")
+                    return null
+                }
                 val sent = HashSet<java.net.InetAddress>()
                 val rb = ByteArray(MAX_RESPONSE)
                 val rp = DatagramPacket(rb, rb.size)

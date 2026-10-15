@@ -14,8 +14,12 @@ object Dns {
     private const val TYPE_OPT = 41
 
     const val RCODE_NOERROR = 0
+    const val RCODE_FORMERR = 1
     const val RCODE_SERVFAIL = 2
     const val RCODE_NXDOMAIN = 3
+
+    /** EDNS を使わない問い合わせが受け取れる UDP の大きさ (RFC 1035)。 */
+    private const val CLASSIC_UDP_SIZE = 512
 
     /** ブロックした応答に付ける SOA の有効期間 (秒)。短くして、許可に変えたらすぐ効くようにする。 */
     private const val BLOCKED_TTL = 5
@@ -147,6 +151,29 @@ object Dns {
     /** 転送先が 1 つも答えなかったときの応答。アプリがタイムアウトを待たずに、すぐ次の手 (再試行など) に移れる。 */
     fun servfail(query: ByteArray, q: Question): ByteArray = reply(query, q, RCODE_SERVFAIL, authority = 0)
 
+    /**
+     * 質問を読めなかった問い合わせへの応答 (FORMERR、ヘッダーだけ)。黙って捨てるとアプリがタイムアウトまで待つ。
+     * 応答 (QR=1) や 12 バイトに満たないものには返さない (null)。
+     */
+    fun formerr(query: ByteArray): ByteArray? {
+        if (query.size < 12 || query[2].toInt() and 0x80 != 0) return null
+        val r = query.copyOf(12)
+        r[2] = ((query[2].toInt() and 0x79) or 0x80).toByte()
+        r[3] = (0x80 or RCODE_FORMERR).toByte()
+        for (at in intArrayOf(4, 6, 8, 10)) put16(r, at, 0)
+        return r
+    }
+
+    /**
+     * 問い合わせの送り主が受け取れる UDP の大きさ (バイト)。EDNS (OPT) の UDP payload size で、無ければ 512。
+     * 暗号化 DNS (TCP) の答えは、これより大きいとそのまま返せない。
+     */
+    fun maxUdpSize(query: ByteArray): Int {
+        val opt = records(query).orEmpty().firstOrNull { it.type == TYPE_OPT } ?: return CLASSIC_UDP_SIZE
+        // OPT では CLASS 欄 (TTL 欄の 2 バイト前) が UDP payload size。512 未満は 512 として扱う (RFC 6891)
+        return maxOf(u16(query, opt.ttlAt - 2), CLASSIC_UDP_SIZE)
+    }
+
     /** 最初の質問だけを返す応答の骨組み。 */
     private fun reply(query: ByteArray, q: Question, rcode: Int, authority: Int): ByteArray {
         val r = query.copyOf(q.end)
@@ -194,7 +221,8 @@ object Dns {
     }
 
     /**
-     * キャッシュのキー。名前・種類・クラスに加えて、応答の中身が変わるもの (CD、EDNS の有無と DO) を含める。
+     * キャッシュのキー。名前・種類・クラスに加えて、応答の中身が変わるもの (CD、EDNS の有無と DO、受け取れる UDP の大きさ) を含める。
+     * 大きさを分けるのは、大きな答えを、小さくしか受け取れない相手にキャッシュから返さないため。
      */
     fun cacheKey(query: ByteArray, q: Question): String {
         val qclass = u16(query, q.end - 2)
@@ -206,7 +234,7 @@ object Dns {
             u32(query, opt.ttlAt) and 0x8000L != 0L -> 2 // DO (DNSSEC の情報も欲しい)
             else -> 1
         }
-        return "${q.name}/${q.type}/$qclass/${if (cd) 1 else 0}$edns"
+        return "${q.name}/${q.type}/$qclass/${if (cd) 1 else 0}$edns/${maxUdpSize(query)}"
     }
 }
 

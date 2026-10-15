@@ -95,13 +95,18 @@ object AppUpdater {
         if (newCode <= PackageInfoCompat.getLongVersionCode(current)) throw IOException("not newer: $newCode")
         // Android 8 では署名を読み出せないが、違う鍵の APK はどのみち OS がインストールを拒否する
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val installed = signers(current, withHistory = false)
-            // 鍵を切り替えた (v3 の鍵ローテーション) APK は、署名の履歴に今の鍵が入っていれば OS が受け入れる
-            if (installed.isEmpty() || !signers(archive, withHistory = true).containsAll(installed)) {
+            if (!signaturesAccepted(signers(current, withHistory = false), signers(archive, withHistory = true))) {
                 throw IOException("signature mismatch")
             }
         }
     }
+
+    /**
+     * 入れ替えてよい署名か。今の鍵 (installed) が読めない (空) ときは通さない。
+     * 鍵を切り替えた (v3 の鍵ローテーション) APK は、署名の履歴 (candidate) に今の鍵がすべて入っていれば OS が受け入れる。
+     */
+    internal fun signaturesAccepted(installed: Set<String>, candidate: Set<String>): Boolean =
+        installed.isNotEmpty() && candidate.containsAll(installed)
 
     /** 署名した鍵。withHistory なら、鍵ローテーションの履歴にある過去の鍵も含める。 */
     @RequiresApi(Build.VERSION_CODES.P)
