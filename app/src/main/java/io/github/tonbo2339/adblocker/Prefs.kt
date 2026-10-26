@@ -61,7 +61,7 @@ object Prefs {
         prefs.edit { putBoolean(KEY_ENABLED, enabled) }
         // 次にオンにしたとき、前の一時停止の続きにならないようにする
         if (!enabled && Pause.isPaused()) Pause.resume(context)
-        AdBlockTileService.refresh(context)
+        StatusSurfaces.refresh(context)
     }
 
     /** 通知の許可をもう尋ねたか (断られても毎回は尋ねない)。 */

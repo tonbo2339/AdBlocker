@@ -72,7 +72,7 @@ object WifiNetworks {
 
     private fun changed(context: Context) {
         DebugLog.i(TAG, if (isUnblocked()) "on an unblocked Wi-Fi: blocking off" else "blocking on")
-        AdBlockTileService.refresh(context)
+        StatusSurfaces.refresh(context)
         for (l in listeners) l()
     }
 

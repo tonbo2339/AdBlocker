@@ -154,6 +154,18 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".AdBlockWidget"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_status_info" />
+        </receiver>
+
         <service
             android:name=".AdBlockTileService"
             android:exported="true"

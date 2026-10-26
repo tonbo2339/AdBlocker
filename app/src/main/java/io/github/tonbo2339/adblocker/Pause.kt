@@ -77,7 +77,7 @@ object Pause {
     }
 
     private fun changed(context: Context) {
-        AdBlockTileService.refresh(context)
+        StatusSurfaces.refresh(context)
         for (l in listeners) l()
     }
 }

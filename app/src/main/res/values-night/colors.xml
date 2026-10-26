@@ -9,6 +9,7 @@
     <color name="switch_off">#39393D</color>
     <color name="accent_blue">#0A84FF</color>
     <color name="accent_green">#30D158</color>
+    <color name="widget_button">#2C2C2E</color>
     <color name="status_off">#636366</color>
     <color name="sys_green">#30D158</color>
     <color name="sys_indigo">#5E5CE6</color>

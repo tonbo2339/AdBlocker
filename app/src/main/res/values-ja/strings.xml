@@ -71,6 +71,7 @@
     <string name="notif_blocklist_updated">ブロックリストを更新しました</string>
     <string name="notif_blocklist_updated_text">%1$s 件のドメインをブロックしています</string>
 
+    <string name="widget_description">ホーム画面から、広告ブロックのオン / オフや一時停止ができます</string>
     <string name="tile_on">オン</string>
     <string name="tile_off">オフ</string>
 

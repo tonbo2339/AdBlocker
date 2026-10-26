@@ -13,8 +13,8 @@ import android.widget.Toast
 class ShortcutActivity : Activity() {
 
     companion object {
-        private const val ACTION_TOGGLE = "io.github.tonbo2339.adblocker.shortcut.TOGGLE"
-        private const val ACTION_PAUSE = "io.github.tonbo2339.adblocker.shortcut.PAUSE"
+        internal const val ACTION_TOGGLE = "io.github.tonbo2339.adblocker.shortcut.TOGGLE"
+        internal const val ACTION_PAUSE = "io.github.tonbo2339.adblocker.shortcut.PAUSE"
         private const val PAUSE_MS = 15 * 60_000L
     }
 
