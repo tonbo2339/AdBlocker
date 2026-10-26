@@ -325,6 +325,7 @@ class NotificationSettingsActivity : SettingsPageActivity() {
         card(spaced = true) {
             kind(R.string.notify_app_update, R.drawable.ic_g_bell, R.color.sys_red, NotificationKind.APP_UPDATE)
             kind(R.string.notify_blocklist_update, R.drawable.ic_g_list, R.color.sys_orange, NotificationKind.BLOCKLIST_UPDATE)
+            kind(R.string.notify_stopped, R.drawable.ic_g_bell, R.color.sys_indigo, NotificationKind.STOPPED)
             kind(R.string.notify_running, R.drawable.ic_g_shield, R.color.sys_green, NotificationKind.RUNNING) {
                 AdBlockVpnService.refreshNotification(context)
             }

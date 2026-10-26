@@ -22,8 +22,8 @@ class DnsCache(private val maxEntries: Int = 1000, private val now: () -> Long =
     }
 
     /** 覚えている応答を、この問い合わせ向けに直して返す (無い・期限切れなら null)。 */
-    fun get(query: ByteArray, q: Question): ByteArray? {
-        val key = Dns.cacheKey(query, q)
+    /** key: Dns.cacheKey(query, q)。同じ問い合わせで get と put を続けて呼ぶときは、1 回作ったものを渡す。 */
+    fun get(query: ByteArray, q: Question, key: String = Dns.cacheKey(query, q)): ByteArray? {
         val t = now()
         val entry = synchronized(entries) {
             val e = entries[key] ?: return null
@@ -36,11 +36,11 @@ class DnsCache(private val maxEntries: Int = 1000, private val now: () -> Long =
         return Dns.reuse(entry.response, query, q, (t - entry.storedAt) / 1000)
     }
 
-    fun put(query: ByteArray, q: Question, response: ByteArray) {
+    fun put(query: ByteArray, q: Question, response: ByteArray, key: String = Dns.cacheKey(query, q)) {
         val ttl = Dns.cacheTtl(response).coerceAtMost(MAX_TTL_SECONDS)
         if (ttl <= 0) return
         val t = now()
-        synchronized(entries) { entries[Dns.cacheKey(query, q)] = Entry(response, t, t + ttl * 1000) }
+        synchronized(entries) { entries[key] = Entry(response, t, t + ttl * 1000) }
     }
 
     fun clear() {

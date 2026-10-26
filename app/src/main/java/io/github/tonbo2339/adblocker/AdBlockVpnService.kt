@@ -241,6 +241,7 @@ class AdBlockVpnService : VpnService() {
         // START_STICKY での再起動 (intent は null) のいずれか
         startForegroundWithNotification()
         Prefs.setEnabled(this, true)
+        Notifications.clearStopped(this)
         // 開始の要求は重なることがある (アプリの更新直後は BootReceiver と画面の両方から届く)。
         // そのたびに作り直すと、古い tun の後片付けと新しい tun の作成が重なり、問い合わせが届かなくなることがあった
         if (intent?.action != ACTION_REBUILD && worker != null) {
@@ -265,7 +266,7 @@ class AdBlockVpnService : VpnService() {
     override fun onRevoke() {
         // 別の VPN が有効になった、またはユーザーが設定から切断した
         DebugLog.i(TAG, "VPN revoked")
-        stopVpn()
+        stopVpn(notify = true)
     }
 
     override fun onDestroy() {
@@ -289,9 +290,10 @@ class AdBlockVpnService : VpnService() {
         super.onDestroy()
     }
 
-    /** 停止して OFF 状態にする (ユーザー操作・VPN の取り消し・異常終了で共通)。 */
-    private fun stopVpn() {
+    /** 停止して OFF 状態にする (ユーザー操作・VPN の取り消し・異常終了で共通)。notify: 利用者の操作ではないので知らせる。 */
+    private fun stopVpn(notify: Boolean = false) {
         Prefs.setEnabled(this, false)
+        if (notify) Notifications.stopped(this)
         shutdown()
         state = State.STOPPED
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -379,7 +381,7 @@ class AdBlockVpnService : VpnService() {
             }
             closeQuietly(stopFd)
             // 停止要求以外で終わった (権限が無い・エラー) 場合はサービスごと止めて OFF に戻す
-            if (!stoppedByRequest) mainHandler.post { if (worker === me) stopVpn() }
+            if (!stoppedByRequest) mainHandler.post { if (worker === me) stopVpn(notify = true) }
         }
     }
 
@@ -474,7 +476,8 @@ class AdBlockVpnService : VpnService() {
             return
         }
         // 覚えている答えがあれば、転送せずにすぐ返す (答えの中身による判定はルールが変わることがあるので毎回行う)
-        cache.get(query.dns, question)?.let { cached ->
+        val key = Dns.cacheKey(query.dns, question)
+        cache.get(query.dns, question, key)?.let { cached ->
             DnsDebugStats.cached()
             answer(query, question, verdict, cached, ownerOf(query), out)
             return
@@ -492,7 +495,7 @@ class AdBlockVpnService : VpnService() {
                 return@execute
             }
             DnsDebugStats.forwarded((System.nanoTime() - started) / 1_000_000)
-            cache.put(query.dns, question, response)
+            cache.put(query.dns, question, response, key)
             answer(query, question, verdict, response, app, out)
         }
     }
@@ -551,10 +554,13 @@ class AdBlockVpnService : VpnService() {
         // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがある。さらに、問い合わせた側が受け取れる UDP の大きさ
         // (EDNS が無ければ 512) を超える答えは、切り捨てられて名前解決に失敗しうる。どちらもそのときは UDP で取り直す
         // (UDP の転送先は、問い合わせの EDNS の大きさに合わせて答えるので、大きすぎるときは切り詰め (TC) の答えが返る)
-        val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
-        dotClient()?.query(dns)?.takeIf { it.size <= limit }?.let {
-            DnsDebugStats.answeredOverDot()
-            return it
+        val dot = dotClient()
+        if (dot != null) {
+            val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
+            dot.query(dns)?.takeIf { it.size <= limit }?.let {
+                DnsDebugStats.answeredOverDot()
+                return it
+            }
         }
         return forwardUdp(dns)
     }
@@ -564,7 +570,9 @@ class AdBlockVpnService : VpnService() {
      * 最大 MAX_PARALLEL 台まで重ねて送り、最初に届いた答えを使う。応答しないサーバーがあっても、そのタイムアウトを待たない。
      */
     private fun forwardUdp(dns: ByteArray): ByteArray? {
-        val servers = upstream.servers().take(MAX_PARALLEL)
+        // 回線の DNS が多くても、最後の予備 (公開 DNS) を 1 台は残す
+        val all = upstream.servers()
+        val servers = if (all.size > MAX_PARALLEL) all.take(MAX_PARALLEL - 1) + all.last() else all
         if (servers.isEmpty() || dns.size < 2) return null
         try {
             DatagramSocket().use { socket ->

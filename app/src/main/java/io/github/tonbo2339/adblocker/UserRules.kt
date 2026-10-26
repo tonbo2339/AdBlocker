@@ -100,7 +100,7 @@ object UserRules {
             rules.wildcards.any { wildcardMatches(it, name) }
 
     /** ads.example.com → ads.example.com, example.com, com */
-    private fun selfAndParents(name: String): Sequence<String> =
+    internal fun selfAndParents(name: String): Sequence<String> =
         generateSequence(name.trimEnd('.')) { n -> n.indexOf('.').takeIf { it >= 0 }?.let { n.substring(it + 1) } }
             .filter { it.isNotEmpty() }
 

@@ -168,8 +168,13 @@ object Dns {
      * 問い合わせの送り主が受け取れる UDP の大きさ (バイト)。EDNS (OPT) の UDP payload size で、無ければ 512。
      * 暗号化 DNS (TCP) の答えは、これより大きいとそのまま返せない。
      */
-    fun maxUdpSize(query: ByteArray): Int {
-        val opt = records(query).orEmpty().firstOrNull { it.type == TYPE_OPT } ?: return CLASSIC_UDP_SIZE
+    fun maxUdpSize(query: ByteArray): Int = maxUdpSize(query, optOf(query))
+
+    /** 問い合わせの EDNS (OPT) レコード (無ければ null)。 */
+    private fun optOf(query: ByteArray): DnsRecord? = records(query).orEmpty().firstOrNull { it.type == TYPE_OPT }
+
+    private fun maxUdpSize(query: ByteArray, opt: DnsRecord?): Int {
+        if (opt == null) return CLASSIC_UDP_SIZE
         // OPT では CLASS 欄 (TTL 欄の 2 バイト前) が UDP payload size。512 未満は 512 として扱う (RFC 6891)
         return maxOf(u16(query, opt.ttlAt - 2), CLASSIC_UDP_SIZE)
     }
@@ -228,13 +233,13 @@ object Dns {
         val qclass = u16(query, q.end - 2)
         val cd = query[3].toInt() and 0x10 != 0
         // EDNS (OPT) を使わない問い合わせに、OPT 付きの答えを返さないよう、EDNS の有無も分ける
-        val opt = records(query).orEmpty().firstOrNull { it.type == TYPE_OPT }
+        val opt = optOf(query) // 1 回だけ解析する (大きさも同じ OPT から読む)
         val edns = when {
             opt == null -> 0
             u32(query, opt.ttlAt) and 0x8000L != 0L -> 2 // DO (DNSSEC の情報も欲しい)
             else -> 1
         }
-        return "${q.name}/${q.type}/$qclass/${if (cd) 1 else 0}$edns/${maxUdpSize(query)}"
+        return "${q.name}/${q.type}/$qclass/${if (cd) 1 else 0}$edns/${maxUdpSize(query, opt)}"
     }
 }
 

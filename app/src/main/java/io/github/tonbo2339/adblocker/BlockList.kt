@@ -43,6 +43,21 @@ object BlockList {
     /** ダウンロードしたリストの保存先。 */
     fun dir(context: Context): File = File(context.filesDir, DIR)
 
+    /** ダウンロード済みのリストのファイル (名前順)。 */
+    fun downloadedFiles(context: Context): List<File> =
+        dir(context).listFiles { f -> f.isFile && f.name.endsWith(".txt") }.orEmpty().sortedBy { it.name }
+
+    /**
+     * 同梱リストを使うか。必ず、読んだ一覧 (files) だけで決める。別に exists() で調べると、その間に
+     * ダウンロードしたファイルの名前が確定したとき、どちらも読まずに 0 件になる (初回起動時に実際に起きた)。
+     */
+    fun bundledInUse(context: Context, files: List<File>): Boolean =
+        Prefs.isSourceEnabled(context, BlockListUpdater.BUILT_IN.first { it.id == BUNDLED_SOURCE_ID }) &&
+            files.none { it.name == "$BUNDLED_SOURCE_ID.txt" }
+
+    /** 同梱リストを開く。 */
+    fun openBundled(context: Context): java.io.InputStream = context.assets.open(ASSET)
+
     /** まだ読み込んでいなければ読み込む (保存した集合が使えればそれを読む)。 */
     fun load(context: Context) {
         if (loaded) return
@@ -58,11 +73,8 @@ object BlockList {
     private fun build(context: Context, useCache: Boolean) {
         val started = SystemClock.elapsedRealtime()
         val dir = dir(context)
-        val files = dir.listFiles { f -> f.isFile && f.name.endsWith(".txt") }.orEmpty().sortedBy { it.name }
-        // 同梱リストを使うかは、上で読んだ一覧だけで決める。別に exists() で調べると、その間に
-        // ダウンロードしたファイルの名前が確定したとき、どちらも読まずに 0 件になる (初回起動時に実際に起きた)
-        val bundledEnabled = Prefs.isSourceEnabled(context, BlockListUpdater.BUILT_IN.first { it.id == BUNDLED_SOURCE_ID })
-        val useBundled = bundledEnabled && files.none { it.name == "$BUNDLED_SOURCE_ID.txt" }
+        val files = downloadedFiles(context)
+        val useBundled = bundledInUse(context, files)
         // 元のファイルの名前・大きさ・更新日時と、同梱リスト (アプリの版で変わる) で、保存した集合が使えるか決める
         val key = buildString {
             append(BuildConfig.VERSION_CODE).append('|').append(useBundled).append('|').append(ALWAYS_ALLOWED.joinToString(","))
@@ -76,7 +88,7 @@ object BlockList {
             val blocked = DomainSet.Builder()
             val allowed = DomainSet.Builder()
             for (f in files) f.bufferedReader().useLines { addNormalized(it, blocked, allowed) }
-            if (useBundled) context.assets.open(ASSET).bufferedReader().useLines { addNormalized(it, blocked, allowed) }
+            if (useBundled) openBundled(context).bufferedReader().useLines { addNormalized(it, blocked, allowed) }
             ALWAYS_ALLOWED.forEach { allowed.add(it) }
             rules = Rules(blocked.build(), allowed.build())
             BlockListCache.write(cacheFile, key, rules.blocked, rules.allowed)

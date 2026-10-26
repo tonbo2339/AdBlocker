@@ -18,6 +18,7 @@ class BootReceiver : BroadcastReceiver() {
         // 許可が取り消されている (別の VPN アプリで上書きされた等) なら OFF に戻すだけ
         if (VpnService.prepare(context) != null) {
             Prefs.setEnabled(context, false)
+            Notifications.stopped(context)
             return
         }
         try {
@@ -25,6 +26,7 @@ class BootReceiver : BroadcastReceiver() {
         } catch (e: IllegalStateException) {
             Log.w("AdBlockBoot", "auto start failed", e)
             Prefs.setEnabled(context, false)
+            Notifications.stopped(context)
         }
     }
 }

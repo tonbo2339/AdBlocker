@@ -8,7 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.DialogRuleBinding
 
 /**
- * 1 行だけ入力するダイアログ (ルールの追加、リストの URL の追加)。
+ * 1 行だけ入力するダイアログ (ルールの追加、リストの URL の追加、ドメインを調べる)。
  * parse が null を返したら、閉じずに error を表示する。正しければ onValid に整えた値を渡して閉じる。
  */
 fun Activity.showInputDialog(
@@ -16,6 +16,7 @@ fun Activity.showInputDialog(
     hint: Int,
     error: Int,
     parse: (String) -> String?,
+    positive: Int = R.string.action_add,
     onValid: (String) -> Unit,
 ) {
     val input = DialogRuleBinding.inflate(layoutInflater)
@@ -23,7 +24,7 @@ fun Activity.showInputDialog(
     val dialog = MaterialAlertDialogBuilder(this)
         .setTitle(title)
         .setView(input.root)
-        .setPositiveButton(R.string.action_add, null)
+        .setPositiveButton(positive, null)
         .setNegativeButton(R.string.action_cancel, null)
         .create()
     // 正しくない入力ではダイアログを閉じずにエラーを出すため、ボタンの動作を差し替える

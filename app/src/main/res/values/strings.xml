@@ -61,8 +61,12 @@
     <string name="section_notifications">Notifications</string>
     <string name="notify_app_update">App Updates</string>
     <string name="notify_blocklist_update">Blocklist Updates</string>
+    <string name="notify_stopped">Blocking Stopped</string>
     <string name="notify_running">Running Indicator</string>
     <string name="notifications_footer">When \"Running Indicator\" is off, the ongoing notification is removed after ad blocking starts. Blocking keeps running, and the VPN key icon stays in the status bar.</string>
+    <string name="notif_channel_stopped">Blocking Stopped</string>
+    <string name="notif_stopped">Ad blocking has stopped</string>
+    <string name="notif_stopped_text">Tap to turn it back on</string>
     <string name="notif_channel_blocklist">Blocklist Updates</string>
     <string name="notif_blocklist_updated">Blocklist updated</string>
     <string name="notif_blocklist_updated_text">Blocking %1$s domains</string>
@@ -79,6 +83,23 @@
     <string name="title_settings">Settings</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_add">Add</string>
+    <string name="action_check">Check</string>
+    <string name="diag_row">Check a Domain</string>
+    <string name="diag_title">Check a Domain</string>
+    <string name="diag_hint" translatable="false">example.com</string>
+    <string name="diag_invalid">That isn\'t a valid domain</string>
+    <string name="diag_blocked">%1$s is blocked</string>
+    <string name="diag_not_blocked">%1$s is not blocked</string>
+    <string name="diag_paused">Paused now, so nothing is blocked</string>
+    <string name="diag_wifi">On a Wi-Fi where blocking is off</string>
+    <string name="diag_user_block">Your rule blocks %1$s</string>
+    <string name="diag_user_allow">Your rule allows %1$s</string>
+    <string name="diag_list_block">%1$s lists %2$s</string>
+    <string name="diag_list_allow">%1$s allows %2$s</string>
+    <string name="diag_builtin_allow">Always allowed (it would hide pages that detect ad blockers): %1$s</string>
+    <string name="diag_no_match">Not in any blocklist or rule</string>
+    <string name="diag_cname_note">Domains can also be blocked by what they point to (CNAME), which isn\'t checked here.</string>
+    <string name="action_check_domain">Why?</string>
     <string name="action_delete">Delete</string>
     <string name="action_reset">Reset</string>
     <string name="action_block">Block</string>

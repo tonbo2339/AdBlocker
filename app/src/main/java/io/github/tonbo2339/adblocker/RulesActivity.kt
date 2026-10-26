@@ -30,6 +30,7 @@ class RulesActivity : AppCompatActivity() {
         binding.segmentBlock.setOnClickListener { selectKind(UserRules.Kind.BLOCK) }
         binding.segmentAllow.setOnClickListener { selectKind(UserRules.Kind.ALLOW) }
         binding.addRow.setOnClickListener { showAddDialog() }
+        binding.checkRow.setOnClickListener { showCheckDialog() }
         selectKind(kind)
     }
 
@@ -73,6 +74,17 @@ class RulesActivity : AppCompatActivity() {
             UserRules.add(this, kind, domain)
             showRules()
         }
+    }
+
+    private fun showCheckDialog() {
+        showInputDialog(
+            title = R.string.diag_title,
+            hint = R.string.diag_hint,
+            error = R.string.diag_invalid,
+            positive = R.string.action_check,
+            // パターンや IP アドレスは調べられない (問い合わせの名前は、ふつうのドメイン)
+            parse = { UserRules.normalize(it, allowIp = false)?.takeIf { name -> '*' !in name } },
+        ) { domain -> DomainActions.explain(this, domain) }
     }
 
     private fun confirmDelete(domain: String) {

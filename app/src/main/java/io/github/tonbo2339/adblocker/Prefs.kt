@@ -116,6 +116,7 @@ object Prefs {
         APP_UPDATE("notify_app_update"),
         BLOCKLIST_UPDATE("notify_blocklist_update"),
         RUNNING("notify_running"),
+        STOPPED("notify_stopped"),
     }
 
     fun isNotificationEnabled(context: Context, kind: NotificationKind): Boolean =

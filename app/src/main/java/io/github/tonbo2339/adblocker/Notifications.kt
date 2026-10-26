@@ -13,6 +13,7 @@ import io.github.tonbo2339.adblocker.Prefs.NotificationKind
  *
  * - アプリのアップデート (新しい版がある・確認が必要・失敗・更新した)
  * - ブロックリストの更新
+ * - 広告ブロックの停止: 利用者が止めていないのに止まった (VPN の許可の取り消し・他の VPN・再起動後に再開できない)
  * - 動作中の表示: VPN サービスの起動時に必要な常駐通知。オフのときは VPN の確立後にサービス側で外す
  *   (AdBlockVpnService.applyRunningNotificationSetting)
  */
@@ -20,10 +21,12 @@ object Notifications {
     private const val CHANNEL_UPDATES = "updates"
     private const val CHANNEL_BLOCKLIST = "blocklist"
     private const val CHANNEL_RUNNING = "vpn"
+    private const val CHANNEL_STOPPED = "stopped"
 
     const val ID_RUNNING = 1
     private const val ID_UPDATE = 100
     private const val ID_BLOCKLIST = 101
+    private const val ID_STOPPED = 102
 
     // ---------------------------------------------------------------- アプリのアップデート
 
@@ -62,6 +65,20 @@ object Notifications {
         createChannel(context, CHANNEL_BLOCKLIST, R.string.notif_channel_blocklist, NotificationManager.IMPORTANCE_LOW)
         val count = java.text.NumberFormat.getIntegerInstance().format(domains)
         post(context, ID_BLOCKLIST, CHANNEL_BLOCKLIST, context.getString(R.string.notif_blocklist_updated), context.getString(R.string.notif_blocklist_updated_text, count), mainIntent(context))
+    }
+
+    // ---------------------------------------------------------------- 広告ブロックの停止
+
+    /** 利用者の操作ではなく広告ブロックが止まった。タップでアプリを開く (そこから再開できる)。 */
+    fun stopped(context: Context) {
+        if (!Prefs.isNotificationEnabled(context, NotificationKind.STOPPED)) return
+        createChannel(context, CHANNEL_STOPPED, R.string.notif_channel_stopped, NotificationManager.IMPORTANCE_DEFAULT)
+        post(context, ID_STOPPED, CHANNEL_STOPPED, context.getString(R.string.notif_stopped), context.getString(R.string.notif_stopped_text), mainIntent(context))
+    }
+
+    /** 広告ブロックが動き出したので、停止の通知を消す。 */
+    fun clearStopped(context: Context) {
+        context.getSystemService(NotificationManager::class.java).cancel(ID_STOPPED)
     }
 
     // ---------------------------------------------------------------- 動作中の表示
