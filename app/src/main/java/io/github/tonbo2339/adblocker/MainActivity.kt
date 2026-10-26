@@ -416,6 +416,18 @@ class MainActivity : AppCompatActivity() {
 
         updateTopDomains()
         updateByList()
+        updateLatency()
+    }
+
+    /** 応答時間 (今回)。数字を入れるだけなので、1 秒ごとに更新してよい。 */
+    private fun updateLatency() {
+        val stats = binding.stats
+        val latency = SessionStats.latency()
+        val none = "–"
+        stats.latencyAverage.text = if (latency.forwarded > 0) getString(R.string.stat_ms, numberFormat.format(latency.averageMs)) else none
+        stats.latencySlowest.text = if (latency.forwarded > 0) getString(R.string.stat_ms, numberFormat.format(latency.slowestMs)) else none
+        stats.cacheRate.text = latency.cacheRate?.let { percentFormat.format(it) } ?: none
+        stats.noAnswer.text = numberFormat.format(latency.noAnswers)
     }
 
     /** リスト別の表示中の内容 (変わったときだけ作り直す)。 */

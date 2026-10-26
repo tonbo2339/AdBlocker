@@ -124,7 +124,13 @@ class LogAdapter(private val activity: Activity) : RecyclerView.Adapter<Recycler
             Verdict.IP -> activity.getString(R.string.verdict_ip, e.via)
             Verdict.PASS -> activity.getString(R.string.verdict_pass)
         }
-        val counted = if (e.count > 1) activity.getString(R.string.log_detail_count, verdict, e.count) else verdict
+        val timed = when {
+            e.ms >= 0 -> activity.getString(R.string.log_detail_time, verdict, e.ms)
+            e.ms == QueryLog.FROM_CACHE -> activity.getString(R.string.log_detail_cache, verdict)
+            e.ms == QueryLog.NO_ANSWER -> activity.getString(R.string.log_detail_no_answer, verdict)
+            else -> verdict
+        }
+        val counted = if (e.count > 1) activity.getString(R.string.log_detail_count, timed, e.count) else timed
         // 問い合わせたアプリが分かれば、先頭に出す
         b.detail.text = e.app?.let { activity.getString(R.string.log_detail_app, AppLabels.of(activity, it), counted) } ?: counted
         b.time.text = timeFormat.format(Date(e.time))

@@ -113,9 +113,10 @@ object QueryLogFiles {
         flushNow()
         val time = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.ROOT)
         out.bufferedWriter().use { w ->
-            w.write("time,result,domain,via,app\n")
+            w.write("time,result,domain,via,app,response_ms\n")
             fun row(e: QueryLog.Entry) {
-                val cells = listOf(time.format(Date(e.time)), e.verdict.name, e.domain, e.via.orEmpty(), e.app.orEmpty())
+                val ms = if (e.ms >= 0) e.ms.toString() else ""
+                val cells = listOf(time.format(Date(e.time)), e.verdict.name, e.domain, e.via.orEmpty(), e.app.orEmpty(), ms)
                 w.write(cells.joinToString(",") { csv(it) })
                 w.write("\n")
             }
@@ -182,7 +183,15 @@ object QueryLogFiles {
         .append(e.verdict.name).append('\t')
         .append(clean(e.domain)).append('\t')
         .append(clean(e.via.orEmpty())).append('\t')
-        .append(clean(e.app.orEmpty()))
+        .append(clean(e.app.orEmpty())).append('\t')
+        .append(
+            when (e.ms) {
+                QueryLog.NO_TIME -> ""
+                QueryLog.FROM_CACHE -> "cache"
+                QueryLog.NO_ANSWER -> "none"
+                else -> e.ms.toString()
+            }
+        )
         .toString()
 
     private fun clean(s: String): String =
@@ -193,7 +202,13 @@ object QueryLogFiles {
         if (p.size < 5) return null
         val time = p[0].toLongOrNull() ?: return null
         val verdict = Verdict.entries.firstOrNull { it.name == p[1] } ?: return null
-        return QueryLog.Entry(p[2], verdict, time, 1, p[3].ifEmpty { null }, p[4].ifEmpty { null })
+        val ms = when (val v = p.getOrNull(5).orEmpty()) {
+            "" -> QueryLog.NO_TIME
+            "cache" -> QueryLog.FROM_CACHE
+            "none" -> QueryLog.NO_ANSWER
+            else -> v.toIntOrNull() ?: QueryLog.NO_TIME
+        }
+        return QueryLog.Entry(p[2], verdict, time, 1, p[3].ifEmpty { null }, p[4].ifEmpty { null }, ms)
     }
 
     /** CSV の 1 つの値。表計算ソフトで数式として動かないよう、= + - @ で始まるものは先頭に ' を付ける。 */

@@ -207,6 +207,73 @@
             android:layout_height="wrap_content"
             android:text="@string/by_list_footer" />
 
+        <!-- 応答時間 (今回) -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_response" />
+
+        <io.github.tonbo2339.adblocker.CardLayout style="@style/Card">
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_latency_average" />
+
+                <TextView
+                    android:id="@+id/latencyAverage"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+            <View style="@style/Separator" />
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_latency_slowest" />
+
+                <TextView
+                    android:id="@+id/latencySlowest"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+            <View style="@style/Separator" />
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_cache_rate" />
+
+                <TextView
+                    android:id="@+id/cacheRate"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+            <View style="@style/Separator" />
+
+            <LinearLayout style="@style/Row">
+
+                <TextView
+                    style="@style/RowTitle"
+                    android:text="@string/stat_no_answer" />
+
+                <TextView
+                    android:id="@+id/noAnswer"
+                    style="@style/RowValue"
+                    android:fontFeatureSettings="tnum" />
+            </LinearLayout>
+        </io.github.tonbo2339.adblocker.CardLayout>
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/response_footer" />
+
         <io.github.tonbo2339.adblocker.CardLayout
             style="@style/Card"
             android:layout_marginTop="28dp">

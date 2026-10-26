@@ -244,6 +244,14 @@
     <string name="log_off_value">オフ</string>
     <string name="settings_footer">AdBlocker v%1$s</string>
     <string name="top_apps_footer">広告ブロックを最後にオンにしてから、問い合わせがよくブロックされたアプリで、メモリ上にだけ保持します。Android 10 以上で使えます。</string>
+    <string name="section_response">応答時間</string>
+    <string name="stat_latency_average">平均</string>
+    <string name="stat_latency_slowest">最も遅かったとき</string>
+    <string name="stat_cache_rate">キャッシュで答えた割合</string>
+    <string name="stat_no_answer">答えが無かった回数</string>
+    <string name="response_footer">広告ブロックを最後にオンにしてからの、DNS サーバーに問い合わせてから答えが届くまでの時間です (キャッシュで返した分は含みません)。いつも遅いときは、「DNS」で別のサーバーを試してください。</string>
+    <string name="log_detail_cache">%1$s · キャッシュ</string>
+    <string name="log_detail_no_answer">%1$s · 答えなし</string>
     <string name="section_by_list">リスト別</string>
     <string name="by_list_footer">今回のブロックのうち、各リストに載っているドメインの数です。リストに載っているドメインだけを数え、複数のリストに載っていればそれぞれに数えます。</string>
     <string name="verdict_ip">IP アドレス (%1$s) でブロック</string>

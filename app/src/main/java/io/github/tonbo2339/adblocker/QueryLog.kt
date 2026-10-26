@@ -13,7 +13,19 @@ object QueryLog {
     const val CAPACITY = 500
     private const val MERGE_WINDOW_MS = 2000
 
-    /** via は答えの中身で止めたときの理由 (CNAME の行き先・IP のルール)、app は問い合わせたアプリのパッケージ名。 */
+    /** ms の特別な値: 転送していない (ブロックなど)。 */
+    const val NO_TIME = -1
+
+    /** ms の特別な値: 覚えていた答えで返した。 */
+    const val FROM_CACHE = -2
+
+    /** ms の特別な値: 転送先のどこからも答えが無かった。 */
+    const val NO_ANSWER = -3
+
+    /**
+     * via は答えの中身で止めたときの理由 (CNAME の行き先・IP のルール)、app は問い合わせたアプリのパッケージ名。
+     * ms は転送先の答えが届くまでの時間 (ミリ秒)。転送していなければ NO_TIME・FROM_CACHE・NO_ANSWER のどれか。
+     */
     class Entry(
         val domain: String,
         val verdict: Verdict,
@@ -21,6 +33,7 @@ object QueryLog {
         val count: Int,
         val via: String? = null,
         val app: String? = null,
+        val ms: Int = NO_TIME,
     )
 
     @Volatile
@@ -41,16 +54,16 @@ object QueryLog {
     var version = 0L
         private set
 
-    fun add(domain: String, verdict: Verdict, via: String? = null, app: String? = null, time: Long = System.currentTimeMillis()) {
+    fun add(domain: String, verdict: Verdict, via: String? = null, app: String? = null, ms: Int = NO_TIME, time: Long = System.currentTimeMillis()) {
         if (!enabled) return
-        QueryLogFiles.append(Entry(domain, verdict, time, 1, via, app))
+        QueryLogFiles.append(Entry(domain, verdict, time, 1, via, app, ms))
         synchronized(this) {
             val last = entries.lastOrNull()
             if (last != null && sameRow(last, domain, verdict, app, time)) {
-                entries[entries.lastIndex] = Entry(domain, verdict, time, last.count + 1, via, app)
+                entries[entries.lastIndex] = Entry(domain, verdict, time, last.count + 1, via, app, ms)
             } else {
                 if (entries.size == CAPACITY) entries.removeFirst()
-                entries.addLast(Entry(domain, verdict, time, 1, via, app))
+                entries.addLast(Entry(domain, verdict, time, 1, via, app, ms))
             }
             version++
         }
@@ -70,7 +83,7 @@ object QueryLog {
             if (e.time >= oldestShown) continue
             val last = merged.lastOrNull()
             if (last != null && sameRow(last, e.domain, e.verdict, e.app, e.time)) {
-                merged[merged.lastIndex] = Entry(e.domain, e.verdict, e.time, last.count + e.count, e.via, e.app)
+                merged[merged.lastIndex] = Entry(e.domain, e.verdict, e.time, last.count + e.count, e.via, e.app, e.ms)
             } else {
                 merged += e
             }
@@ -101,6 +114,38 @@ object SessionStats {
 
     private val domains = ConcurrentHashMap<String, AtomicInteger>()
     private val apps = ConcurrentHashMap<String, AtomicInteger>()
+
+    private val forwardedCount = AtomicInteger()
+    private val forwardedMs = AtomicLong()
+    private val slowestMs = AtomicLong()
+    private val cacheHits = AtomicInteger()
+    private val noAnswers = AtomicInteger()
+
+    /** 転送先の答えが届くまでの時間 (ミリ秒)。ログのオン / オフに関わらず数える (ドメインは含まない)。 */
+    fun recordForwarded(ms: Long) {
+        forwardedCount.incrementAndGet()
+        forwardedMs.addAndGet(ms)
+        slowestMs.accumulateAndGet(ms, ::maxOf)
+    }
+
+    fun recordCacheHit() {
+        cacheHits.incrementAndGet()
+    }
+
+    fun recordNoAnswer() {
+        noAnswers.incrementAndGet()
+    }
+
+    /** 転送した問い合わせの数、平均・最も遅かった応答時間 (ミリ秒)、覚えていた答えで返した数、答えが無かった数。 */
+    class Latency(val forwarded: Int, val averageMs: Long, val slowestMs: Long, val cacheHits: Int, val noAnswers: Int) {
+        /** 覚えていた答えで返した割合 (問い合わせが無ければ null)。 */
+        val cacheRate: Double? get() = (forwarded + cacheHits).takeIf { it > 0 }?.let { cacheHits.toDouble() / it }
+    }
+
+    fun latency(): Latency {
+        val n = forwardedCount.get()
+        return Latency(n, if (n > 0) forwardedMs.get() / n else 0, slowestMs.get(), cacheHits.get(), noAnswers.get())
+    }
 
     /** 数えるたびに増える (top() の結果を使い回せるかの判断に使う)。 */
     private val changes = AtomicLong()
@@ -144,6 +189,11 @@ object SessionStats {
     fun reset() {
         domains.clear()
         apps.clear()
+        forwardedCount.set(0)
+        forwardedMs.set(0)
+        slowestMs.set(0)
+        cacheHits.set(0)
+        noAnswers.set(0)
         changes.incrementAndGet()
         ListBreakdown.clear()
     }

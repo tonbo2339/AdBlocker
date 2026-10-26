@@ -479,7 +479,8 @@ class AdBlockVpnService : VpnService() {
         val key = Dns.cacheKey(query.dns, question)
         cache.get(query.dns, question, key)?.let { cached ->
             DnsDebugStats.cached()
-            answer(query, question, verdict, cached, ownerOf(query), out)
+            SessionStats.recordCacheHit()
+            answer(query, question, verdict, cached, ownerOf(query), out, QueryLog.FROM_CACHE)
             return
         }
         executor.execute {
@@ -490,32 +491,35 @@ class AdBlockVpnService : VpnService() {
             if (response == null) {
                 DnsDebugStats.failed { upstream.servers() }
                 // 転送先が 1 つも答えなかった。何も返さないとアプリはタイムアウトまで待つので、すぐ失敗を知らせる
-                record(question.name, verdict, app = app)
+                SessionStats.recordNoAnswer()
+                record(question.name, verdict, app = app, ms = QueryLog.NO_ANSWER)
                 writePacket(out, Packets.buildResponse(query, Dns.servfail(query.dns, question)))
                 return@execute
             }
-            DnsDebugStats.forwarded((System.nanoTime() - started) / 1_000_000)
+            val ms = (System.nanoTime() - started) / 1_000_000
+            DnsDebugStats.forwarded(ms)
+            SessionStats.recordForwarded(ms)
             cache.put(query.dns, question, response, key)
-            answer(query, question, verdict, response, app, out)
+            answer(query, question, verdict, response, app, out, ms.toInt())
         }
     }
 
     /** 転送先 (またはキャッシュ) の答えを返す。答えの中身 (CNAME 隠し・IP) でブロックすることもある。 */
-    private fun answer(query: DnsQuery, question: Question, verdict: Verdict, response: ByteArray, app: String?, out: FileOutputStream) {
+    private fun answer(query: DnsQuery, question: Question, verdict: Verdict, response: ByteArray, app: String?, out: FileOutputStream, ms: Int) {
         if (verdict == Verdict.PASS) {
             Filter.checkResponse(response)?.let { block ->
-                record(question.name, block.verdict, block.via, app)
+                record(question.name, block.verdict, block.via, app, ms)
                 writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
                 return
             }
         }
-        record(question.name, verdict, app = app)
+        record(question.name, verdict, app = app, ms = ms)
         writePacket(out, Packets.buildResponse(query, response))
     }
 
-    private fun record(name: String, verdict: Verdict, via: String? = null, app: String? = null) {
+    private fun record(name: String, verdict: Verdict, via: String? = null, app: String? = null, ms: Int = QueryLog.NO_TIME) {
         StatsStore.record(verdict.blocked)
-        QueryLog.add(name, verdict, via, app)
+        QueryLog.add(name, verdict, via, app, ms)
         if (verdict.blocked && QueryLog.enabled) {
             SessionStats.recordBlocked(name)
             if (app != null) SessionStats.recordBlockedApp(app)
