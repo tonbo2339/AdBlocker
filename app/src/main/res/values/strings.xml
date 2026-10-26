@@ -90,6 +90,9 @@
     <string name="diag_invalid">That isn\'t a valid domain</string>
     <string name="diag_blocked">%1$s is blocked</string>
     <string name="diag_not_blocked">%1$s is not blocked</string>
+    <string name="diag_blocked_short">Blocked</string>
+    <string name="diag_not_blocked_short">Not blocked</string>
+    <string name="diag_checking">Checking…</string>
     <string name="diag_paused">Paused now, so nothing is blocked</string>
     <string name="diag_wifi">On a Wi-Fi where blocking is off</string>
     <string name="diag_user_block">Your rule blocks %1$s</string>
@@ -99,7 +102,6 @@
     <string name="diag_builtin_allow">Always allowed (it would hide pages that detect ad blockers): %1$s</string>
     <string name="diag_no_match">Not in any blocklist or rule</string>
     <string name="diag_cname_note">Domains can also be blocked by what they point to (CNAME), which isn\'t checked here.</string>
-    <string name="action_check_domain">Why?</string>
     <string name="action_delete">Delete</string>
     <string name="action_reset">Reset</string>
     <string name="action_block">Block</string>
@@ -228,6 +230,8 @@
     <string name="log_off_value">Off</string>
     <string name="settings_footer">AdBlocker v%1$s</string>
     <string name="top_apps_footer">Apps whose lookups were blocked most since ad blocking was last turned on, kept only in memory. Requires Android 10 or later.</string>
+    <string name="section_by_list">By Blocklist</string>
+    <string name="by_list_footer">How many of this session\'s blocks each list covers, counting domains that are in the lists. A domain that is in several lists counts for each of them.</string>
     <string name="verdict_ip">Blocked by IP address (%1$s)</string>
     <string name="rule_invalid_allow">That isn\'t a valid domain or pattern (IP addresses can only be blocked)</string>
     <string name="import_done">Settings imported</string>

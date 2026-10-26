@@ -89,6 +89,9 @@
     <string name="diag_invalid">ドメインとして正しくありません</string>
     <string name="diag_blocked">%1$s はブロックされます</string>
     <string name="diag_not_blocked">%1$s はブロックされません</string>
+    <string name="diag_blocked_short">ブロックされます</string>
+    <string name="diag_not_blocked_short">ブロックされません</string>
+    <string name="diag_checking">調べています…</string>
     <string name="diag_paused">一時停止中なので、ブロックしていません</string>
     <string name="diag_wifi">ブロックしない Wi-Fi につながっています</string>
     <string name="diag_user_block">自分のルールでブロック: %1$s</string>
@@ -98,7 +101,6 @@
     <string name="diag_builtin_allow">常に許可 (広告ブロックを検出してページを隠す仕組みのため): %1$s</string>
     <string name="diag_no_match">どのブロックリストにもルールにもありません</string>
     <string name="diag_cname_note">行き先 (CNAME) によるブロックは、ここでは調べません。</string>
-    <string name="action_check_domain">理由を調べる</string>
     <string name="action_delete">削除</string>
     <string name="action_reset">リセット</string>
     <string name="action_block">ブロックする</string>
@@ -224,6 +226,8 @@
     <string name="log_off_value">オフ</string>
     <string name="settings_footer">AdBlocker v%1$s</string>
     <string name="top_apps_footer">広告ブロックを最後にオンにしてから、問い合わせがよくブロックされたアプリで、メモリ上にだけ保持します。Android 10 以上で使えます。</string>
+    <string name="section_by_list">リスト別</string>
+    <string name="by_list_footer">今回のブロックのうち、各リストに載っているドメインの数です。リストに載っているドメインだけを数え、複数のリストに載っていればそれぞれに数えます。</string>
     <string name="verdict_ip">IP アドレス (%1$s) でブロック</string>
     <string name="rule_invalid_allow">ドメイン・パターンとして正しくありません (IP アドレスはブロックにだけ使えます)</string>
     <string name="import_done">設定を読み込みました</string>

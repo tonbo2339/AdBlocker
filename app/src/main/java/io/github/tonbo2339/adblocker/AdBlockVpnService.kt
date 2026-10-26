@@ -562,14 +562,22 @@ class AdBlockVpnService : VpnService() {
                 return it
             }
         }
-        return forwardUdp(dns)
+        val udp = forwardUdp(dns) ?: return null
+        if (!Dns.isTruncated(udp.response)) return udp.response
+        // 切り詰められた (TC) 答えは、アプリが tun 越しに TCP で取り直せない。同じ転送先から TCP で完全な答えを取り、
+        // 問い合わせた側が受け取れる大きさに収まるときだけ使う (収まらなければ切り詰めた答えのまま返す)
+        val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
+        return TcpDns.query(::protect, udp.server, dns, limit)?.also { DnsDebugStats.retriedOverTcp() } ?: udp.response
     }
+
+    /** UDP で届いた答えと、答えた転送先。 */
+    private class UdpAnswer(val response: ByteArray, val server: java.net.InetAddress)
 
     /**
      * 通常の DNS (UDP) で問い合わせる。1 台目に送り、STAGGER_MS 待っても答えが無ければ 2 台目にも送る、というふうに
      * 最大 MAX_PARALLEL 台まで重ねて送り、最初に届いた答えを使う。応答しないサーバーがあっても、そのタイムアウトを待たない。
      */
-    private fun forwardUdp(dns: ByteArray): ByteArray? {
+    private fun forwardUdp(dns: ByteArray): UdpAnswer? {
         // 回線の DNS が多くても、最後の予備 (公開 DNS) を 1 台は残す
         val all = upstream.servers()
         val servers = if (all.size > MAX_PARALLEL) all.take(MAX_PARALLEL - 1) + all.last() else all
@@ -615,7 +623,7 @@ class AdBlockVpnService : VpnService() {
                         // 送った相手からの、同じ ID の答えだけを受け取る (ほかからのパケットは無視)
                         if (rp.address in sent && rp.length >= 12 && rb[0] == dns[0] && rb[1] == dns[1]) {
                             upstream.markWorking(rp.address)
-                            return rb.copyOf(rp.length)
+                            return UdpAnswer(rb.copyOf(rp.length), rp.address)
                         }
                     }
                     if (System.currentTimeMillis() >= deadline) return null

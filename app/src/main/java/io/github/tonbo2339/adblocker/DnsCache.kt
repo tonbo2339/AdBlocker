@@ -37,6 +37,8 @@ class DnsCache(private val maxEntries: Int = 1000, private val now: () -> Long =
     }
 
     fun put(query: ByteArray, q: Question, response: ByteArray, key: String = Dns.cacheKey(query, q)) {
+        // 切り詰められた答えは不完全なので覚えない
+        if (Dns.isTruncated(response)) return
         val ttl = Dns.cacheTtl(response).coerceAtMost(MAX_TTL_SECONDS)
         if (ttl <= 0) return
         val t = now()

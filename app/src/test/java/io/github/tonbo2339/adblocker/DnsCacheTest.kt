@@ -21,6 +21,22 @@ class DnsCacheTest {
             byteArrayOf(0xC0.toByte(), 12) + u16(type) + u16(1) + byteArrayOf(0, 0, 0, 60) + u16(4) + byteArrayOf(1, 2, 3, 4)
 
     @Test
+    fun truncatedResponseIsNotRemembered() {
+        val cache = DnsCache(now = { 1_000_000L })
+        val q = query(0x2222)
+        val truncated = response().also { it[2] = (it[2].toInt() or 0x02).toByte() }
+        assertEquals(true, Dns.isTruncated(truncated))
+        cache.put(q, Dns.parseQuestion(q)!!, truncated)
+        assertNull(cache.get(q, Dns.parseQuestion(q)!!))
+    }
+
+    @Test
+    fun tcpFrameStartsWithLength() {
+        val framed = TcpDns.frame(byteArrayOf(1, 2, 3))
+        assertEquals(listOf<Byte>(0, 3, 1, 2, 3), framed.toList())
+    }
+
+    @Test
     fun hitUntilTtlExpires() {
         var now = 1_000_000L
         val cache = DnsCache(now = { now })

@@ -26,15 +26,7 @@ object DomainCheck {
     fun check(context: Context, name: String): Result {
         val candidates = UserRules.selfAndParents(name).toSet()
         val hits = mutableListOf<Hit>()
-        val files = BlockList.downloadedFiles(context)
-        for (file in files) {
-            file.bufferedReader().useLines { hits += scan(it, candidates, sourceName(context, file.name.removeSuffix(".txt"))) }
-        }
-        if (BlockList.bundledInUse(context, files)) {
-            BlockList.openBundled(context).bufferedReader().useLines {
-                hits += scan(it, candidates, sourceName(context, BlockList.BUNDLED_SOURCE_ID))
-            }
-        }
+        eachList(context) { source, lines -> hits += scan(lines, candidates, source) }
         return Result(
             name = name,
             blocked = Filter.decide(name).blocked,
@@ -57,6 +49,17 @@ object DomainCheck {
             if (domain in candidates) hits += Hit(source, domain, allow)
         }
         return hits
+    }
+
+    /** 使っているリストを 1 つずつ、(リストの名前, 正規化済みの行) で渡す。ファイルを読むのでメインスレッドで呼ばない。 */
+    internal fun eachList(context: Context, action: (source: String, lines: Sequence<String>) -> Unit) {
+        val files = BlockList.downloadedFiles(context)
+        for (file in files) {
+            file.bufferedReader().useLines { action(sourceName(context, file.name.removeSuffix(".txt")), it) }
+        }
+        if (BlockList.bundledInUse(context, files)) {
+            BlockList.openBundled(context).bufferedReader().useLines { action(sourceName(context, BlockList.BUNDLED_SOURCE_ID), it) }
+        }
     }
 
     private fun sourceName(context: Context, id: String): String =

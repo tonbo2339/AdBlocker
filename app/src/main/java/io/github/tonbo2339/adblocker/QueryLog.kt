@@ -116,6 +116,9 @@ object SessionStats {
 
     fun top(n: Int): List<Pair<String, Int>> = top(domains, n)
 
+    /** ブロックしたドメインごとの回数 (内訳の集計用に、そのときの写し)。 */
+    fun domainCounts(): Map<String, Int> = domains.mapValues { it.value.get() }
+
     fun topApps(n: Int): List<Pair<String, Int>> = top(apps, n)
 
     private fun top(map: ConcurrentHashMap<String, AtomicInteger>, n: Int) =
@@ -124,5 +127,6 @@ object SessionStats {
     fun reset() {
         domains.clear()
         apps.clear()
+        ListBreakdown.clear()
     }
 }

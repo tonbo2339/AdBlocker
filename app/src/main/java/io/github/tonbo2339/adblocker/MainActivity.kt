@@ -407,6 +407,25 @@ class MainActivity : AppCompatActivity() {
         stats.totalSince.text = if (totals.since == 0L) "–" else dateFormat.format(Date(totals.since))
 
         updateTopDomains()
+        updateByList()
+    }
+
+    /** リスト別の表示中の内容 (変わったときだけ作り直す)。 */
+    private var shownByList: Pair<List<Pair<String, Int>>, Boolean>? = null
+
+    /** リスト別。数え直しはファイルを読むので別のスレッドで行い、終わったら表示を差し替える。 */
+    private fun updateByList() {
+        ListBreakdown.refreshIfStale(this) { runOnUiThread { if (!isDestroyed) showByList() } }
+        showByList()
+    }
+
+    private fun showByList() {
+        val rows = ListBreakdown.rows.map { it.source to it.blocked }
+        val enabled = QueryLog.enabled
+        val shown = rows to enabled
+        if (shown == shownByList) return
+        shownByList = shown
+        fillTopCard(binding.stats.byList, rows, enabled, { it }, null)
     }
 
     private fun updateTopDomains() {

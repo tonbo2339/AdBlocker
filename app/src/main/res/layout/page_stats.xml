@@ -190,6 +190,23 @@
             android:layout_height="wrap_content"
             android:text="@string/top_apps_footer" />
 
+        <!-- リスト別 (今回ブロックしたドメインが載っているリスト) -->
+        <TextView
+            style="@style/SectionHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_by_list" />
+
+        <io.github.tonbo2339.adblocker.CardLayout
+            android:id="@+id/byList"
+            style="@style/Card" />
+
+        <TextView
+            style="@style/SectionFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/by_list_footer" />
+
         <io.github.tonbo2339.adblocker.CardLayout
             style="@style/Card"
             android:layout_marginTop="28dp">

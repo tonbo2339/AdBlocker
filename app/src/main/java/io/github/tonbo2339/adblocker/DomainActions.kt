@@ -4,47 +4,87 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Typeface
 import android.os.Build
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.view.Gravity
+import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.databinding.DialogDomainBinding
 import kotlin.concurrent.thread
 
-/** ログやよくブロックしたドメインの行をタップしたときのメニュー (ブロック / 許可 / ルールの削除 / コピー)。 */
+/** ログやよくブロックしたドメインの行をタップしたときのメニュー (理由・ブロック / 許可 / ルールの削除 / コピー)。 */
 object DomainActions {
 
-    /** blocked: 今ブロックされているか (CNAME 隠しはリストを見ても分からないので、ログからは結果を渡す)。 */
+    /**
+     * blocked: 今ブロックされているか (CNAME 隠しはリストを見ても分からないので、ログからは結果を渡す)。
+     * 先頭に、ブロックされる (されない) 理由を出す。リストのファイルを読むので、開いてから別のスレッドで調べて差し替える。
+     */
     fun show(activity: Activity, domain: String, blocked: Boolean = BlockList.isBlocked(domain)) {
-        val actions = mutableListOf<Pair<String, () -> Unit>>()
+        val actions = mutableListOf<Action>()
         val owner = UserRules.ruleOwner(domain)
         if (owner != null) {
             // 親ドメインのルールが効いている場合もあるので、効いているルールそのものを外す
             val (kind, ruleDomain) = owner
-            actions += activity.getString(R.string.action_remove_rule, ruleDomain) to {
+            actions += Action(activity.getString(R.string.action_remove_rule, ruleDomain), destructive = true) {
                 UserRules.remove(activity, kind, ruleDomain)
                 toast(activity, activity.getString(R.string.rule_removed))
             }
         } else {
             val kind = if (blocked) UserRules.Kind.ALLOW else UserRules.Kind.BLOCK
             val label = if (kind == UserRules.Kind.ALLOW) R.string.action_allow else R.string.action_block
-            actions += activity.getString(label) to {
+            actions += Action(activity.getString(label)) {
                 UserRules.add(activity, kind, domain)
                 val done = if (kind == UserRules.Kind.ALLOW) R.string.rule_added_allow else R.string.rule_added_block
                 toast(activity, activity.getString(done, domain))
             }
         }
-        actions += activity.getString(R.string.action_check_domain) to { explain(activity, domain) }
-        actions += activity.getString(R.string.action_copy) to {
+        actions += Action(activity.getString(R.string.action_copy)) {
             val clipboard = activity.getSystemService(ClipboardManager::class.java)
             clipboard.setPrimaryClip(ClipData.newPlainText(domain, domain))
             // Android 13 以上は OS がコピーしたことを表示する
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) toast(activity, activity.getString(R.string.copied))
         }
 
-        MaterialAlertDialogBuilder(activity)
+        val view = DialogDomainBinding.inflate(activity.layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(domain)
-            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+            .setView(view.root)
             .setNegativeButton(R.string.action_cancel, null)
-            .show()
+            .create()
+        for (action in actions) view.actions.addView(actionRow(activity, action) { dialog.dismiss(); action.run() })
+        dialog.show()
+
+        val app = activity.applicationContext
+        thread {
+            val result = DomainCheck.check(app, domain)
+            activity.runOnUiThread {
+                if (activity.isFinishing || activity.isDestroyed || !dialog.isShowing) return@runOnUiThread
+                view.reason.text = headline(activity, result)
+                view.reason.setTextColor(activity.getColor(R.color.label_secondary))
+            }
+        }
+    }
+
+    private class Action(val label: String, val destructive: Boolean = false, val run: () -> Unit)
+
+    /** ダイアログの操作の 1 行 (タップで onClick)。 */
+    private fun actionRow(activity: Activity, action: Action, onClick: () -> Unit): TextView {
+        val density = activity.resources.displayMetrics.density
+        return TextView(activity).apply {
+            text = action.label
+            textSize = 17f
+            setTextColor(activity.getColor(if (action.destructive) R.color.sys_red else R.color.accent_blue))
+            gravity = Gravity.CENTER_VERTICAL
+            minHeight = (48 * density).toInt()
+            setPadding((24 * density).toInt(), 0, (24 * density).toInt(), 0)
+            foreground = activity.getDrawable(R.drawable.bg_row_pressed_overlay)
+            setOnClickListener { onClick() }
+        }
     }
 
     /** なぜブロックされる (されない) のかを調べて、結果を出す。リストのファイルを読むので別のスレッドで調べる。 */
@@ -61,6 +101,16 @@ object DomainActions {
                     .show()
             }
         }
+    }
+
+    /** 「ブロックされます」の見出し (太字) と、続けて理由。 */
+    private fun headline(context: Context, r: DomainCheck.Result): CharSequence {
+        val head = context.getString(if (r.blocked) R.string.diag_blocked_short else R.string.diag_not_blocked_short)
+        val text = SpannableStringBuilder(head)
+        text.setSpan(StyleSpan(Typeface.BOLD), 0, head.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        text.setSpan(ForegroundColorSpan(context.getColor(R.color.label)), 0, head.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        text.append("\n").append(explanation(context, r))
+        return text
     }
 
     /** 結果の理由を 1 行ずつ並べた文。 */
