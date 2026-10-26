@@ -50,6 +50,14 @@ object Dns {
 
     fun rcode(msg: ByteArray): Int = msg[3].toInt() and 0x0F
 
+    /** 先頭に 2 バイトの長さを付けた形 (RFC 1035 4.2.2。DNS over TCP / TLS で使う)。 */
+    fun tcpFrame(dns: ByteArray): ByteArray {
+        val frame = ByteArray(2 + dns.size)
+        put16(frame, 0, dns.size)
+        System.arraycopy(dns, 0, frame, 2, dns.size)
+        return frame
+    }
+
     /** 応答が途中で切り詰められている (TC=1)。 */
     fun isTruncated(msg: ByteArray): Boolean = msg[2].toInt() and 0x02 != 0
 

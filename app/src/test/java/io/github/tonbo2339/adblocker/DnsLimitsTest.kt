@@ -9,6 +9,11 @@ import org.junit.Test
 /** 受け取れる UDP の大きさ・キャッシュのキー・読めない問い合わせへの応答。 */
 class DnsLimitsTest {
 
+    @Test
+    fun tcpFrameStartsWithLength() {
+        assertEquals(listOf<Byte>(0, 3, 1, 2, 3), Dns.tcpFrame(byteArrayOf(1, 2, 3)).toList())
+    }
+
     private fun name(vararg labels: String): ByteArray =
         labels.flatMap { listOf(it.length.toByte()) + it.toByteArray().toList() }.toByteArray() + byteArrayOf(0)
 

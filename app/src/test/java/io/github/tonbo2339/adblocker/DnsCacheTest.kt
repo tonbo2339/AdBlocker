@@ -31,12 +31,6 @@ class DnsCacheTest {
     }
 
     @Test
-    fun tcpFrameStartsWithLength() {
-        val framed = TcpDns.frame(byteArrayOf(1, 2, 3))
-        assertEquals(listOf<Byte>(0, 3, 1, 2, 3), framed.toList())
-    }
-
-    @Test
     fun hitUntilTtlExpires() {
         var now = 1_000_000L
         val cache = DnsCache(now = { now })

@@ -19,7 +19,7 @@ class TcpDnsTest {
             server.accept().use { s ->
                 val input = DataInputStream(s.getInputStream())
                 val received = ByteArray(input.readUnsignedShort()).also { input.readFully(it) }
-                s.getOutputStream().write(TcpDns.frame(reply(received)))
+                s.getOutputStream().write(Dns.tcpFrame(reply(received)))
             }
         }
         return server

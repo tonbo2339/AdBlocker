@@ -155,7 +155,7 @@ class EncryptedDnsClient(private val vpn: VpnService, val server: EncryptedDns, 
     private fun exchange(conn: Connection, dns: ByteArray): ByteArray {
         val response = when (mode) {
             EncryptedDnsMode.TLS -> {
-                conn.output.write(TcpDns.frame(dns))
+                conn.output.write(Dns.tcpFrame(dns))
                 conn.output.flush()
                 val length = conn.input.readUnsignedShort()
                 ByteArray(length).also { conn.input.readFully(it) }

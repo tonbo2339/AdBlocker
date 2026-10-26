@@ -13,15 +13,7 @@ import java.net.Socket
  */
 object TcpDns {
     private const val TAG = "TcpDns"
-    private const val TIMEOUT_MS = 2000
-
-    /** 先頭に 2 バイトの長さを付けた形 (RFC 1035 4.2.2)。 */
-    fun frame(dns: ByteArray): ByteArray {
-        val frame = ByteArray(2 + dns.size)
-        put16(frame, 0, dns.size)
-        System.arraycopy(dns, 0, frame, 2, dns.size)
-        return frame
-    }
+    private const val TIMEOUT_MS = 1500
 
     /** server の port (通常は 53 番) へ問い合わせる。protect はソケットを VPN の外に出す処理 (失敗したら送らない)。失敗したら null。maxSize を超える答えも null (呼び出し側が受け取れない大きさ)。 */
     fun query(protect: (Socket) -> Boolean, server: InetAddress, dns: ByteArray, maxSize: Int, port: Int = 53): ByteArray? {
@@ -31,7 +23,7 @@ object TcpDns {
             socket.soTimeout = TIMEOUT_MS
             socket.connect(InetSocketAddress(server, port), TIMEOUT_MS)
             socket.getOutputStream().apply {
-                write(frame(dns))
+                write(Dns.tcpFrame(dns))
                 flush()
             }
             val input = DataInputStream(socket.getInputStream().buffered())
