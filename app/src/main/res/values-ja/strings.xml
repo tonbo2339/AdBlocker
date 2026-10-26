@@ -102,6 +102,7 @@
     <string name="diag_builtin_allow">常に許可 (広告ブロックを検出してページを隠す仕組みのため): %1$s</string>
     <string name="diag_no_match">どのブロックリストにもルールにもありません</string>
     <string name="diag_cname_note">行き先 (CNAME) によるブロックは、ここでは調べません。</string>
+    <string name="action_save">保存</string>
     <string name="action_delete">削除</string>
     <string name="action_reset">リセット</string>
     <string name="action_block">ブロックする</string>
@@ -195,10 +196,15 @@
     <string name="row_encrypted_dns">暗号化 DNS</string>
     <string name="encrypted_dns_off">オフ</string>
     <string name="encrypted_dns_footer">DNS の問い合わせを暗号化 (下で選ぶ DNS over TLS か DNS over HTTPS) し、通信の途中で盗み見られたり書き換えられたりするのを防ぎます。サーバーにつながらないときは、回線の DNS を使います。オンにしている間は、社内ネットワークやルーターの名前など、その回線の中でだけ使える名前を解決できないことがあります。</string>
+    <string name="encrypted_dns_custom">自分で指定</string>
+    <string name="encrypted_dns_custom_title">暗号化 DNS のサーバーを指定</string>
+    <string name="encrypted_dns_custom_server_hint">dns.example/dns-query</string>
+    <string name="encrypted_dns_custom_address_hint">IP アドレス (例: 203.0.113.7)</string>
+    <string name="encrypted_dns_custom_invalid">入力を確かめてください。サーバーの名前を入れたときは、IP アドレスも要ります。</string>
     <string name="row_encrypted_dns_mode">暗号化 DNS の方式</string>
     <string name="encrypted_dns_mode_tls">DNS over TLS (853 番)</string>
     <string name="encrypted_dns_mode_https">DNS over HTTPS (443 番)</string>
-    <string name="encrypted_dns_mode_footer">DNS over HTTPS は普通の Web と同じ通信に見えるので、DNS over TLS の 853 番を塞いでいる回線でも使えることがあります。暗号化 DNS がオフのときは何も変わりません。</string>
+    <string name="encrypted_dns_mode_footer">DNS over HTTPS は普通の Web と同じ通信に見えるので、DNS over TLS の 853 番を塞いでいる回線でも使えることがあります。選んだ方式がつながらないときは、同じ事業者のもう一方の方式を試します。暗号化 DNS がオフのときは何も変わりません。</string>
     <string name="section_backup">バックアップ</string>
     <string name="row_export">設定を書き出す</string>
     <string name="row_import">設定を読み込む</string>

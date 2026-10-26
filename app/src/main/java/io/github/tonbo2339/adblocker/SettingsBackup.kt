@@ -22,6 +22,9 @@ object SettingsBackup {
             .put("auto_install_updates", Prefs.autoInstallUpdates(context))
             .put("encrypted_dns", Prefs.encryptedDns(context)?.id ?: JSONObject.NULL)
             .put("encrypted_dns_mode", Prefs.encryptedDnsMode(context).id)
+            .put("custom_dns", Prefs.customDns(context)?.let {
+                JSONObject().put("host", it.host).put("address", it.addresses.first()).put("path", it.path)
+            } ?: JSONObject.NULL)
             .put("capture_hardcoded_dns", Prefs.captureHardcodedDns(context))
             .put("log_retention_days", Prefs.logRetentionDays(context))
             .put("update_time_minutes", Prefs.updateTimeMinutes(context) ?: JSONObject.NULL)
@@ -74,7 +77,16 @@ object SettingsBackup {
             bool(s, "query_log")?.let { Prefs.setQueryLogEnabled(app, it) }
             bool(s, "update_on_wifi_only")?.let { Prefs.setUpdateOnWifiOnly(app, it) }
             bool(s, "auto_install_updates")?.let { Prefs.setAutoInstallUpdates(app, it) }
-            if (s.has("encrypted_dns")) Prefs.setEncryptedDns(app, EncryptedDns.of(s.optString("encrypted_dns")))
+            // 自分で指定したサーバーを先に戻す (選んでいる id が "custom" のとき、中身が要る)
+            if (s.has("custom_dns")) {
+                val custom = s.optJSONObject("custom_dns")?.let { CustomDns.parse(it.optString("host") + it.optString("path"), it.optString("address")) }
+                Prefs.setCustomDns(app, custom)
+            }
+            if (s.has("encrypted_dns")) {
+                val id = s.optString("encrypted_dns")
+                val server = if (id == EncryptedDns.CUSTOM_ID) Prefs.customDns(app) else EncryptedDns.of(id)
+                Prefs.setEncryptedDns(app, server)
+            }
             if (s.has("encrypted_dns_mode")) Prefs.setEncryptedDnsMode(app, EncryptedDnsMode.of(s.optString("encrypted_dns_mode")))
             bool(s, "capture_hardcoded_dns")?.let { Prefs.setCaptureHardcodedDns(app, it) }
             (s.opt("log_retention_days") as? Int)?.takeIf { it in Prefs.LOG_RETENTION_CHOICES }?.let { Prefs.setLogRetentionDays(app, it) }

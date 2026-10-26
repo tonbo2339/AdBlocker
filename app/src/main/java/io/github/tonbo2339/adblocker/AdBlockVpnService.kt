@@ -145,7 +145,7 @@ class AdBlockVpnService : VpnService() {
 
     /** 暗号化 DNS のクライアント。設定が変わったら作り直す (VPN は作り直さない)。 */
     @Volatile
-    private var encrypted: EncryptedDnsClient? = null
+    private var encrypted: EncryptedDnsResolver? = null
     private val encryptedLock = Any()
 
     /** onDestroy() の後か (encryptedLock の中で読み書きする)。 */
@@ -531,7 +531,7 @@ class AdBlockVpnService : VpnService() {
     }
 
     /** 設定に合った暗号化 DNS のクライアント (オフなら null)。 */
-    private fun encryptedClient(): EncryptedDnsClient? {
+    private fun encryptedClient(): EncryptedDnsResolver? {
         val server = Prefs.encryptedDns(this)
         val mode = Prefs.encryptedDnsMode(this)
         val current = encrypted
@@ -543,7 +543,7 @@ class AdBlockVpnService : VpnService() {
             val again = encrypted
             if (again?.server == server && (again == null || again.mode == mode)) return again
             again?.close()
-            return server?.let { EncryptedDnsClient(this, it, mode) }.also { encrypted = it }
+            return server?.let { EncryptedDnsResolver(this, it, mode) }.also { encrypted = it }
         }
     }
 

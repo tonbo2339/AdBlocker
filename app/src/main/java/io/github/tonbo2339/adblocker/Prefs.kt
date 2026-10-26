@@ -18,6 +18,9 @@ object Prefs {
     private const val KEY_PAUSED_UNTIL = "paused_until"
     private const val KEY_ENCRYPTED_DNS = "encrypted_dns"
     private const val KEY_ENCRYPTED_DNS_MODE = "encrypted_dns_mode"
+    private const val KEY_CUSTOM_DNS_HOST = "custom_dns_host"
+    private const val KEY_CUSTOM_DNS_ADDRESS = "custom_dns_address"
+    private const val KEY_CUSTOM_DNS_PATH = "custom_dns_path"
     private const val KEY_CAPTURE_DNS = "capture_hardcoded_dns"
     private const val KEY_LOG_RETENTION_DAYS = "log_retention_days"
     private const val KEY_UPDATE_TIME = "update_time_minutes"
@@ -128,10 +131,37 @@ object Prefs {
     }
 
     /** 暗号化 DNS の転送先 (null ならオフ = 回線の DNS を使う)。 */
-    fun encryptedDns(context: Context): EncryptedDns? = EncryptedDns.of(prefs(context).getString(KEY_ENCRYPTED_DNS, null))
+    fun encryptedDns(context: Context): EncryptedDns? {
+        val id = prefs(context).getString(KEY_ENCRYPTED_DNS, null)
+        return if (id == EncryptedDns.CUSTOM_ID) customDns(context) else EncryptedDns.of(id)
+    }
 
     fun setEncryptedDns(context: Context, server: EncryptedDns?) {
         prefs(context).edit { putString(KEY_ENCRYPTED_DNS, server?.id) }
+    }
+
+    /** 自分で指定した暗号化 DNS のサーバー (無ければ null)。選んでいるかどうかは encryptedDns。 */
+    fun customDns(context: Context): EncryptedDns? {
+        val prefs = prefs(context)
+        val host = prefs.getString(KEY_CUSTOM_DNS_HOST, null) ?: return null
+        val address = prefs.getString(KEY_CUSTOM_DNS_ADDRESS, null) ?: return null
+        // 保存した値も、入力と同じ検査を通す (バックアップの読み込みなどで壊れた値が入っても、接続には使わない)
+        return CustomDns.parse(host + prefs.getString(KEY_CUSTOM_DNS_PATH, EncryptedDns.DEFAULT_PATH), address)
+    }
+
+    /** server が null なら、指定を消す (選んでいたら暗号化 DNS をオフにする)。 */
+    fun setCustomDns(context: Context, server: EncryptedDns?) {
+        val selected = prefs(context).getString(KEY_ENCRYPTED_DNS, null) == EncryptedDns.CUSTOM_ID
+        prefs(context).edit {
+            if (server == null) {
+                remove(KEY_CUSTOM_DNS_HOST).remove(KEY_CUSTOM_DNS_ADDRESS).remove(KEY_CUSTOM_DNS_PATH)
+                if (selected) remove(KEY_ENCRYPTED_DNS)
+            } else {
+                putString(KEY_CUSTOM_DNS_HOST, server.host)
+                putString(KEY_CUSTOM_DNS_ADDRESS, server.addresses.first())
+                putString(KEY_CUSTOM_DNS_PATH, server.path)
+            }
+        }
     }
 
     /** 暗号化 DNS の方式 (既定は DNS over TLS)。転送先がオフのときは使わない。 */

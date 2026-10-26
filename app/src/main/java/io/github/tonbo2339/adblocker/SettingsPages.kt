@@ -15,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.databinding.DialogDnsServerBinding
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,8 +29,9 @@ private fun fileDate(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(
 class DnsSettingsActivity : SettingsPageActivity() {
     override val pageTitle = R.string.title_dns
 
-    private val servers = listOf<EncryptedDns?>(null) + EncryptedDns.entries
+    private val servers = listOf<EncryptedDns?>(null) + EncryptedDns.BUILT_IN
     private val serverRows = mutableListOf<SettingRow>()
+    private lateinit var customRow: SettingRow
     private val modeRows = mutableListOf<SettingRow>()
 
     override fun SettingsBuilder.build(savedInstanceState: Bundle?) {
@@ -41,6 +43,20 @@ class DnsSettingsActivity : SettingsPageActivity() {
                     Prefs.setEncryptedDns(this@DnsSettingsActivity, server)
                     refresh()
                 }
+            }
+            // 自分で指定するサーバー。まだ無ければ入力のダイアログを開き、あれば選ぶ (直すときは行を長押し)
+            customRow = choice(getString(R.string.encrypted_dns_custom), false) {
+                val custom = Prefs.customDns(this@DnsSettingsActivity)
+                if (custom == null) {
+                    showCustomDialog()
+                } else {
+                    Prefs.setEncryptedDns(this@DnsSettingsActivity, custom)
+                    refresh()
+                }
+            }
+            customRow.binding.row.setOnLongClickListener {
+                showCustomDialog()
+                true
             }
         }
         footer(R.string.encrypted_dns_footer)
@@ -69,8 +85,49 @@ class DnsSettingsActivity : SettingsPageActivity() {
     override fun refresh() {
         val current = Prefs.encryptedDns(this)
         servers.forEachIndexed { i, server -> serverRows[i].checked = server == current }
+        val custom = Prefs.customDns(this)
+        customRow.value = custom?.host
+        customRow.checked = custom != null && custom == current
         val mode = Prefs.encryptedDnsMode(this)
         EncryptedDnsMode.entries.forEachIndexed { i, m -> modeRows[i].checked = m == mode }
+    }
+
+    /** 自分で指定するサーバーの入力。保存したら、そのサーバーを選ぶ。 */
+    private fun showCustomDialog() {
+        val input = DialogDnsServerBinding.inflate(layoutInflater)
+        val current = Prefs.customDns(this)
+        current?.let {
+            input.serverInput.setText(it.host + it.path.takeIf { p -> p != EncryptedDns.DEFAULT_PATH }.orEmpty())
+            input.addressInput.setText(it.addresses.first())
+        }
+        val builder = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.encrypted_dns_custom_title)
+            .setView(input.root)
+            .setPositiveButton(R.string.action_save, null)
+            .setNegativeButton(R.string.action_cancel, null)
+        if (current != null) {
+            builder.setNeutralButton(R.string.action_delete) { _, _ ->
+                Prefs.setCustomDns(this, null)
+                refresh()
+            }
+        }
+        val dialog = builder.create()
+        // 正しくない入力ではダイアログを閉じずにエラーを出す
+        dialog.setOnShowListener {
+            dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+                val server = CustomDns.parse(input.serverInput.text.toString(), input.addressInput.text.toString())
+                if (server == null) {
+                    val needAddress = input.addressInput.text.isNullOrBlank()
+                    (if (needAddress) input.addressInput else input.serverInput).error = getString(R.string.encrypted_dns_custom_invalid)
+                } else {
+                    Prefs.setCustomDns(this, server)
+                    Prefs.setEncryptedDns(this, server)
+                    refresh()
+                    dialog.dismiss()
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun modeTitle(mode: EncryptedDnsMode) = when (mode) {

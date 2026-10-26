@@ -103,6 +103,7 @@
     <string name="diag_builtin_allow">Always allowed (it would hide pages that detect ad blockers): %1$s</string>
     <string name="diag_no_match">Not in any blocklist or rule</string>
     <string name="diag_cname_note">Domains can also be blocked by what they point to (CNAME), which isn\'t checked here.</string>
+    <string name="action_save">Save</string>
     <string name="action_delete">Delete</string>
     <string name="action_reset">Reset</string>
     <string name="action_block">Block</string>
@@ -199,10 +200,15 @@
     <string name="row_encrypted_dns">Encrypted DNS</string>
     <string name="encrypted_dns_off">Off</string>
     <string name="encrypted_dns_footer">Encrypts lookups (DNS over TLS or DNS over HTTPS, chosen below) so your network can\'t read or change them. If the server can\'t be reached, your network\'s DNS is used instead. While it\'s on, names that only your network knows (such as company or router names) may not work.</string>
+    <string name="encrypted_dns_custom">Custom Server</string>
+    <string name="encrypted_dns_custom_title">Custom Encrypted DNS Server</string>
+    <string name="encrypted_dns_custom_server_hint">dns.example/dns-query</string>
+    <string name="encrypted_dns_custom_address_hint">IP address (e.g. 203.0.113.7)</string>
+    <string name="encrypted_dns_custom_invalid">Check this entry. A server name needs its IP address too.</string>
     <string name="row_encrypted_dns_mode">Encrypted DNS Method</string>
     <string name="encrypted_dns_mode_tls">DNS over TLS (port 853)</string>
     <string name="encrypted_dns_mode_https">DNS over HTTPS (port 443)</string>
-    <string name="encrypted_dns_mode_footer">DNS over HTTPS looks like ordinary web traffic, so it can work on networks that block the DNS over TLS port. It does nothing while Encrypted DNS is off.</string>
+    <string name="encrypted_dns_mode_footer">DNS over HTTPS looks like ordinary web traffic, so it can work on networks that block the DNS over TLS port. If the method you choose can\'t connect, the other one is tried with the same provider. It does nothing while Encrypted DNS is off.</string>
     <string name="section_backup">Backup</string>
     <string name="row_export">Export Settings</string>
     <string name="row_import">Import Settings</string>

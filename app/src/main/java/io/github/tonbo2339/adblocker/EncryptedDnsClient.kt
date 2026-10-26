@@ -14,17 +14,35 @@ import javax.net.ssl.SNIHostName
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
-/** 暗号化 DNS (DNS over TLS) の転送先。アドレスは IP で持ち、名前解決なしで接続する。 */
-enum class EncryptedDns(val id: String, val title: String, val host: String, val address: String) {
-    CLOUDFLARE("cloudflare", "Cloudflare", "cloudflare-dns.com", "1.1.1.1"),
-    GOOGLE("google", "Google", "dns.google", "8.8.8.8"),
-    QUAD9("quad9", "Quad9", "dns.quad9.net", "9.9.9.9");
-
+/**
+ * 暗号化 DNS の転送先。アドレスは IP で持ち、名前解決なしで接続する (VPN の中で名前を引くと、自分の問い合わせに戻ってしまうため)。
+ * host は証明書の確認と SNI・Host ヘッダーに使う名前、addresses は接続する先 (先頭から順に試す)、path は DNS over HTTPS の道筋。
+ */
+data class EncryptedDns(
+    val id: String,
+    val title: String,
+    val host: String,
+    val addresses: List<String>,
+    val path: String = DEFAULT_PATH,
+) {
     /** 選ぶときの表示 (例: "Cloudflare (1.1.1.1)")。 */
-    val label: String get() = "$title ($address)"
+    val label: String get() = "$title (${addresses.first()})"
 
     companion object {
-        fun of(id: String?): EncryptedDns? = entries.firstOrNull { it.id == id }
+        const val DEFAULT_PATH = "/dns-query"
+
+        /** 自分で指定したサーバーの id (保存している設定は Prefs.customDns)。 */
+        const val CUSTOM_ID = "custom"
+
+        // 2 つ目のアドレスは、同じ事業者の予備 (1 つ目に届かない回線のため)
+        val CLOUDFLARE = EncryptedDns("cloudflare", "Cloudflare", "cloudflare-dns.com", listOf("1.1.1.1", "1.0.0.1"))
+        val GOOGLE = EncryptedDns("google", "Google", "dns.google", listOf("8.8.8.8", "8.8.4.4"))
+        val QUAD9 = EncryptedDns("quad9", "Quad9", "dns.quad9.net", listOf("9.9.9.9", "149.112.112.112"))
+
+        val BUILT_IN = listOf(CLOUDFLARE, GOOGLE, QUAD9)
+
+        /** 組み込みのサーバーを id から (自分で指定したものは Prefs.encryptedDns から)。 */
+        fun of(id: String?): EncryptedDns? = BUILT_IN.firstOrNull { it.id == id }
     }
 }
 
@@ -35,6 +53,9 @@ enum class EncryptedDnsMode(val id: String, val port: Int) {
 
     /** DNS over HTTPS (RFC 8484)。普通の Web と同じ 443 番なので、853 番が塞がれていても通りやすい。 */
     HTTPS("https", 443);
+
+    /** 選んだ方式がつながらないときに、同じ事業者で試すもう一方の方式。 */
+    val other: EncryptedDnsMode get() = if (this == TLS) HTTPS else TLS
 
     companion object {
         fun of(id: String?): EncryptedDnsMode = entries.firstOrNull { it.id == id } ?: TLS
@@ -80,6 +101,10 @@ class EncryptedDnsClient(private val vpn: VpnService, val server: EncryptedDns, 
 
     @Volatile
     private var failedUntil = 0L
+
+    /** 最後につながったアドレスの位置 (次はここから試す。届かないアドレスのタイムアウトを毎回待たないため)。 */
+    @Volatile
+    private var preferred = 0
 
     /** 問い合わせて応答を返す。失敗したら null (呼び出し側は通常の DNS に切り替える)。 */
     fun query(dns: ByteArray): ByteArray? {
@@ -129,12 +154,27 @@ class EncryptedDnsClient(private val vpn: VpnService, val server: EncryptedDns, 
         if (closed || !idle.offer(conn)) close(conn)
     }
 
+    /** addresses を、最後につながったものから順に試す。どれにもつながらなければ最後の失敗を投げる。 */
     private fun connect(): Connection {
+        val count = server.addresses.size
+        var failure: IOException? = null
+        for (i in 0 until count) {
+            val index = (preferred + i) % count
+            try {
+                return connect(server.addresses[index]).also { preferred = index }
+            } catch (e: IOException) {
+                failure = e
+            }
+        }
+        throw failure ?: IOException("no address")
+    }
+
+    private fun connect(address: String): Connection {
         val plain = Socket()
         try {
             // 保護できないと、この接続が自分の tun を通ってしまう (送らずに、通常の DNS に切り替える)
             if (!plain.protectWith(vpn::protect)) throw IOException("protect failed")
-            plain.connect(InetSocketAddress(InetAddress.getByName(server.address), mode.port), TIMEOUT_MS)
+            plain.connect(InetSocketAddress(InetAddress.getByName(address), mode.port), TIMEOUT_MS)
             plain.soTimeout = TIMEOUT_MS
             val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
             val ssl = factory.createSocket(plain, server.host, mode.port, true) as SSLSocket
@@ -161,7 +201,7 @@ class EncryptedDnsClient(private val vpn: VpnService, val server: EncryptedDns, 
                 ByteArray(length).also { conn.input.readFully(it) }
             }
             EncryptedDnsMode.HTTPS -> {
-                conn.output.write(Doh.request(server.host, dns))
+                conn.output.write(Doh.request(server.host, server.path, dns))
                 conn.output.flush()
                 val reply = Doh.readResponse(conn.input)
                 conn.reusable = reply.keepAlive

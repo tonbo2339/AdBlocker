@@ -19,8 +19,8 @@ class DohTest {
     @Test
     fun requestHasHeadersAndBody() {
         val dns = byteArrayOf(1, 2, 3)
-        val text = String(Doh.request("dns.example", dns), Charsets.ISO_8859_1)
-        assertTrue(text.startsWith("POST /dns-query HTTP/1.1\r\nHost: dns.example\r\n"))
+        val text = String(Doh.request("dns.example", "/custom", dns), Charsets.ISO_8859_1)
+        assertTrue(text.startsWith("POST /custom HTTP/1.1\r\nHost: dns.example\r\n"))
         assertTrue("Content-Length: 3\r\n" in text)
         assertTrue("Content-Type: application/dns-message\r\n" in text)
         assertTrue(text.endsWith("\r\n\r\n" + String(dns, Charsets.ISO_8859_1)))

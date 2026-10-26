@@ -9,7 +9,6 @@ import java.io.IOException
  * 通信 (TLS の接続) は EncryptedDnsClient が受け持ち、ここは送る文と受け取った文の読み取りだけ (テストしやすいよう分けてある)。
  */
 object Doh {
-    private const val PATH = "/dns-query"
     private const val MEDIA_TYPE = "application/dns-message"
 
     /** 行や本文の大きさの上限 (壊れた応答や悪意のある応答で、メモリを使い切らないため)。 */
@@ -18,8 +17,8 @@ object Doh {
 
     class Reply(val body: ByteArray, val keepAlive: Boolean)
 
-    fun request(host: String, dns: ByteArray): ByteArray {
-        val head = "POST $PATH HTTP/1.1\r\n" +
+    fun request(host: String, path: String, dns: ByteArray): ByteArray {
+        val head = "POST $path HTTP/1.1\r\n" +
             "Host: $host\r\n" +
             "Accept: $MEDIA_TYPE\r\n" +
             "Content-Type: $MEDIA_TYPE\r\n" +
