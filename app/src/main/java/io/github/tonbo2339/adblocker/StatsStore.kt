@@ -96,8 +96,10 @@ object StatsStore {
         return (parts.getOrNull(0)?.toLongOrNull() ?: 0L) to (parts.getOrNull(1)?.toLongOrNull() ?: 0L)
     }
 
-    private fun dayKey(time: Long): String =
-        DAY_PREFIX + SimpleDateFormat("yyyyMMdd", Locale.ROOT).format(Date(time))
+    /** SimpleDateFormat はスレッドごとに 1 つ (画面のスレッドと VPN のスレッドから呼ばれる)。 */
+    private val dayFormat = ThreadLocal.withInitial { SimpleDateFormat("yyyyMMdd", Locale.ROOT) }
+
+    private fun dayKey(time: Long): String = DAY_PREFIX + dayFormat.get()!!.format(Date(time))
 
     private fun daysAgo(now: Long, days: Int): Long =
         Calendar.getInstance().apply {

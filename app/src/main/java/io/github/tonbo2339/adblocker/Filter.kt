@@ -48,8 +48,12 @@ object Filter {
      * - 答えの IP アドレスが、手動でブロックした IP に当たる
      */
     fun checkResponse(response: ByteArray): ResponseBlock? {
-        cnameBlocked(Dns.cnameTargets(response))?.let { return ResponseBlock(Verdict.CNAME, it) }
-        UserRules.blockedAddress(Dns.answerAddresses(response))?.let { return ResponseBlock(Verdict.IP, it) }
+        val records = Dns.records(response) ?: return null
+        cnameBlocked(Dns.cnameTargets(response, records))?.let { return ResponseBlock(Verdict.CNAME, it) }
+        // 答えのたびに IP を取り出すのは無駄なので、IP のルールがあるときだけ
+        if (UserRules.hasBlockedIps) {
+            UserRules.blockedAddress(Dns.answerAddresses(response, records))?.let { return ResponseBlock(Verdict.IP, it) }
+        }
         return null
     }
 

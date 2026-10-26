@@ -68,6 +68,9 @@ class MainActivity : AppCompatActivity() {
     private var tab = Tab.HOME
     private var shownStatus: StatusLook? = null
 
+    /** 一時停止の行の表示中の状態 (動作中か、一時停止中か)。 */
+    private var shownPause: Pair<Boolean, Boolean>? = null
+
     /** updateHome() がスイッチを同期している間は true (リスナーで無視する)。 */
     private var syncingSwitch = false
 
@@ -346,14 +349,19 @@ class MainActivity : AppCompatActivity() {
             home.statusIcon.imageTintList = ColorStateList.valueOf(getColor(look.color))
         }
 
-        // 一時停止は動作中だけ出す
-        home.pauseRow.isVisible = enabled
-        home.pauseSeparator.isVisible = enabled
-        home.pauseText.setText(if (paused) R.string.row_resume else R.string.row_pause)
-        home.pauseIcon.setImageResource(if (paused) R.drawable.ic_g_play else R.drawable.ic_g_pause)
-        home.pauseIcon.backgroundTintList =
-            ColorStateList.valueOf(getColor(if (paused) R.color.sys_green else R.color.sys_orange))
-        home.pauseValue.text = if (paused) DateUtils.formatElapsedTime((Pause.remaining() + 999) / 1000) else ""
+        // 一時停止は動作中だけ出す。表示は 1 秒ごとに呼ばれるので、変わったときだけ作り直す (画像の差し替えは描き直しになる)
+        val pauseState = enabled to paused
+        if (pauseState != shownPause) {
+            shownPause = pauseState
+            home.pauseRow.isVisible = enabled
+            home.pauseSeparator.isVisible = enabled
+            home.pauseText.setText(if (paused) R.string.row_resume else R.string.row_pause)
+            home.pauseIcon.setImageResource(if (paused) R.drawable.ic_g_play else R.drawable.ic_g_pause)
+            home.pauseIcon.backgroundTintList =
+                ColorStateList.valueOf(getColor(if (paused) R.color.sys_green else R.color.sys_orange))
+        }
+        val remaining = if (paused) DateUtils.formatElapsedTime((Pause.remaining() + 999) / 1000) else ""
+        if (home.pauseValue.text.toString() != remaining) home.pauseValue.text = remaining
 
         val today = StatsStore.today(this)
         home.blockedCount.text = numberFormat.format(today.blocked)

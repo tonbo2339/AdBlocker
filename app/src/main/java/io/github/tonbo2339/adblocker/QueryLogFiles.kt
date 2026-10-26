@@ -85,6 +85,7 @@ object QueryLogFiles {
     }
 
     fun flush() {
+        if (retentionDays == 0) return // 残していなければ、ディスクに出すものも無い (30 秒ごとの呼び出しで、スレッドを起こさない)
         executor.execute { flushWriter() }
     }
 
@@ -167,15 +168,22 @@ object QueryLogFiles {
         for (f in files(d)) if (f.name.removeSuffix(SUFFIX) < oldest) f.delete()
     }
 
-    private fun dayName(time: Long): String = SimpleDateFormat("yyyyMMdd", Locale.ROOT).format(Date(time))
+    /** SimpleDateFormat はスレッドごとに 1 つ (書き込みのスレッドで 1 行ごとに呼ぶので、作り直さない)。 */
+    private val dayFormat = ThreadLocal.withInitial { SimpleDateFormat("yyyyMMdd", Locale.ROOT) }
+
+    private fun dayName(time: Long): String = dayFormat.get()!!.format(Date(time))
 
     /**
      * 1 行に書く。DNS の名前にはどんなバイトも入りうるので、タブや改行などの制御文字は「?」に置き換える
      * (そのままだと行や列が崩れ、偽の行を差し込まれる恐れがある)。
      */
-    private fun format(e: QueryLog.Entry): String =
-        listOf(e.time.toString(), e.verdict.name, clean(e.domain), clean(e.via.orEmpty()), clean(e.app.orEmpty()))
-            .joinToString("\t")
+    private fun format(e: QueryLog.Entry): String = StringBuilder(64)
+        .append(e.time).append('\t')
+        .append(e.verdict.name).append('\t')
+        .append(clean(e.domain)).append('\t')
+        .append(clean(e.via.orEmpty())).append('\t')
+        .append(clean(e.app.orEmpty()))
+        .toString()
 
     private fun clean(s: String): String =
         if (s.none { it.isISOControl() }) s else s.map { if (it.isISOControl()) '?' else it }.joinToString("")

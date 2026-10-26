@@ -69,9 +69,10 @@ object Dns {
             i = skipName(msg, i) ?: return null
             i += 4 // QTYPE + QCLASS
         }
-        val result = mutableListOf<DnsRecord>()
-        for ((section, countAt) in listOf(1 to 6, 2 to 8, 3 to 10)) {
-            repeat(u16(msg, countAt)) {
+        val result = ArrayList<DnsRecord>()
+        // 回答 (1)・権威 (2)・追加 (3) の順。件数の欄は 6・8・10 バイト目
+        for (section in 1..3) {
+            repeat(u16(msg, 4 + 2 * section)) {
                 i = skipName(msg, i) ?: return null
                 if (i + 10 > msg.size) return null
                 val rdLength = u16(msg, i + 8)
@@ -83,15 +84,15 @@ object Dns {
         return result
     }
 
-    /** 応答の回答セクションにある CNAME の行き先 (連鎖の順)。壊れた応答なら空。 */
-    fun cnameTargets(msg: ByteArray): List<String> =
-        records(msg).orEmpty()
+    /** 応答の回答セクションにある CNAME の行き先 (連鎖の順)。壊れた応答なら空。records は解析済みのものがあれば渡す。 */
+    fun cnameTargets(msg: ByteArray, records: List<DnsRecord> = records(msg).orEmpty()): List<String> =
+        records
             .filter { it.section == 1 && it.type == TYPE_CNAME }
             .mapNotNull { readName(msg, it.rdAt) }
 
-    /** 応答の回答セクションにある IP アドレス (A は 4 バイト、AAAA は 16 バイト)。 */
-    fun answerAddresses(msg: ByteArray): List<ByteArray> =
-        records(msg).orEmpty()
+    /** 応答の回答セクションにある IP アドレス (A は 4 バイト、AAAA は 16 バイト)。records は解析済みのものがあれば渡す。 */
+    fun answerAddresses(msg: ByteArray, records: List<DnsRecord> = records(msg).orEmpty()): List<ByteArray> =
+        records
             .filter { it.section == 1 && (it.type == TYPE_A && it.rdLength == 4 || it.type == TYPE_AAAA && it.rdLength == 16) }
             .map { msg.copyOfRange(it.rdAt, it.rdAt + it.rdLength) }
 

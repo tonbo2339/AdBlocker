@@ -87,6 +87,9 @@ object UserRules {
         return null
     }
 
+    /** 答えの IP でブロックするルールがあるか。 */
+    val hasBlockedIps: Boolean get() = blocked.ips.isNotEmpty()
+
     /** 答えの IP アドレスのうち、ブロックするルールに当たるもの (当たったルールを返す。無ければ null)。 */
     fun blockedAddress(addresses: List<ByteArray>): String? {
         val ips = blocked.ips

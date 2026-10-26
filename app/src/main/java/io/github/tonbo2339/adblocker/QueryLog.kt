@@ -2,6 +2,7 @@ package io.github.tonbo2339.adblocker
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 直近の問い合わせの履歴。画面に出すのはメモリ上の直近 CAPACITY 件。
@@ -101,6 +102,18 @@ object SessionStats {
     private val domains = ConcurrentHashMap<String, AtomicInteger>()
     private val apps = ConcurrentHashMap<String, AtomicInteger>()
 
+    /** 数えるたびに増える (top() の結果を使い回せるかの判断に使う)。 */
+    private val changes = AtomicLong()
+
+    /** 直前の top() の結果。changes が同じ間は、並べ替えずにこれを返す。 */
+    private class Top(val map: Map<String, AtomicInteger>, val n: Int, val at: Long, val result: List<Pair<String, Int>>)
+
+    @Volatile
+    private var lastTop: Top? = null
+
+    @Volatile
+    private var lastTopApps: Top? = null
+
     fun recordBlocked(domain: String) = count(domains, domain)
 
     /** app はパッケージ名。 */
@@ -112,21 +125,26 @@ object SessionStats {
             map.computeIfAbsent(key) { AtomicInteger() }
         }
         counter.incrementAndGet()
+        changes.incrementAndGet()
     }
 
-    fun top(n: Int): List<Pair<String, Int>> = top(domains, n)
+    fun top(n: Int): List<Pair<String, Int>> = cachedTop(lastTop, domains, n).also { lastTop = it }.result
 
     /** ブロックしたドメインごとの回数 (内訳の集計用に、そのときの写し)。 */
     fun domainCounts(): Map<String, Int> = domains.mapValues { it.value.get() }
 
-    fun topApps(n: Int): List<Pair<String, Int>> = top(apps, n)
+    fun topApps(n: Int): List<Pair<String, Int>> = cachedTop(lastTopApps, apps, n).also { lastTopApps = it }.result
 
-    private fun top(map: ConcurrentHashMap<String, AtomicInteger>, n: Int) =
-        map.entries.map { it.key to it.value.get() }.sortedByDescending { it.second }.take(n)
+    private fun cachedTop(last: Top?, map: ConcurrentHashMap<String, AtomicInteger>, n: Int): Top {
+        val at = changes.get()
+        if (last != null && last.map === map && last.n == n && last.at == at) return last
+        return Top(map, n, at, map.entries.map { it.key to it.value.get() }.sortedByDescending { it.second }.take(n))
+    }
 
     fun reset() {
         domains.clear()
         apps.clear()
+        changes.incrementAndGet()
         ListBreakdown.clear()
     }
 }
