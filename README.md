@@ -34,13 +34,15 @@ Once installed, the app checks for new versions and updates itself.
 - **Query log**: Shows the last 500 lookups, whether each was blocked, and which app made it (Android 10+). Search by domain or app name, and tap a lookup to block or allow it. By default the log is kept only in memory, but you can also keep 1, 7 or 30 days on the phone and export it as CSV (the app asks before deleting a saved log when you turn the log off or shorten the period). The log itself can be turned off.
 - **Statistics**: Shows today's counts, a 7-day chart, all-time totals, and the most-blocked domains and apps. Only counts are saved, not which sites you visited.
 - **Private DNS warning**: Tells you when "Private DNS" is set to a hostname, which stops blocking from working.
-- **Encrypted DNS** (optional): Sends lookups to Cloudflare, Google or Quad9 over DNS over TLS.
+- **Encrypted DNS** (optional): Sends lookups to Cloudflare, Google or Quad9 over DNS over TLS (port 853) or DNS over HTTPS (port 443, for networks that block 853).
 - **Settings backup**: Exports your blocked and allowed domains, excluded apps, Wi-Fi networks without blocking and other settings to a file, which you can import on a new phone. Wi-Fi names are part of these settings, so they are also in the file and in Android's own cloud backup of the app's settings.
 - **Automatic blocklist updates**: Fetches the latest lists once a day (you can choose the time).
 - **Automatic app updates**: Checks GitHub Releases once a day and installs new versions automatically (you can choose to only be notified).
 - **Update on Wi-Fi Only**: Automatic updates of blocklists and the app don't run on mobile data (on by default).
 - **Quick Settings tile**: Turn blocking on or off from the notification shade (tap it while paused to resume).
 - **Launcher shortcuts**: Long-press the app icon for "Pause / Resume" and "On / Off".
+- **Home screen widget**: Tap it to turn blocking on or off, or use its pause button. It can be resized down to a single shield.
+- **Why is it blocked?**: Tap a row in the log (or use "Check a Domain" in Block & Allow Domains) to see which list or rule is responsible. Statistics also show how many blocks each list covers.
 - **Notification settings**: App updates, blocklist updates and the running indicator can each be turned on or off.
 - Resumes automatically after a reboot or an app update, and works with Always-on VPN
 - Light mode / dark mode
@@ -110,7 +112,7 @@ On Android 12 and later, updates after the first one install without asking (onl
 | `RuleParser.kt` | Parsing one line in hosts / domain / Adblock format |
 | `BlockListUpdater.kt` / `BlockListWorker.kt` / `UpdateConstraints.kt` | Downloading blocklists, the daily automatic update, and its time and network conditions |
 | `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) and the list of major public DNS servers |
-| `DotClient.kt` | Encrypted DNS (DNS over TLS) |
+| `EncryptedDnsClient.kt` / `Doh.kt` | Encrypted DNS (DNS over TLS / HTTPS) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
 | `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, Wi-Fi without blocking, your blocked / allowed domains, blocklist) |
 | `WifiNetworks.kt` / `WifiSettingsActivity.kt` | Wi-Fi without blocking (watching the connected Wi-Fi name, and the settings page) |
@@ -123,7 +125,7 @@ On Android 12 and later, updates after the first one install without asking (onl
 | `ShortcutActivity.kt` / `ResumeReceiver.kt` | Launcher shortcuts / the Resume button in the notification |
 | `DomainActions.kt` | The block / allow menu for a domain |
 | `CardLayout.kt` / `BarChartView.kt` | Rounded cards / the 7-day chart |
-| `AdBlockTileService.kt` | Quick Settings tile |
+| `AdBlockTileService.kt` / `AdBlockWidget.kt` / `StatusSurfaces.kt` | Quick Settings tile / home screen widget / updating both |
 | `BootReceiver.kt` | Resuming after a reboot or an app update |
 | `Notifications.kt` / `Prefs.kt` | Notifications / saved settings |
 | `DebugLog.kt` / `DeveloperSettingsActivity.kt` | Debug log for troubleshooting (developer mode: tap the version 5 times in "Settings → Updates"). Domain names and Wi-Fi names are not recorded |

@@ -54,7 +54,7 @@ object DnsDebugStats {
         if (DebugLog.enabled) tcpRetried.incrementAndGet()
     }
 
-    fun answeredOverDot() {
+    fun answeredOverEncrypted() {
         if (DebugLog.enabled) dot.incrementAndGet()
     }
 
@@ -87,7 +87,7 @@ object DnsDebugStats {
         val f = forwarded.getAndSet(0)
         val total = latencyTotal.getAndSet(0)
         val line = "last $period: $q queries, ${blocked.getAndSet(0)} blocked, ${cached.getAndSet(0)} cached, " +
-            "$f forwarded (${dot.getAndSet(0)} over DoT, ${tcpRetried.getAndSet(0)} retried over TCP), ${failed.getAndSet(0)} failed; " +
+            "$f forwarded (${dot.getAndSet(0)} over encrypted DNS, ${tcpRetried.getAndSet(0)} retried over TCP), ${failed.getAndSet(0)} failed; " +
             "upstream ${if (f > 0) total / f else 0} ms avg, ${latencyMax.getAndSet(0)} ms max; " +
             "servers ${servers.map { it.hostAddress }}; unblocked Wi-Fi: ${WifiNetworks.isUnblocked()}"
         if (q > 0) DebugLog.i(TAG, line)

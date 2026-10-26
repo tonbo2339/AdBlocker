@@ -17,6 +17,7 @@ object Prefs {
     private const val KEY_QUERY_LOG = "query_log"
     private const val KEY_PAUSED_UNTIL = "paused_until"
     private const val KEY_ENCRYPTED_DNS = "encrypted_dns"
+    private const val KEY_ENCRYPTED_DNS_MODE = "encrypted_dns_mode"
     private const val KEY_CAPTURE_DNS = "capture_hardcoded_dns"
     private const val KEY_LOG_RETENTION_DAYS = "log_retention_days"
     private const val KEY_UPDATE_TIME = "update_time_minutes"
@@ -131,6 +132,14 @@ object Prefs {
 
     fun setEncryptedDns(context: Context, server: EncryptedDns?) {
         prefs(context).edit { putString(KEY_ENCRYPTED_DNS, server?.id) }
+    }
+
+    /** 暗号化 DNS の方式 (既定は DNS over TLS)。転送先がオフのときは使わない。 */
+    fun encryptedDnsMode(context: Context): EncryptedDnsMode =
+        EncryptedDnsMode.of(prefs(context).getString(KEY_ENCRYPTED_DNS_MODE, null))
+
+    fun setEncryptedDnsMode(context: Context, mode: EncryptedDnsMode) {
+        prefs(context).edit { putString(KEY_ENCRYPTED_DNS_MODE, mode.id) }
     }
 
     /** DNS サーバーを直接指定しているアプリの問い合わせも捕まえるか (主な公開 DNS 宛てを VPN に通す)。既定はオフ。 */

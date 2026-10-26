@@ -30,6 +30,7 @@ class DnsSettingsActivity : SettingsPageActivity() {
 
     private val servers = listOf<EncryptedDns?>(null) + EncryptedDns.entries
     private val serverRows = mutableListOf<SettingRow>()
+    private val modeRows = mutableListOf<SettingRow>()
 
     override fun SettingsBuilder.build(savedInstanceState: Bundle?) {
         header(R.string.row_encrypted_dns)
@@ -44,6 +45,17 @@ class DnsSettingsActivity : SettingsPageActivity() {
         }
         footer(R.string.encrypted_dns_footer)
 
+        header(R.string.row_encrypted_dns_mode)
+        card {
+            for (mode in EncryptedDnsMode.entries) {
+                modeRows += choice(getString(modeTitle(mode)), false) {
+                    Prefs.setEncryptedDnsMode(this@DnsSettingsActivity, mode)
+                    refresh()
+                }
+            }
+        }
+        footer(R.string.encrypted_dns_mode_footer)
+
         card(spaced = true) {
             toggle(R.string.row_capture_dns, R.drawable.ic_g_shield, R.color.sys_red, Prefs.captureHardcodedDns(this@DnsSettingsActivity)) {
                 Prefs.setCaptureHardcodedDns(this@DnsSettingsActivity, it)
@@ -57,6 +69,13 @@ class DnsSettingsActivity : SettingsPageActivity() {
     override fun refresh() {
         val current = Prefs.encryptedDns(this)
         servers.forEachIndexed { i, server -> serverRows[i].checked = server == current }
+        val mode = Prefs.encryptedDnsMode(this)
+        EncryptedDnsMode.entries.forEachIndexed { i, m -> modeRows[i].checked = m == mode }
+    }
+
+    private fun modeTitle(mode: EncryptedDnsMode) = when (mode) {
+        EncryptedDnsMode.TLS -> R.string.encrypted_dns_mode_tls
+        EncryptedDnsMode.HTTPS -> R.string.encrypted_dns_mode_https
     }
 }
 

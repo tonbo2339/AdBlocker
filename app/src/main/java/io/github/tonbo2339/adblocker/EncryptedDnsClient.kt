@@ -28,16 +28,28 @@ enum class EncryptedDns(val id: String, val title: String, val host: String, val
     }
 }
 
+/** 暗号化 DNS の方式。 */
+enum class EncryptedDnsMode(val id: String, val port: Int) {
+    /** DNS over TLS (RFC 7858)。853 番を塞いでいる回線では使えない。 */
+    TLS("tls", 853),
+
+    /** DNS over HTTPS (RFC 8484)。普通の Web と同じ 443 番なので、853 番が塞がれていても通りやすい。 */
+    HTTPS("https", 443);
+
+    companion object {
+        fun of(id: String?): EncryptedDnsMode = entries.firstOrNull { it.id == id } ?: TLS
+    }
+}
+
 /**
- * DNS over TLS (RFC 7858) のクライアント。問い合わせのたびに TLS の握手をしないよう、接続を使い回す。
+ * 暗号化 DNS (DNS over TLS / DNS over HTTPS) のクライアント。問い合わせのたびに TLS の握手をしないよう、接続を使い回す。
  * 1 つの接続では 1 度に 1 つの問い合わせだけを送る (並行する問い合わせは別の接続を使う)。
  * ソケットは VpnService.protect() で VPN の外に出す。
  */
-class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
+class EncryptedDnsClient(private val vpn: VpnService, val server: EncryptedDns, val mode: EncryptedDnsMode = EncryptedDnsMode.TLS) {
 
     private companion object {
-        const val TAG = "DotClient"
-        const val PORT = 853
+        const val TAG = "EncryptedDnsClient"
         const val TIMEOUT_MS = 3000
 
         /** これより長く使っていない接続は、相手に切られている可能性が高いので使わずに作り直す。 */
@@ -55,6 +67,9 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
         val input = DataInputStream(socket.inputStream.buffered())
         val output = socket.outputStream
         var lastUsed = System.currentTimeMillis()
+
+        /** 相手が「この接続は閉じる」(Connection: close) と答えたら false。 */
+        var reusable = true
     }
 
     private val idle = ArrayBlockingQueue<Connection>(MAX_IDLE_CONNECTIONS)
@@ -80,7 +95,7 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
             }
             try {
                 val response = exchange(conn, dns)
-                release(conn)
+                if (conn.reusable) release(conn) else close(conn)
                 return response
             } catch (e: IOException) {
                 Log.d(TAG, "query over ${server.host} failed: $e")
@@ -118,11 +133,11 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
         val plain = Socket()
         try {
             // 保護できないと、この接続が自分の tun を通ってしまう (送らずに、通常の DNS に切り替える)
-            if (!vpn.protect(plain)) throw IOException("protect failed")
-            plain.connect(InetSocketAddress(InetAddress.getByName(server.address), PORT), TIMEOUT_MS)
+            if (!plain.protectWith(vpn::protect)) throw IOException("protect failed")
+            plain.connect(InetSocketAddress(InetAddress.getByName(server.address), mode.port), TIMEOUT_MS)
             plain.soTimeout = TIMEOUT_MS
             val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
-            val ssl = factory.createSocket(plain, server.host, PORT, true) as SSLSocket
+            val ssl = factory.createSocket(plain, server.host, mode.port, true) as SSLSocket
             ssl.sslParameters = ssl.sslParameters.apply { serverNames = listOf(SNIHostName(server.host)) }
             ssl.startHandshake()
             // 証明書がこのサーバーの名前のものか確かめる (握手だけでは名前は確かめられない)
@@ -138,17 +153,23 @@ class DotClient(private val vpn: VpnService, val server: EncryptedDns) {
     }
 
     private fun exchange(conn: Connection, dns: ByteArray): ByteArray {
-        // TCP と同じく、先頭に 2 バイトの長さを付ける
-        val frame = ByteArray(2 + dns.size)
-        put16(frame, 0, dns.size)
-        System.arraycopy(dns, 0, frame, 2, dns.size)
-        conn.output.write(frame)
-        conn.output.flush()
-        val length = conn.input.readUnsignedShort()
-        val response = ByteArray(length)
-        conn.input.readFully(response)
+        val response = when (mode) {
+            EncryptedDnsMode.TLS -> {
+                conn.output.write(TcpDns.frame(dns))
+                conn.output.flush()
+                val length = conn.input.readUnsignedShort()
+                ByteArray(length).also { conn.input.readFully(it) }
+            }
+            EncryptedDnsMode.HTTPS -> {
+                conn.output.write(Doh.request(server.host, dns))
+                conn.output.flush()
+                val reply = Doh.readResponse(conn.input)
+                conn.reusable = reply.keepAlive
+                reply.body
+            }
+        }
         // 別の問い合わせへの答えが混ざっていたら、この接続は使わない
-        if (length < 12 || response[0] != dns[0] || response[1] != dns[1]) throw IOException("unexpected response")
+        if (response.size < 12 || response[0] != dns[0] || response[1] != dns[1]) throw IOException("unexpected response")
         return response
     }
 

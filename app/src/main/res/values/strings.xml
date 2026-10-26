@@ -198,7 +198,11 @@
     <string name="shortcut_is_off">Ad blocking is off</string>
     <string name="row_encrypted_dns">Encrypted DNS</string>
     <string name="encrypted_dns_off">Off</string>
-    <string name="encrypted_dns_footer">Sends lookups over DNS over TLS so your network can\'t read or change them. If the server can\'t be reached, your network\'s DNS is used instead. While it\'s on, names that only your network knows (such as company or router names) may not work.</string>
+    <string name="encrypted_dns_footer">Encrypts lookups (DNS over TLS or DNS over HTTPS, chosen below) so your network can\'t read or change them. If the server can\'t be reached, your network\'s DNS is used instead. While it\'s on, names that only your network knows (such as company or router names) may not work.</string>
+    <string name="row_encrypted_dns_mode">Encrypted DNS Method</string>
+    <string name="encrypted_dns_mode_tls">DNS over TLS (port 853)</string>
+    <string name="encrypted_dns_mode_https">DNS over HTTPS (port 443)</string>
+    <string name="encrypted_dns_mode_footer">DNS over HTTPS looks like ordinary web traffic, so it can work on networks that block the DNS over TLS port. It does nothing while Encrypted DNS is off.</string>
     <string name="section_backup">Backup</string>
     <string name="row_export">Export Settings</string>
     <string name="row_import">Import Settings</string>

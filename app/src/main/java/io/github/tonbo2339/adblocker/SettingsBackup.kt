@@ -21,6 +21,7 @@ object SettingsBackup {
             .put("update_on_wifi_only", Prefs.updateOnWifiOnly(context))
             .put("auto_install_updates", Prefs.autoInstallUpdates(context))
             .put("encrypted_dns", Prefs.encryptedDns(context)?.id ?: JSONObject.NULL)
+            .put("encrypted_dns_mode", Prefs.encryptedDnsMode(context).id)
             .put("capture_hardcoded_dns", Prefs.captureHardcodedDns(context))
             .put("log_retention_days", Prefs.logRetentionDays(context))
             .put("update_time_minutes", Prefs.updateTimeMinutes(context) ?: JSONObject.NULL)
@@ -74,6 +75,7 @@ object SettingsBackup {
             bool(s, "update_on_wifi_only")?.let { Prefs.setUpdateOnWifiOnly(app, it) }
             bool(s, "auto_install_updates")?.let { Prefs.setAutoInstallUpdates(app, it) }
             if (s.has("encrypted_dns")) Prefs.setEncryptedDns(app, EncryptedDns.of(s.optString("encrypted_dns")))
+            if (s.has("encrypted_dns_mode")) Prefs.setEncryptedDnsMode(app, EncryptedDnsMode.of(s.optString("encrypted_dns_mode")))
             bool(s, "capture_hardcoded_dns")?.let { Prefs.setCaptureHardcodedDns(app, it) }
             (s.opt("log_retention_days") as? Int)?.takeIf { it in Prefs.LOG_RETENTION_CHOICES }?.let { Prefs.setLogRetentionDays(app, it) }
             if (s.has("update_time_minutes")) Prefs.setUpdateTimeMinutes(app, (s.opt("update_time_minutes") as? Int)?.takeIf { it in 0 until 24 * 60 })

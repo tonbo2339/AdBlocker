@@ -27,7 +27,7 @@ object TcpDns {
     fun query(protect: (Socket) -> Boolean, server: InetAddress, dns: ByteArray, maxSize: Int, port: Int = 53): ByteArray? {
         val socket = Socket()
         try {
-            if (!protect(socket)) return null
+            if (!socket.protectWith(protect)) return null
             socket.soTimeout = TIMEOUT_MS
             socket.connect(InetSocketAddress(server, port), TIMEOUT_MS)
             socket.getOutputStream().apply {
@@ -51,4 +51,13 @@ object TcpDns {
             }
         }
     }
+}
+
+/**
+ * ソケットを VPN の外に出す (VpnService.protect)。
+ * 接続前の Socket にはまだ OS のソケット (ファイル記述子) が無く、そのまま protect() すると false になるので、先に bind して作らせる。
+ */
+internal fun Socket.protectWith(protect: (Socket) -> Boolean): Boolean {
+    bind(null)
+    return protect(this)
 }

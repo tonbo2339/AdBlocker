@@ -145,10 +145,10 @@ class AdBlockVpnService : VpnService() {
 
     /** 暗号化 DNS のクライアント。設定が変わったら作り直す (VPN は作り直さない)。 */
     @Volatile
-    private var dot: DotClient? = null
-    private val dotLock = Any()
+    private var encrypted: EncryptedDnsClient? = null
+    private val encryptedLock = Any()
 
-    /** onDestroy() の後か (dotLock の中で読み書きする)。 */
+    /** onDestroy() の後か (encryptedLock の中で読み書きする)。 */
     private var destroyed = false
 
     /** 現在のワーカー。作り直しで置き換わった古いワーカーは、終了時に状態を書き換えない。 */
@@ -195,7 +195,7 @@ class AdBlockVpnService : VpnService() {
         WifiNetworks.addListener(statusListener)
         locales = resources.configuration.locales
         // 回線の DNS が変わったら、覚えている答えと、暗号化 DNS の使い回し接続 (古い回線のもの) を捨てる
-        upstream = UpstreamDns(this) { cache.clear(); resetDot() }.apply { start() }
+        upstream = UpstreamDns(this) { cache.clear(); resetEncrypted() }.apply { start() }
         ssidMonitor = SsidMonitor(this, logHidden = true) { WifiNetworks.setCurrent(this, it) }.apply { start() }
         apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
@@ -282,10 +282,10 @@ class AdBlockVpnService : VpnService() {
         shutdown()
         state = State.STOPPED
         upstream.stop()
-        synchronized(dotLock) {
+        synchronized(encryptedLock) {
             destroyed = true
-            dot?.close()
-            dot = null
+            encrypted?.close()
+            encrypted = null
         }
         super.onDestroy()
     }
@@ -354,7 +354,7 @@ class AdBlockVpnService : VpnService() {
                     TAG,
                     if (tun != null) {
                         "VPN established (excluded apps ${Prefs.excluded(this).size}, capture public DNS ${Prefs.captureHardcodedDns(this)}, " +
-                            "encrypted DNS ${Prefs.encryptedDns(this)?.id ?: "off"})"
+                            "encrypted DNS ${Prefs.encryptedDns(this)?.id ?: "off"} ${Prefs.encryptedDnsMode(this).id})"
                     } else {
                         "establish() returned null"
                     },
@@ -523,26 +523,27 @@ class AdBlockVpnService : VpnService() {
     }
 
     /** 暗号化 DNS の使い回し接続を閉じる (次の問い合わせで作り直す)。回線が替わったときに呼ぶ。 */
-    private fun resetDot() {
-        synchronized(dotLock) {
-            dot?.close()
-            dot = null
+    private fun resetEncrypted() {
+        synchronized(encryptedLock) {
+            encrypted?.close()
+            encrypted = null
         }
     }
 
     /** 設定に合った暗号化 DNS のクライアント (オフなら null)。 */
-    private fun dotClient(): DotClient? {
+    private fun encryptedClient(): EncryptedDnsClient? {
         val server = Prefs.encryptedDns(this)
-        val current = dot
-        if (current?.server == server) return current
+        val mode = Prefs.encryptedDnsMode(this)
+        val current = encrypted
+        if (current?.server == server && (current == null || current.mode == mode)) return current
         // VPN の作り直しと同じロック (this) を使うと、tun を作っている間の問い合わせが待たされる
-        synchronized(dotLock) {
+        synchronized(encryptedLock) {
             // 終了後に残った転送が新しいクライアントを作ると、その接続は誰も閉じない
             if (destroyed) return null
-            val again = dot
-            if (again?.server == server) return again
+            val again = encrypted
+            if (again?.server == server && (again == null || again.mode == mode)) return again
             again?.close()
-            return server?.let { DotClient(this, it) }.also { dot = it }
+            return server?.let { EncryptedDnsClient(this, it, mode) }.also { encrypted = it }
         }
     }
 
@@ -554,11 +555,11 @@ class AdBlockVpnService : VpnService() {
         // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがある。さらに、問い合わせた側が受け取れる UDP の大きさ
         // (EDNS が無ければ 512) を超える答えは、切り捨てられて名前解決に失敗しうる。どちらもそのときは UDP で取り直す
         // (UDP の転送先は、問い合わせの EDNS の大きさに合わせて答えるので、大きすぎるときは切り詰め (TC) の答えが返る)
-        val dot = dotClient()
-        if (dot != null) {
+        val client = encryptedClient()
+        if (client != null) {
             val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
-            dot.query(dns)?.takeIf { it.size <= limit }?.let {
-                DnsDebugStats.answeredOverDot()
+            client.query(dns)?.takeIf { it.size <= limit }?.let {
+                DnsDebugStats.answeredOverEncrypted()
                 return it
             }
         }
