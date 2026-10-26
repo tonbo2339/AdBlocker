@@ -183,8 +183,11 @@
     <string name="section_built_in_lists">組み込みのリスト</string>
     <string name="built_in_lists_footer">オフにしたリストは、すぐに使われなくなります。HaGeZi Pro は、ほかのリストが見逃す広告の多くと、トラッカーや詐欺サイトもブロックします。Pro++ はさらに多くブロックしますが、サイトやアプリが動かなくなることが増えます。動かないものがあれば「ブロック・許可するドメイン」で許可するか、Pro++ をオフにしてください。</string>
     <string name="section_custom_lists">自分で追加したリスト</string>
-    <string name="custom_lists_footer">hosts・ドメイン・*.ドメイン・Adblock (||domain^) 形式のリストを、https の URL で追加できます。ほかのリストと一緒に、1 日 1 回ダウンロードします。タップすると削除できます。</string>
+    <string name="custom_lists_footer">hosts・ドメイン・*.ドメイン・Adblock (||domain^) 形式のリストを、https の URL で追加できます。この端末のファイルを選ぶこともできます。URL はほかのリストと一緒に 1 日 1 回ダウンロードし、ファイルはそのときに読み直します。タップすると削除できます。</string>
     <string name="list_add">リストの URL を追加</string>
+    <string name="list_add_file">リストのファイルを追加</string>
+    <string name="list_from_file">この端末のファイル</string>
+    <string name="list_file_unreadable">このファイルは、あとで読み直せません。「ファイル」アプリなどから選び直してください。</string>
     <string name="list_url_invalid">https:// で始まる URL を入力してください</string>
     <string name="list_delete_title">%1$s を削除しますか?</string>
     <string name="list_rules">%1$s 件</string>

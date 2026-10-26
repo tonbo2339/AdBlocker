@@ -186,8 +186,11 @@
     <string name="section_built_in_lists">Built-in Lists</string>
     <string name="built_in_lists_footer">Turning a list off stops using it right away. HaGeZi Pro also blocks many ads the other lists miss, plus trackers and scams. Pro++ blocks even more but is more likely to break a site or app; if something stops working, allow it in \"Block &amp; Allow Domains\" or turn Pro++ off.</string>
     <string name="section_custom_lists">Your Lists</string>
-    <string name="custom_lists_footer">Add a list in hosts, domain, *.domain or Adblock (||domain^) format by its https URL. It is downloaded with the other lists once a day. Tap a list to remove it.</string>
+    <string name="custom_lists_footer">Add a list in hosts, domain, *.domain or Adblock (||domain^) format by its https URL, or choose a file on this phone. URLs are downloaded with the other lists once a day, and files are read again then. Tap a list to remove it.</string>
     <string name="list_add">Add List URL</string>
+    <string name="list_add_file">Add List File</string>
+    <string name="list_from_file">File on this phone</string>
+    <string name="list_file_unreadable">This file can\'t be kept for later. Choose it from Files or a storage app instead.</string>
     <string name="list_url_hint" translatable="false">https://example.com/list.txt</string>
     <string name="list_url_invalid">Enter an https:// URL</string>
     <string name="list_delete_title">Remove %1$s?</string>

@@ -34,7 +34,7 @@ object SettingsBackup {
             .put("blocklists", JSONObject().apply {
                 for (source in BlockListUpdater.BUILT_IN) put(source.id, Prefs.isSourceEnabled(context, source))
             })
-            .put("custom_blocklists", JSONArray(Prefs.customSourceUrls(context).sorted()))
+            .put("custom_blocklists", JSONArray(Prefs.customSourceUrls(context).filter { BlockListUpdater.normalizeUrl(it) != null }.sorted()))
         return JSONObject()
             .put("app", APP)
             .put("format", FORMAT)
@@ -102,7 +102,9 @@ object SettingsBackup {
                 }
             }
             s.optJSONArray("custom_blocklists")?.let { urls ->
-                Prefs.setCustomSourceUrls(app, strings(urls).mapNotNull { BlockListUpdater.normalizeUrl(it) }.toSet())
+                // この端末で選んだファイルは、バックアップに入っていないので残す
+                val files = Prefs.customSourceUrls(app).filter { BlockListUpdater.isFileUrl(it) }
+                Prefs.setCustomSourceUrls(app, strings(urls).mapNotNull { BlockListUpdater.normalizeUrl(it) }.toSet() + files)
             }
         }
 

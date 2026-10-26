@@ -1,9 +1,12 @@
 package io.github.tonbo2339.adblocker
 
+import android.content.Intent
 import android.icu.text.ListFormatter
+import android.net.Uri
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -40,6 +43,13 @@ class BlocklistsActivity : SettingsPageActivity() {
 
     /** 取得元ごとのルール数 (ファイルを読んで数える)。 */
     private var counts: Map<String, Int?> = emptyMap()
+
+    /** 端末のファイルの取得元の名前 (ファイルの提供元に尋ねるので、別のスレッドで調べる)。 */
+    private var names: Map<String, String> = emptyMap()
+
+    private val filePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) addFile(uri)
+    }
 
     override fun SettingsBuilder.build(savedInstanceState: Bundle?) {
         header(R.string.section_blocklist_status)
@@ -85,7 +95,7 @@ class BlocklistsActivity : SettingsPageActivity() {
         sourcesFooter.text = if (sources.isEmpty()) {
             getString(R.string.sources_footer_none)
         } else {
-            getString(R.string.sources_footer, ListFormatter.getInstance().format(sources.map { it.name }))
+            getString(R.string.sources_footer, ListFormatter.getInstance().format(sources.map { names[it.id] ?: it.name }))
         }
         show()
     }
@@ -120,10 +130,13 @@ class BlocklistsActivity : SettingsPageActivity() {
         thread {
             val all = BlockListUpdater.BUILT_IN + Prefs.customSourceUrls(app).map { BlockListUpdater.custom(it) }
             val result = all.associate { it.id to BlockListUpdater.ruleCount(app, it) }
+            val fileNames = all.filter { it.isFile }.associate { it.id to BlockListUpdater.displayName(app, it) }
             runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
                 counts = result
-                show()
+                names = fileNames
+                // 名前が分かったので、「使っているリスト」の説明も作り直す
+                refresh()
             }
         }
     }
@@ -146,12 +159,16 @@ class BlocklistsActivity : SettingsPageActivity() {
         customCard.clear()
         for (url in Prefs.customSourceUrls(this).sorted()) {
             val source = BlockListUpdater.custom(url)
-            val row = sourceRow(source.name, listOfNotNull(countText(source), url).joinToString(" · "))
+            val name = names[source.id] ?: source.name
+            // ファイルの場所 (content://…) は長くて読めないので、「端末のファイル」とだけ出す
+            val where = if (source.isFile) getString(R.string.list_from_file) else url
+            val row = sourceRow(name, listOfNotNull(countText(source), where).joinToString(" · "))
             row.toggle.isVisible = false
-            row.row.setOnClickListener { confirmDelete(url, source.name) }
+            row.row.setOnClickListener { confirmDelete(url, name) }
             customCard.custom(row.root)
         }
         customCard.action(R.string.list_add) { showAddDialog() }
+        customCard.action(R.string.list_add_file) { filePicker.launch(arrayOf("*/*")) }
     }
 
     private fun sourceRow(title: String, subtitle: String): ItemSourceRowBinding =
@@ -182,6 +199,7 @@ class BlocklistsActivity : SettingsPageActivity() {
         val app = applicationContext
         thread {
             BlockListUpdater.applySelection(app)
+            BlockListUpdater.updateFiles(app) // 端末のファイルは通信が要らないので、すぐ読む
             if (BlockListUpdater.hasMissing(app)) BlockListWorker.runNow(app)
             runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
@@ -204,10 +222,31 @@ class BlocklistsActivity : SettingsPageActivity() {
         }
     }
 
+    /** 選んだファイルを、リストの取得元に足す。あとで読めるよう、読む許可を保存しておく。 */
+    private fun addFile(uri: Uri) {
+        try {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } catch (e: SecurityException) {
+            // 許可を保存できないファイル (一時的な場所など) は、次に読めなくなるので足さない
+            Toast.makeText(this, R.string.list_file_unreadable, Toast.LENGTH_LONG).show()
+            return
+        }
+        Prefs.setCustomSourceUrls(this, Prefs.customSourceUrls(this) + uri.toString())
+        selectionChanged()
+        show()
+    }
+
     private fun confirmDelete(url: String, name: String) {
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.list_delete_title, name))
             .setPositiveButton(R.string.action_delete) { _, _ ->
+                if (BlockListUpdater.isFileUrl(url)) {
+                    try {
+                        contentResolver.releasePersistableUriPermission(Uri.parse(url), Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    } catch (_: SecurityException) {
+                        // 保存していなかった
+                    }
+                }
                 Prefs.setCustomSourceUrls(this, Prefs.customSourceUrls(this) - url)
                 selectionChanged()
                 show()

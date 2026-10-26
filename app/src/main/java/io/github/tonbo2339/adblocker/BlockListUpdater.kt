@@ -1,6 +1,8 @@
 package io.github.tonbo2339.adblocker
 
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -17,7 +19,10 @@ data class BlockListSource(
     val builtIn: Boolean = true,
     val enabledByDefault: Boolean = true,
     val license: String? = null,
-)
+) {
+    /** 端末のファイル (ファイルの選択で追加したもの)。URL ではなく、読む許可を保存した content:// の場所。 */
+    val isFile: Boolean get() = BlockListUpdater.isFileUrl(url)
+}
 
 /**
  * ブロックリストをダウンロードして filesDir/blocklists/<id>.txt に保存する。
@@ -62,12 +67,27 @@ object BlockListUpdater {
         ),
     )
 
-    /** 利用者が追加した URL の取得元。id は URL から作る (同じ URL なら同じファイル)。 */
+    /** 利用者が追加した取得元 (URL か端末のファイル)。id は URL から作る (同じ URL なら同じファイル)。 */
     fun custom(url: String): BlockListSource {
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(url.toByteArray())
         val id = "custom-" + digest.take(6).joinToString("") { "%02x".format(it) }
-        val name = runCatching { java.net.URI(url).host }.getOrNull() ?: url
+        // ファイルの名前は、選んだファイルの場所からは分からない (表示のときに fileName で調べる)。それまでは仮の名前
+        val name = if (isFileUrl(url)) "File" else runCatching { java.net.URI(url).host }.getOrNull() ?: url
         return BlockListSource(id, name, url, builtIn = false)
+    }
+
+    fun isFileUrl(url: String): Boolean = url.startsWith("content://")
+
+    /** 取得元の表示名。ファイルは、ファイルの名前 (調べられなければ仮の名前)。ファイルの提供元に尋ねるので、メインスレッドで呼ばない。 */
+    fun displayName(context: Context, source: BlockListSource): String {
+        if (!source.isFile) return source.name
+        return try {
+            context.contentResolver.query(Uri.parse(source.url), arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
+                if (it.moveToFirst()) it.getString(0) else null
+            } ?: source.name
+        } catch (e: Exception) {
+            source.name
+        }
     }
 
     /**
@@ -86,6 +106,24 @@ object BlockListUpdater {
         BUILT_IN.filter { Prefs.isSourceEnabled(context, it) } +
             Prefs.customSourceUrls(context).sorted().map { custom(it) }
 
+    /**
+     * 端末のファイルの取得元だけを読み直す (ネットワークは使わない)。ファイルを足したときに、通信を待たずに反映するために使う。
+     * 中身が変わっていれば BlockList に反映する。
+     */
+    @Synchronized
+    fun updateFiles(context: Context) {
+        val dir = BlockList.dir(context).apply { mkdirs() }
+        var changed = false
+        for (source in sources(context).filter { it.isFile }) {
+            try {
+                if (fetch(context, source, dir)) changed = true
+            } catch (e: Exception) {
+                DebugLog.w(TAG, "file source failed: ${source.id}", e)
+            }
+        }
+        if (changed) BlockList.reload(context)
+    }
+
     /** 使わなくなった取得元のファイルを消して、すぐ読み直す (ネットワークは使わない)。 */
     @Synchronized
     fun applySelection(context: Context) {
@@ -96,7 +134,8 @@ object BlockListUpdater {
     /** 選んだ取得元で、まだダウンロードしていないものがあるか。 */
     fun hasMissing(context: Context): Boolean {
         val dir = BlockList.dir(context)
-        return sources(context).any { it.id != BlockList.BUNDLED_SOURCE_ID && !File(dir, "${it.id}.txt").exists() }
+        // 端末のファイルは通信が要らない (updateFiles で読む) ので、ダウンロードの対象に数えない
+        return sources(context).any { it.id != BlockList.BUNDLED_SOURCE_ID && !it.isFile && !File(dir, "${it.id}.txt").exists() }
     }
 
     /** 消したファイルがあれば true。 */
@@ -142,8 +181,48 @@ object BlockListUpdater {
         return Result(updated, unchanged, failed)
     }
 
+    /** リストの行を読んで、正規化したルールを tmp に書く。書いたルールの数を返す。 */
+    private fun writeRules(lines: Sequence<String>, tmp: File): Int {
+        var count = 0
+        tmp.bufferedWriter().use { out ->
+            for (line in lines) {
+                val rule = RuleParser.parse(line) ?: continue
+                out.write(RuleParser.format(rule))
+                out.write('\n'.code)
+                count++
+            }
+        }
+        return count
+    }
+
+    /**
+     * 端末のファイルの取得元を読んで保存する。内容が前と同じなら保存し直さず false (毎日の更新で、リストの組み立て直しを避ける)。
+     * ファイルが消えた・読む許可を失ったときは例外 (前回の内容を使い続け、更新の失敗として知らせる)。
+     */
+    private fun readFile(context: Context, source: BlockListSource, dir: File): Boolean {
+        val target = File(dir, "${source.id}.txt")
+        val tmp = File(dir, "${source.id}.tmp")
+        val input = context.contentResolver.openInputStream(Uri.parse(source.url)) ?: throw IOException("cannot open the file")
+        val count = input.bufferedReader().useLines { writeRules(it, tmp) }
+        if (count < 1) {
+            tmp.delete()
+            throw IOException("no rules in the file")
+        }
+        if (target.exists() && target.length() == tmp.length() && target.readBytes().contentEquals(tmp.readBytes())) {
+            tmp.delete()
+            return false
+        }
+        if (!tmp.renameTo(target)) {
+            tmp.delete()
+            throw IOException("rename failed")
+        }
+        DebugLog.i(TAG, "${source.id}: $count rules (file)")
+        return true
+    }
+
     /** 1 つの取得元を取得する。内容が変わって保存したら true、変更なし (304) なら false。 */
     private fun fetch(context: Context, source: BlockListSource, dir: File): Boolean {
+        if (source.isFile) return readFile(context, source, dir)
         val target = File(dir, "${source.id}.txt")
         val conn = URL(source.url).openConnection() as HttpURLConnection
         try {
@@ -164,17 +243,7 @@ object BlockListUpdater {
             }
 
             val tmp = File(dir, "${source.id}.tmp")
-            var count = 0
-            tmp.bufferedWriter().use { out ->
-                conn.inputStream.bufferedReader().useLines { lines ->
-                    for (line in lines) {
-                        val rule = RuleParser.parse(line) ?: continue
-                        out.write(RuleParser.format(rule))
-                        out.write('\n'.code)
-                        count++
-                    }
-                }
-            }
+            val count = conn.inputStream.bufferedReader().useLines { writeRules(it, tmp) }
             // 自分で追加したリストは小さくてもよい (取得元の障害で空になったものだけ弾く)
             if (count < if (source.builtIn) MIN_RULES else 1) {
                 tmp.delete()
