@@ -146,9 +146,19 @@ object Prefs {
         val prefs = prefs(context)
         val host = prefs.getString(KEY_CUSTOM_DNS_HOST, null) ?: return null
         val address = prefs.getString(KEY_CUSTOM_DNS_ADDRESS, null) ?: return null
+        val path = prefs.getString(KEY_CUSTOM_DNS_PATH, EncryptedDns.DEFAULT_PATH).orEmpty()
+        // 転送のたびに呼ばれる (VPN のスレッド) ので、同じ値なら検査し直さない
+        customDnsCache?.let { if (it.host == host && it.address == address && it.path == path) return it.server }
         // 保存した値も、入力と同じ検査を通す (バックアップの読み込みなどで壊れた値が入っても、接続には使わない)
-        return CustomDns.parse(host + prefs.getString(KEY_CUSTOM_DNS_PATH, EncryptedDns.DEFAULT_PATH), address)
+        val server = CustomDns.parse(host + path, address)
+        customDnsCache = CustomDnsCache(host, address, path, server)
+        return server
     }
+
+    private class CustomDnsCache(val host: String, val address: String, val path: String, val server: EncryptedDns?)
+
+    @Volatile
+    private var customDnsCache: CustomDnsCache? = null
 
     /** server が null なら、指定を消す (選んでいたら暗号化 DNS をオフにする)。 */
     fun setCustomDns(context: Context, server: EncryptedDns?) {
