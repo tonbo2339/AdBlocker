@@ -22,6 +22,7 @@ object Prefs {
     private const val KEY_CUSTOM_DNS_ADDRESS = "custom_dns_address"
     private const val KEY_CUSTOM_DNS_PATH = "custom_dns_path"
     private const val KEY_CAPTURE_DNS = "capture_hardcoded_dns"
+    private const val KEY_EXTERNAL_CONTROL = "external_control"
     private const val KEY_LOG_RETENTION_DAYS = "log_retention_days"
     private const val KEY_UPDATE_TIME = "update_time_minutes"
     private const val KEY_SOURCE_ON = "source_on_"
@@ -162,6 +163,16 @@ object Prefs {
                 putString(KEY_CUSTOM_DNS_PATH, server.path)
             }
         }
+    }
+
+    /**
+     * 外部のアプリ (Tasker など) からの、オン / オフ・一時停止の指示を受けるか (既定はオフ)。
+     * 端末のどのアプリからでも送れてしまうので、設定のバックアップには入れず、この端末の状態として持つ (読み込んだ設定でオンにならない)。
+     */
+    fun externalControl(context: Context): Boolean = state(context).getBoolean(KEY_EXTERNAL_CONTROL, false)
+
+    fun setExternalControl(context: Context, enabled: Boolean) {
+        state(context).edit { putBoolean(KEY_EXTERNAL_CONTROL, enabled) }
     }
 
     /** 暗号化 DNS の方式 (既定は DNS over TLS)。転送先がオフのときは使わない。 */

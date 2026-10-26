@@ -34,13 +34,17 @@ Once installed, the app checks for new versions and updates itself.
 - **Query log**: Shows the last 500 lookups, whether each was blocked, and which app made it (Android 10+). Search by domain or app name, and tap a lookup to block or allow it. By default the log is kept only in memory, but you can also keep 1, 7 or 30 days on the phone and export it as CSV (the app asks before deleting a saved log when you turn the log off or shorten the period). The log itself can be turned off.
 - **Statistics**: Shows today's counts, a 7-day chart, all-time totals, and the most-blocked domains and apps. Only counts are saved, not which sites you visited.
 - **Private DNS warning**: Tells you when "Private DNS" is set to a hostname, which stops blocking from working.
-- **Encrypted DNS** (optional): Sends lookups to Cloudflare, Google or Quad9 over DNS over TLS (port 853) or DNS over HTTPS (port 443, for networks that block 853).
+- **Encrypted DNS** (optional): Sends lookups to Cloudflare, Google, Quad9 or a server of your own (name or URL plus its IP address) over DNS over TLS (port 853) or DNS over HTTPS (port 443, for networks that block 853). If the method you choose can't connect, the other one is tried with the same provider.
 - **Settings backup**: Exports your blocked and allowed domains, excluded apps, Wi-Fi networks without blocking and other settings to a file, which you can import on a new phone. Wi-Fi names are part of these settings, so they are also in the file and in Android's own cloud backup of the app's settings.
 - **Automatic blocklist updates**: Fetches the latest lists once a day (you can choose the time).
 - **Automatic app updates**: Checks GitHub Releases once a day and installs new versions automatically (you can choose to only be notified).
 - **Update on Wi-Fi Only**: Automatic updates of blocklists and the app don't run on mobile data (on by default).
 - **Quick Settings tile**: Turn blocking on or off from the notification shade (tap it while paused to resume).
 - **Launcher shortcuts**: Long-press the app icon for "Pause / Resume" and "On / Off".
+- **Rules as text**: Import or export your block / allow rules as a plain text file (one rule per line, `@@` for allow; hosts files can be read too).
+- **Your own list files**: Besides https URLs, a blocklist can be a file on the phone (read again with the daily update).
+- **Response time**: The log shows how long each lookup took, and Statistics shows the average, the slowest and how many were answered from the cache.
+- **Control from other apps** (optional, off by default): Tasker or MacroDroid can turn blocking on or off or pause it with a broadcast (`io.github.tonbo2339.adblocker.action.START` / `STOP` / `PAUSE` with an optional `minutes` extra / `RESUME`, sent to the package `io.github.tonbo2339.adblocker`).
 - **Home screen widget**: Tap it to turn blocking on or off, or use its pause button. It can be resized down to a single shield.
 - **Why is it blocked?**: Tap a row in the log (or use "Check a Domain" in Block & Allow Domains) to see which list or rule is responsible. Statistics also show how many blocks each list covers.
 - **Notification settings**: App updates, blocklist updates and the running indicator can each be turned on or off.
@@ -112,7 +116,7 @@ On Android 12 and later, updates after the first one install without asking (onl
 | `RuleParser.kt` | Parsing one line in hosts / domain / Adblock format |
 | `BlockListUpdater.kt` / `BlockListWorker.kt` / `UpdateConstraints.kt` | Downloading blocklists, the daily automatic update, and its time and network conditions |
 | `UpstreamDns.kt` | Choosing upstream DNS servers (the network's DNS first, public DNS as backup) and the list of major public DNS servers |
-| `EncryptedDnsClient.kt` / `Doh.kt` | Encrypted DNS (DNS over TLS / HTTPS) |
+| `EncryptedDnsClient.kt` / `EncryptedDnsResolver.kt` / `Doh.kt` / `CustomDns.kt` | Encrypted DNS (DNS over TLS / HTTPS, failover between them, your own server) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | Automatic updates from GitHub Releases |
 | `Filter.kt` / `UserRules.kt` / `Pause.kt` | Deciding each lookup (pause, Wi-Fi without blocking, your blocked / allowed domains, blocklist) |
 | `WifiNetworks.kt` / `WifiSettingsActivity.kt` | Wi-Fi without blocking (watching the connected Wi-Fi name, and the settings page) |
@@ -122,7 +126,7 @@ On Android 12 and later, updates after the first one install without asking (onl
 | `SettingsActivity.kt` / `SettingsPages.kt` / `SettingsBuilder.kt` | Settings (top page, the DNS / Log / Updates / Notifications / Backup pages, and shared parts) |
 | `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | Block & Allow Domains / Blocklists / Excluded Apps |
 | `SettingsBackup.kt` | Exporting and importing settings |
-| `ShortcutActivity.kt` / `ResumeReceiver.kt` | Launcher shortcuts / the Resume button in the notification |
+| `BlockingControl.kt` / `ShortcutActivity.kt` / `RemoteControlReceiver.kt` / `ResumeReceiver.kt` | On / off and pause (shared) / launcher shortcuts and widget / broadcasts from other apps / the Resume button in the notification |
 | `DomainActions.kt` | The block / allow menu for a domain |
 | `CardLayout.kt` / `BarChartView.kt` | Rounded cards / the 7-day chart |
 | `AdBlockTileService.kt` / `AdBlockWidget.kt` / `StatusSurfaces.kt` | Quick Settings tile / home screen widget / updating both |

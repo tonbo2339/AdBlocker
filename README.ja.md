@@ -34,13 +34,17 @@ Android 用の広告ブロッカーです。端末の中だけで動く VPN を�
 - **問い合わせのログ**: 直近 500 件の問い合わせについて、ブロックしたかどうかと、問い合わせたアプリ (Android 10 以上) を表示します。ドメイン名やアプリ名で検索でき、タップするとブロック・許可を設定できます。標準ではメモリ上にだけ保持しますが、1 日・7 日・30 日分を端末に保存し、CSV で書き出すこともできます (ログをオフにしたり期間を短くしたりするときは、保存済みのログを削除する前に確認します)。ログ自体をオフにもできます
 - **統計**: 今日の件数、過去 7 日間のグラフ、累計、ブロック数の多いドメインとアプリを表示します。保存するのは件数だけで、閲覧したサイトは記録しません
 - **プライベート DNS の警告**: 「プライベート DNS」が「ホスト名を指定」になっていてブロックが効かないときに知らせます
-- **暗号化 DNS** (任意): 問い合わせを DNS over TLS (853 番) か DNS over HTTPS (443 番。853 番を塞ぐ回線向け) で Cloudflare・Google・Quad9 に送ります
+- **暗号化 DNS** (任意): 問い合わせを DNS over TLS (853 番) か DNS over HTTPS (443 番。853 番を塞ぐ回線向け) で Cloudflare・Google・Quad9、または自分で指定したサーバー (名前か URL と IP アドレス) に送ります。選んだ方式がつながらないときは、同じ事業者のもう一方の方式を試します
 - **設定のバックアップ**: ブロック・許可したドメイン、例外アプリ、ブロックしない Wi-Fi、各種設定をファイルに書き出し、機種変更後の端末で読み込めます。Wi-Fi の名前も設定の一部なので、このファイルと、Android 自身のアプリ設定のクラウドバックアップにも含まれます
 - **ブロックリストの自動更新**: 1 日 1 回、最新のリストを取得します (時刻を指定できます)
 - **アプリの自動アップデート**: 1 日 1 回 GitHub Releases を確認し、新しいバージョンがあれば自動でアップデートします (通知だけにすることもできます)
 - **Wi-Fi のときだけ自動更新**: ブロックリストとアプリの自動更新をモバイル通信では行いません (標準でオン)
 - **クイック設定タイル**: 通知パネルからオン / オフを切り替えられます (一時停止中にタップすると再開します)
 - **ランチャーのショートカット**: アプリのアイコンを長押しすると、「一時停止 / 再開」と「オン / オフ」を選べます
+- **ルールのテキスト入出力**: ブロック・許可のルールを、テキストのファイル (1 行に 1 つ、許可は行頭に `@@`。hosts ファイルも読めます) で読み込み・書き出しできます
+- **自分のリストのファイル**: ブロックリストは、https の URL のほか、この端末のファイルも使えます (毎日の更新のときに読み直します)
+- **応答時間**: ログに 1 件ごとの応答時間を出し、統計に平均・最も遅かったとき・キャッシュで答えた割合を出します
+- **外部アプリからの操作** (任意、既定はオフ): Tasker や MacroDroid が、ブロードキャストでオン / オフや一時停止をできます (`io.github.tonbo2339.adblocker.action.START` / `STOP` / `PAUSE` (追加情報 `minutes` で分を指定) / `RESUME`。宛先のパッケージは `io.github.tonbo2339.adblocker`)
 - **ホーム画面のウィジェット**: タップでオン / オフ、右のボタンで一時停止できます。盾だけの小さな大きさまで縮められます
 - **ブロックの理由**: ログの行をタップする (または「ブロック・許可するドメイン」の「ドメインを調べる」) と、どのリストやルールが原因か分かります。統計では、リストごとのブロック数も見られます
 - **通知の設定**: アプリのアップデート、ブロックリストの更新、動作中の表示を、それぞれオン / オフできます
@@ -112,7 +116,7 @@ Android 12 以上では、2 回目以降のアップデートは確認なしで�
 | `RuleParser.kt` | hosts / ドメイン / Adblock 形式の 1 行の解析 |
 | `BlockListUpdater.kt` / `BlockListWorker.kt` / `UpdateConstraints.kt` | ブロックリストのダウンロード、1 日 1 回の自動更新、その時刻と通信条件 |
 | `UpstreamDns.kt` | 転送先の DNS の選択 (回線の DNS を優先し、公開 DNS は予備) と、主要な公開 DNS の一覧 |
-| `EncryptedDnsClient.kt` / `Doh.kt` | 暗号化 DNS (DNS over TLS / HTTPS) |
+| `EncryptedDnsClient.kt` / `EncryptedDnsResolver.kt` / `Doh.kt` / `CustomDns.kt` | 暗号化 DNS (DNS over TLS / HTTPS、方式の切り替え、自分で指定するサーバー) |
 | `AppUpdater.kt` / `AppUpdateWorker.kt` / `InstallResultReceiver.kt` | GitHub Releases からの自動アップデート |
 | `Filter.kt` / `UserRules.kt` / `Pause.kt` | 問い合わせごとの判定 (一時停止・ブロックしない Wi-Fi・手動のブロック / 許可・ブロックリスト) |
 | `WifiNetworks.kt` / `WifiSettingsActivity.kt` | ブロックしない Wi-Fi (接続中の Wi-Fi の名前の監視と、設定画面) |
@@ -122,7 +126,7 @@ Android 12 以上では、2 回目以降のアップデートは確認なしで�
 | `SettingsActivity.kt` / `SettingsPages.kt` / `SettingsBuilder.kt` | 設定画面 (トップ、DNS・ログ・アップデート・通知・バックアップの各ページ、共通部品) |
 | `RulesActivity.kt` / `BlocklistsActivity.kt` / `AppListActivity.kt` | ブロック・許可するドメイン / ブロックリスト / 例外アプリ |
 | `SettingsBackup.kt` | 設定の書き出しと読み込み |
-| `ShortcutActivity.kt` / `ResumeReceiver.kt` | ランチャーのショートカット / 通知の「再開」ボタン |
+| `BlockingControl.kt` / `ShortcutActivity.kt` / `RemoteControlReceiver.kt` / `ResumeReceiver.kt` | オン / オフと一時停止 (共通) / ランチャーのショートカットとウィジェット / 外部アプリからのブロードキャスト / 通知の「再開」ボタン |
 | `DomainActions.kt` | ドメインのブロック・許可メニュー |
 | `CardLayout.kt` / `BarChartView.kt` | 角丸のカード / 過去 7 日間のグラフ |
 | `AdBlockTileService.kt` / `AdBlockWidget.kt` / `StatusSurfaces.kt` | クイック設定タイル / ホーム画面のウィジェット / 両方の更新 |

@@ -2,65 +2,38 @@ package io.github.tonbo2339.adblocker
 
 import android.app.Activity
 import android.content.Intent
-import android.net.VpnService
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
+import io.github.tonbo2339.adblocker.BlockingControl.Outcome
 
 /**
- * ランチャーのショートカット (res/xml/shortcuts.xml) の動作。画面は出さず、結果をトーストで知らせて閉じる。
+ * ランチャーのショートカット (res/xml/shortcuts.xml) とウィジェットの動作。画面は出さず、結果をトーストで知らせて閉じる。
+ * 操作そのものは BlockingControl。
  */
 class ShortcutActivity : Activity() {
 
     companion object {
         internal const val ACTION_TOGGLE = "io.github.tonbo2339.adblocker.shortcut.TOGGLE"
         internal const val ACTION_PAUSE = "io.github.tonbo2339.adblocker.shortcut.PAUSE"
-        private const val PAUSE_MS = 15 * 60_000L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        when (intent?.action) {
-            ACTION_TOGGLE -> toggle()
-            ACTION_PAUSE -> togglePause()
+        val outcome = when (intent?.action) {
+            ACTION_TOGGLE -> BlockingControl.toggle(this)
+            ACTION_PAUSE -> BlockingControl.togglePause(this)
+            else -> null
+        }
+        when (outcome) {
+            null -> {}
+            Outcome.NEEDS_APP -> openApp()
+            Outcome.TURNED_ON -> toast(R.string.shortcut_turned_on)
+            Outcome.TURNED_OFF -> toast(R.string.shortcut_turned_off)
+            Outcome.IS_OFF -> toast(R.string.shortcut_is_off)
+            Outcome.PAUSED -> toast(R.string.shortcut_paused)
+            Outcome.RESUMED -> toast(R.string.shortcut_resumed)
         }
         finish()
-    }
-
-    private fun toggle() {
-        if (Prefs.isEnabled(this)) {
-            AdBlockVpnService.stop(this)
-            Prefs.setEnabled(this, false)
-            toast(R.string.shortcut_turned_off)
-            return
-        }
-        // VPN の許可がまだなら、許可を求められる画面を開く
-        if (VpnService.prepare(this) != null) {
-            openApp()
-            return
-        }
-        try {
-            AdBlockVpnService.start(this)
-            Prefs.setEnabled(this, true)
-            toast(R.string.shortcut_turned_on)
-        } catch (e: IllegalStateException) {
-            Log.w("AdBlockShortcut", "start failed", e)
-            openApp()
-        }
-    }
-
-    private fun togglePause() {
-        when {
-            !Prefs.isEnabled(this) -> toast(R.string.shortcut_is_off)
-            Pause.isPaused() -> {
-                Pause.resume(this)
-                toast(R.string.shortcut_resumed)
-            }
-            else -> {
-                Pause.start(this, PAUSE_MS)
-                toast(R.string.shortcut_paused)
-            }
-        }
     }
 
     private fun openApp() {

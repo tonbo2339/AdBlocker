@@ -53,6 +53,12 @@ class SettingsActivity : SettingsPageActivity() {
         }
         footer(R.string.always_on_footer)
         card(spaced = true) {
+            toggle(R.string.row_external_control, R.drawable.ic_g_play, R.color.sys_gray, Prefs.externalControl(this@SettingsActivity)) {
+                Prefs.setExternalControl(this@SettingsActivity, it)
+            }
+        }
+        footer(R.string.external_control_footer)
+        card(spaced = true) {
             wifi = link(R.string.title_unblocked_wifi, R.drawable.ic_g_wifi, R.color.accent_blue) { open(WifiSettingsActivity::class.java) }
         }
         card(spaced = true) {

@@ -145,6 +145,18 @@
             android:name=".ResumeReceiver"
             android:exported="false" />
 
+        <!-- 外部のアプリ (Tasker など) からの指示。設定の「外部アプリからの操作」がオンのときだけ受け付ける (既定はオフ) -->
+        <receiver
+            android:name=".RemoteControlReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="io.github.tonbo2339.adblocker.action.START" />
+                <action android:name="io.github.tonbo2339.adblocker.action.STOP" />
+                <action android:name="io.github.tonbo2339.adblocker.action.PAUSE" />
+                <action android:name="io.github.tonbo2339.adblocker.action.RESUME" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name=".BootReceiver"
             android:exported="true">

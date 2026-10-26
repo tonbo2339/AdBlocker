@@ -24,6 +24,8 @@
     <string name="sources_footer">1 日 1 回、自動で最新のリストに更新します。取得元: %1$s</string>
     <string name="row_always_on">常時接続 VPN を設定</string>
     <string name="always_on_footer">VPN の設定で「常時接続 VPN」をオンにすると、アプリが終了しても自動で再開します。</string>
+    <string name="row_external_control">外部アプリからの操作</string>
+    <string name="external_control_footer">Tasker や MacroDroid などのアプリが、このアプリ (パッケージ io.github.tonbo2339.adblocker) にブロードキャストを送って、広告ブロックのオン / オフや一時停止をできるようにします。アクションは io.github.tonbo2339.adblocker.action.START・STOP・PAUSE (追加情報 \"minutes\" が分、既定は 15)・RESUME です。オンの間は、この端末のどのアプリからも同じ操作ができるので、使わないときはオフにしてください。バックグラウンドからの START は Android に断られることがあり、そのときは通知でアプリを開くよう知らせます。</string>
     <string name="exclusion_value">%1$d 個</string>
     <string name="vpn_denied">VPN の許可がないため開始できません</string>
     <string name="note">端末の中だけで動く VPN を使い、広告ドメインへの DNS 問い合わせを遮断します。通信の中身を外部へ送ることはありません。\n\n設定の「プライベート DNS」が「ホスト名を指定」になっていると、ブロックが効きません。</string>

@@ -24,6 +24,8 @@
     <string name="sources_footer">Updated to the latest lists automatically once a day. Sources: %1$s</string>
     <string name="row_always_on">Set Up Always-on VPN</string>
     <string name="always_on_footer">Turn on \"Always-on VPN\" in the VPN settings so that blocking restarts automatically if the app is stopped.</string>
+    <string name="row_external_control">Control from Other Apps</string>
+    <string name="external_control_footer">Lets apps such as Tasker or MacroDroid turn blocking on or off, or pause it, by sending a broadcast to this app (package io.github.tonbo2339.adblocker). Actions: io.github.tonbo2339.adblocker.action.START, STOP, PAUSE (extra \"minutes\", default 15) and RESUME. While this is on, any app on this phone can do the same, so leave it off unless you use it. Android may refuse START from the background; then a notification asks you to open the app.</string>
     <string name="exclusion_value">%1$d</string>
     <string name="vpn_denied">Can\'t start without VPN permission</string>
     <string name="note">Uses a VPN that runs only on this device to block DNS lookups for ad domains. The contents of your traffic are never sent anywhere.\n\nBlocking doesn\'t work while \"Private DNS\" in Settings is set to a hostname.</string>
