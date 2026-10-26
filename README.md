@@ -20,7 +20,6 @@ Download `AdBlocker-vX.Y.apk` from [Releases](https://github.com/tonbo2339/AdBlo
 Once installed, the app checks for new versions and updates itself.
 
 - Requires Android 8.0 or later
-- Still in development, so the version is 0.x
 
 ## Features
 
