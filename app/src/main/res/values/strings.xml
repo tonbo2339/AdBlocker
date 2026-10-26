@@ -171,6 +171,13 @@
     <string name="rules_footer_block">Blocks the domain and all of its subdomains, even if it isn\'t on a blocklist. You can use * as a wildcard (such as ads.* or *tracker*). An IP address (or a range such as 203.0.113.0/24) blocks any name that resolves to it.</string>
     <string name="rules_footer_allow">Always allows the domain and all of its subdomains. Use this when blocking breaks a site or an app. You can use * as a wildcard. Allow rules win over block rules.</string>
     <string name="rules_empty">Nothing added yet</string>
+    <string name="rules_import">Import Rules from File</string>
+    <string name="rules_export">Export Rules to File</string>
+    <string name="rules_exported">Rules exported</string>
+    <string name="rules_export_failed">Couldn\'t write the file</string>
+    <string name="rules_import_failed">Couldn\'t read the file</string>
+    <string name="rules_imported">Added %1$d to block and %2$d to allow. %3$d lines couldn\'t be read.</string>
+    <string name="rules_import_too_many">Only the first %1$d rules were read. To use a long list, add it under Blocklists.</string>
     <string name="rule_delete_title">Delete %1$s?</string>
     <string name="rule_added_block">Blocking %1$s</string>
     <string name="rule_added_allow">Allowing %1$s</string>

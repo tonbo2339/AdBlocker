@@ -1,22 +1,44 @@
 package io.github.tonbo2339.adblocker
 
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.databinding.ActivityRulesBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.concurrent.thread
+
+/** ファイル名に付ける日付 (例: AdBlocker-rules-20261026.txt)。 */
+private fun fileDate(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
 
 /** 手動で追加するブロック / 許可のルール (「ブロック・許可するドメイン」)。 */
 class RulesActivity : AppCompatActivity() {
 
     private companion object {
         const val KEY_KIND = "kind"
+
+        /** 読み込むファイルの大きさの上限 (バイト)。 */
+        const val MAX_IMPORT_BYTES = 1024 * 1024
     }
 
     private lateinit var binding: ActivityRulesBinding
     private var kind = UserRules.Kind.BLOCK
+
+    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        if (uri != null) exportTo(uri)
+    }
+
+    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) importFrom(uri)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -31,6 +53,8 @@ class RulesActivity : AppCompatActivity() {
         binding.segmentAllow.setOnClickListener { selectKind(UserRules.Kind.ALLOW) }
         binding.addRow.setOnClickListener { showAddDialog() }
         binding.checkRow.setOnClickListener { showCheckDialog() }
+        binding.exportRow.setOnClickListener { exportLauncher.launch("AdBlocker-rules-" + fileDate() + ".txt") }
+        binding.importRow.setOnClickListener { importLauncher.launch(arrayOf("text/plain", "application/octet-stream", "*/*")) }
         selectKind(kind)
     }
 
@@ -85,6 +109,53 @@ class RulesActivity : AppCompatActivity() {
             // パターンや IP アドレスは調べられない (問い合わせの名前は、ふつうのドメイン)
             parse = { UserRules.normalize(it, allowIp = false)?.takeIf { name -> '*' !in name } },
         ) { domain -> DomainActions.explain(this, domain) }
+    }
+
+    /** ブロックと許可のルールを、テキストのファイルに書き出す。 */
+    private fun exportTo(uri: Uri) {
+        val text = RuleText.format(UserRules.list(UserRules.Kind.BLOCK), UserRules.list(UserRules.Kind.ALLOW))
+        val ok = try {
+            contentResolver.openOutputStream(uri, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } != null
+        } catch (e: IOException) {
+            false
+        }
+        Toast.makeText(this, if (ok) R.string.rules_exported else R.string.rules_export_failed, Toast.LENGTH_SHORT).show()
+    }
+
+    /** テキストのファイルからルールを足す。今あるルールは残す。ファイルを読むので別のスレッドで行う。 */
+    private fun importFrom(uri: Uri) {
+        val app = applicationContext
+        thread {
+            val parsed = try {
+                contentResolver.openInputStream(uri)?.use { input ->
+                    // 大きすぎるファイル (ブロックリストなど) は、途中までしか読まない
+                    val buffer = ByteArray(MAX_IMPORT_BYTES)
+                    var length = 0
+                    while (length < buffer.size) {
+                        val n = input.read(buffer, length, buffer.size - length)
+                        if (n < 0) break
+                        length += n
+                    }
+                    RuleText.parse(String(buffer, 0, length, Charsets.UTF_8))
+                }
+            } catch (e: IOException) {
+                null
+            }
+            val added = parsed?.let { UserRules.merge(app, it.block, it.allow) }
+            runOnUiThread {
+                if (isDestroyed) return@runOnUiThread
+                if (parsed == null || added == null) {
+                    Toast.makeText(this, R.string.rules_import_failed, Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+                showRules()
+                val message = getString(R.string.rules_imported, added.first, added.second, parsed.skipped)
+                MaterialAlertDialogBuilder(this)
+                    .setMessage(if (parsed.tooMany) message + "\n" + getString(R.string.rules_import_too_many, RuleText.MAX_RULES) else message)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            }
+        }
     }
 
     private fun confirmDelete(domain: String) {

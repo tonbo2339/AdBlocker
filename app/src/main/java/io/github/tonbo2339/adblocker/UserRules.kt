@@ -53,6 +53,22 @@ object UserRules {
         if (rule in rulesOf(other).all) save(context, other, rulesOf(other).all - rule)
     }
 
+    /**
+     * ルールをまとめて足す (テキストの読み込み用)。今あるルールは残す。
+     * 足すルールが逆の種類にもあれば、足すほうに移す (add と同じ)。
+     * 足した件数 (すでにあったものは数えない) を、ブロック・許可の順に返す。
+     */
+    @Synchronized
+    fun merge(context: Context, block: Set<String>, allow: Set<String>): Pair<Int, Int> {
+        val before = blocked.all
+        val beforeAllow = allowed.all
+        val newBlock = (before - allow) + block
+        val newAllow = (beforeAllow - block) + allow
+        if (newBlock != before) save(context, Kind.BLOCK, newBlock)
+        if (newAllow != beforeAllow) save(context, Kind.ALLOW, newAllow)
+        return (newBlock - before).size to (newAllow - beforeAllow).size
+    }
+
     /** まとめて置き換える (設定の読み込み用)。 */
     @Synchronized
     fun replace(context: Context, kind: Kind, rules: Set<String>) {

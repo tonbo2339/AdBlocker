@@ -168,6 +168,13 @@
     <string name="rules_footer_block">ドメインとそのサブドメインを、ブロックリストに無くてもブロックします。ワイルドカード * も使えます (ads.* や *tracker* など)。IP アドレス (203.0.113.0/24 のような範囲も可) を指定すると、そのアドレスに解決される名前をブロックします。</string>
     <string name="rules_footer_allow">ドメインとそのサブドメインを常に許可します。ブロックでサイトやアプリが動かないときに使います。ワイルドカード * も使えます。許可はブロックより優先されます。</string>
     <string name="rules_empty">まだ追加していません</string>
+    <string name="rules_import">ファイルからルールを読み込む</string>
+    <string name="rules_export">ルールをファイルに書き出す</string>
+    <string name="rules_exported">ルールを書き出しました</string>
+    <string name="rules_export_failed">ファイルに書き込めませんでした</string>
+    <string name="rules_import_failed">ファイルを読めませんでした</string>
+    <string name="rules_imported">ブロックに %1$d 件、許可に %2$d 件を追加しました。読めなかった行は %3$d 行です。</string>
+    <string name="rules_import_too_many">最初の %1$d 件だけを読み込みました。長いリストは「ブロックリスト」に追加してください。</string>
     <string name="rule_delete_title">%1$s を削除しますか?</string>
     <string name="rule_added_block">%1$s をブロックします</string>
     <string name="rule_added_allow">%1$s を許可します</string>
