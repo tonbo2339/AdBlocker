@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.settings
 
 import android.app.Activity
 import android.content.res.ColorStateList
@@ -14,8 +14,11 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isEmpty
 import androidx.core.view.isVisible
+import io.github.tonbo2339.adblocker.CardLayout
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.databinding.ActivitySettingsPageBinding
 import io.github.tonbo2339.adblocker.databinding.ItemSettingRowBinding
+import io.github.tonbo2339.adblocker.padForSystemBars
 
 /** 設定の 1 行。値・チェック・進み具合・押せるかを、作った後から変えられる。 */
 class SettingRow(val binding: ItemSettingRowBinding) {

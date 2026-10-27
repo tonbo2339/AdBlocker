@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.settings
 
 import android.Manifest
 import android.content.Intent
@@ -10,6 +10,8 @@ import android.provider.Settings
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.R
+import io.github.tonbo2339.adblocker.showInputDialog
 import io.github.tonbo2339.adblocker.vpn.AdBlockVpnService
 import io.github.tonbo2339.adblocker.vpn.SsidMonitor
 import io.github.tonbo2339.adblocker.vpn.WifiNetworks

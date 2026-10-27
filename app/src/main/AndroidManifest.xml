@@ -59,67 +59,67 @@
             android:name=".AppListActivity"
             android:exported="false"
             android:label="@string/title_exclusions"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".settings.SettingsActivity"
             android:exported="false"
             android:label="@string/title_settings"
             android:parentActivityName=".MainActivity" />
 
         <activity
-            android:name=".DnsSettingsActivity"
+            android:name=".settings.DnsSettingsActivity"
             android:exported="false"
             android:label="@string/title_dns"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".LogSettingsActivity"
+            android:name=".settings.LogSettingsActivity"
             android:exported="false"
             android:label="@string/title_log"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".UpdateSettingsActivity"
+            android:name=".settings.UpdateSettingsActivity"
             android:exported="false"
             android:label="@string/title_updates"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".NotificationSettingsActivity"
+            android:name=".settings.NotificationSettingsActivity"
             android:exported="false"
             android:label="@string/section_notifications"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".BackupSettingsActivity"
+            android:name=".settings.BackupSettingsActivity"
             android:exported="false"
             android:label="@string/section_backup"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".WifiSettingsActivity"
+            android:name=".settings.WifiSettingsActivity"
             android:exported="false"
             android:label="@string/title_unblocked_wifi"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".DeveloperSettingsActivity"
+            android:name=".settings.DeveloperSettingsActivity"
             android:exported="false"
             android:label="@string/title_developer"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
-            android:name=".BlocklistsActivity"
+            android:name=".settings.BlocklistsActivity"
             android:exported="false"
             android:label="@string/title_blocklists"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <activity
             android:name=".RulesActivity"
             android:exported="false"
             android:label="@string/title_rules"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName=".settings.SettingsActivity" />
 
         <service
             android:name=".vpn.AdBlockVpnService"

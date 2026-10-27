@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.settings
 
 import android.content.Context
 import android.content.Intent
@@ -14,6 +14,8 @@ import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
+import io.github.tonbo2339.adblocker.BuildConfig
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.BlockListWorker
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.data.Prefs.NotificationKind

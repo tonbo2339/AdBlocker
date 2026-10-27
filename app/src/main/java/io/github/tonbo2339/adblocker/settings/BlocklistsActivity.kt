@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.settings
 
 import android.content.Intent
 import android.icu.text.ListFormatter
@@ -11,12 +11,14 @@ import androidx.core.view.isVisible
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.BlockListSource
 import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.BlockListWorker
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.databinding.ItemSourceRowBinding
+import io.github.tonbo2339.adblocker.showInputDialog
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
