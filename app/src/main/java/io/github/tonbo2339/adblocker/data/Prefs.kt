@@ -3,7 +3,6 @@ package io.github.tonbo2339.adblocker.data
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.edit
-import io.github.tonbo2339.adblocker.StatusSurfaces
 import io.github.tonbo2339.adblocker.block.BlockListSource
 import io.github.tonbo2339.adblocker.dns.CustomDns
 import io.github.tonbo2339.adblocker.dns.EncryptedDns
@@ -11,6 +10,7 @@ import io.github.tonbo2339.adblocker.dns.EncryptedDnsMode
 import io.github.tonbo2339.adblocker.log.DebugLog
 import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.QueryLogFiles
+import io.github.tonbo2339.adblocker.surface.StatusSurfaces
 import io.github.tonbo2339.adblocker.vpn.Pause
 
 /** 設定の保存先。 */

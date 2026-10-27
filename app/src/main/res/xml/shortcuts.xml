@@ -9,7 +9,7 @@
         android:shortcutShortLabel="@string/shortcut_pause">
         <intent
             android:action="io.github.tonbo2339.adblocker.shortcut.PAUSE"
-            android:targetClass="io.github.tonbo2339.adblocker.ShortcutActivity"
+            android:targetClass="io.github.tonbo2339.adblocker.surface.ShortcutActivity"
             android:targetPackage="io.github.tonbo2339.adblocker" />
     </shortcut>
     <shortcut
@@ -20,7 +20,7 @@
         android:shortcutShortLabel="@string/shortcut_toggle">
         <intent
             android:action="io.github.tonbo2339.adblocker.shortcut.TOGGLE"
-            android:targetClass="io.github.tonbo2339.adblocker.ShortcutActivity"
+            android:targetClass="io.github.tonbo2339.adblocker.surface.ShortcutActivity"
             android:targetPackage="io.github.tonbo2339.adblocker" />
     </shortcut>
 </shortcuts>

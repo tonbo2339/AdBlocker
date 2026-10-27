@@ -6,8 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
 import io.github.tonbo2339.adblocker.AdBlockerApp
-import io.github.tonbo2339.adblocker.Notifications
 import io.github.tonbo2339.adblocker.log.DebugLog
+import io.github.tonbo2339.adblocker.surface.Notifications
 
 /** AppUpdater が始めたインストールの結果を受け取る。 */
 class InstallResultReceiver : BroadcastReceiver() {

@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.surface
 
 import android.app.LocaleManager
 import android.app.PendingIntent
@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.vpn.Pause
 import io.github.tonbo2339.adblocker.vpn.WifiNetworks

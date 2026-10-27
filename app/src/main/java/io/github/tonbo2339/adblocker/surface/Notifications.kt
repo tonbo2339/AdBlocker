@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.surface
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -6,6 +6,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import io.github.tonbo2339.adblocker.BuildConfig
+import io.github.tonbo2339.adblocker.MainActivity
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.data.Prefs.NotificationKind
 import io.github.tonbo2339.adblocker.vpn.Pause
