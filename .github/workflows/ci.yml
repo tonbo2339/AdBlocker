@@ -29,3 +29,13 @@ jobs:
         with:
           name: reports
           path: app/build/reports/
+      - name: Release build without a signing key must fail
+        run: |
+          set +e
+          log=$(./gradlew assembleRelease --no-daemon 2>&1)
+          code=$?
+          echo "$log" | tail -15
+          if [ "$code" -eq 0 ] || ! echo "$log" | grep -q "署名の設定"; then
+            echo "::error::署名の鍵が無いのに、リリースビルドが失敗になっていません (app/build.gradle.kts の releaseSigning を確かめてください)"
+            exit 1
+          fi

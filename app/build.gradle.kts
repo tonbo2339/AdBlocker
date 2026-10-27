@@ -10,7 +10,8 @@ plugins {
 /**
  * リリース署名の設定ファイル (storeFile / storePassword / keyAlias / keyPassword)。
  * 鍵とパスワードはリポジトリに入れず、local.properties の signing.properties でファイルの場所を指す。
- * 無ければリリースビルドは署名なしで作られる。
+ * 無いまま APK を作るリリース (assembleRelease / bundleRelease) は失敗にする (署名なしの APK を配る事故を防ぐ)。
+ * 手元の確認で署名なしが欲しいときだけ -Padblocker.allowUnsigned=true で通す。lint やテストは鍵が無くても動く。
  */
 val releaseSigning: Properties? = run {
     val local = Properties()
@@ -18,6 +19,13 @@ val releaseSigning: Properties? = run {
     val path = local.getProperty("signing.properties") ?: return@run null
     val file = file(path).takeIf { it.exists() } ?: return@run null
     Properties().apply { file.reader().use { load(it) } }
+}
+
+if (releaseSigning == null && gradle.startParameter.taskNames.any { Regex("(assemble|bundle|package)[A-Za-z]*Release", RegexOption.IGNORE_CASE).containsMatchIn(it) }
+    && findProperty("adblocker.allowUnsigned") != "true"
+) {
+    throw GradleException("署名の設定が見つかりません (local.properties の signing.properties)。リリースを作れません (署名なしの APK は配ると更新できなくなります)。" +
+        "鍵の設定を用意するか、確認だけなら -Padblocker.allowUnsigned=true を付けてください")
 }
 
 android {
@@ -46,6 +54,12 @@ android {
     }
 
     buildTypes {
+        // debug 版は別のアプリとして入る (パッケージ名に .debug、名前は「AdBlocker (debug)」)。リリース版と並べて入れられる。
+        // 設定・ログ・VPN の許可はリリース版と別。アプリ内の更新は署名が合わないので使えない (使わない)。
+        // shortcuts.xml だけパッケージ名を直書きしているので、src/debug/res/xml/shortcuts.xml で上書きしている
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
             // 使っていないコードとリソースを除いて APK を小さくする
             isMinifyEnabled = true
