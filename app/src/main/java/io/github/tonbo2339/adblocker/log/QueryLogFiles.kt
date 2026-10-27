@@ -1,7 +1,8 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.log
 
 import android.content.Context
 import android.util.Log
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.Verdict
 import java.io.BufferedWriter
 import java.io.File

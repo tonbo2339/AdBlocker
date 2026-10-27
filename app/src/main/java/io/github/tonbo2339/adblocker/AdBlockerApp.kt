@@ -7,6 +7,9 @@ import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.BlockListWorker
 import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.log.DebugLog
+import io.github.tonbo2339.adblocker.log.QueryLog
+import io.github.tonbo2339.adblocker.log.QueryLogFiles
 import kotlin.concurrent.thread
 
 class AdBlockerApp : Application() {

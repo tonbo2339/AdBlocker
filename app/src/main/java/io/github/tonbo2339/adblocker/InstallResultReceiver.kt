@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
+import io.github.tonbo2339.adblocker.log.DebugLog
 
 /** AppUpdater が始めたインストールの結果を受け取る。 */
 class InstallResultReceiver : BroadcastReceiver() {

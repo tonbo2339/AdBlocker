@@ -7,7 +7,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
-import io.github.tonbo2339.adblocker.DebugLog
+import io.github.tonbo2339.adblocker.log.DebugLog
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 

@@ -2,7 +2,7 @@ package io.github.tonbo2339.adblocker.dns
 
 import android.net.VpnService
 import android.util.Log
-import io.github.tonbo2339.adblocker.DebugLog
+import io.github.tonbo2339.adblocker.log.DebugLog
 import java.io.DataInputStream
 import java.io.IOException
 import java.net.InetAddress

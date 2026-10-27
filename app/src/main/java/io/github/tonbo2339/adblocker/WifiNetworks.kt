@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.log.DebugLog
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 

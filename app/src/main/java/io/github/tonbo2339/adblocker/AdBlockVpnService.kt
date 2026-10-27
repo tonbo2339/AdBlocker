@@ -19,11 +19,11 @@ import android.system.Os
 import android.system.OsConstants
 import android.system.StructPollfd
 import android.util.Log
-import io.github.tonbo2339.adblocker.Prefs.NotificationKind
 import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.Filter
 import io.github.tonbo2339.adblocker.block.Verdict
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.data.Prefs.NotificationKind
 import io.github.tonbo2339.adblocker.data.StatsStore
 import io.github.tonbo2339.adblocker.dns.Dns
 import io.github.tonbo2339.adblocker.dns.DnsCache
@@ -35,6 +35,10 @@ import io.github.tonbo2339.adblocker.dns.PublicDns
 import io.github.tonbo2339.adblocker.dns.Question
 import io.github.tonbo2339.adblocker.dns.TcpDns
 import io.github.tonbo2339.adblocker.dns.UpstreamDns
+import io.github.tonbo2339.adblocker.log.DebugLog
+import io.github.tonbo2339.adblocker.log.QueryLog
+import io.github.tonbo2339.adblocker.log.QueryLogFiles
+import io.github.tonbo2339.adblocker.log.SessionStats
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.IOException

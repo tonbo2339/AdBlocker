@@ -12,6 +12,7 @@ import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.log.DebugLog
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date

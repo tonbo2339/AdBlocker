@@ -4,8 +4,8 @@ import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import io.github.tonbo2339.adblocker.BuildConfig
-import io.github.tonbo2339.adblocker.DebugLog
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.log.DebugLog
 import java.io.File
 
 /**

@@ -10,6 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.tonbo2339.adblocker.block.Verdict
 import io.github.tonbo2339.adblocker.databinding.ItemLogBinding
 import io.github.tonbo2339.adblocker.databinding.ItemLogHeaderBinding
+import io.github.tonbo2339.adblocker.log.QueryLog
+import io.github.tonbo2339.adblocker.log.QueryLogFiles
+import io.github.tonbo2339.adblocker.log.logPeriodText
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -9,11 +9,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.content.pm.PackageInfoCompat
-import org.json.JSONObject
+import io.github.tonbo2339.adblocker.log.DebugLog
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import org.json.JSONObject
 
 /**
  * GitHub Releases の最新版を確認して、自分自身を更新する。

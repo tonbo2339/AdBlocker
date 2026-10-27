@@ -33,6 +33,8 @@ import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.data.StatsStore
 import io.github.tonbo2339.adblocker.databinding.ActivityMainBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
+import io.github.tonbo2339.adblocker.log.QueryLog
+import io.github.tonbo2339.adblocker.log.SessionStats
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
