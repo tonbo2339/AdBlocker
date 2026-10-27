@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.util.Log
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /** 端末の再起動後とアプリの更新後、ON にしていた場合は広告ブロックを再開する。 */
 class BootReceiver : BroadcastReceiver() {

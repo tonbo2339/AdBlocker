@@ -2,8 +2,8 @@ package io.github.tonbo2339.adblocker.block
 
 import android.content.Context
 import io.github.tonbo2339.adblocker.Pause
-import io.github.tonbo2339.adblocker.Prefs
 import io.github.tonbo2339.adblocker.WifiNetworks
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /**
  * 「このドメインはなぜブロックされる (されない) のか」を調べる。

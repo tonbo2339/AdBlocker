@@ -1,7 +1,11 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.data
 
 import android.content.Context
+import io.github.tonbo2339.adblocker.AdBlockVpnService
+import io.github.tonbo2339.adblocker.AppUpdateWorker
+import io.github.tonbo2339.adblocker.BuildConfig
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.WifiNetworks
 import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.BlockListWorker
 import io.github.tonbo2339.adblocker.block.UserRules

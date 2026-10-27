@@ -29,6 +29,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.ListBreakdown
+import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.data.StatsStore
 import io.github.tonbo2339.adblocker.databinding.ActivityMainBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
 import java.text.NumberFormat

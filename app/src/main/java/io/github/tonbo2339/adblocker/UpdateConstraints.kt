@@ -7,6 +7,7 @@ import androidx.work.ListenableWorker
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import io.github.tonbo2339.adblocker.data.Prefs
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 

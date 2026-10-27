@@ -3,6 +3,7 @@ package io.github.tonbo2339.adblocker
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /**
  * 外部のアプリ (Tasker・MacroDroid など) からの指示を受ける。ブロードキャストで、オン / オフと一時停止ができる。

@@ -7,6 +7,7 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /** アプリの更新を確認する。定期実行は設定に従い「自動でアップデート」か「通知のみ」。 */
 class AppUpdateWorker(context: Context, params: WorkerParameters) : Worker(context, params) {

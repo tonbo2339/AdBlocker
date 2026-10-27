@@ -3,6 +3,7 @@ package io.github.tonbo2339.adblocker
 import android.content.Context
 import android.net.VpnService
 import android.util.Log
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /**
  * 広告ブロックのオン / オフと一時停止の操作。ランチャーのショートカット (ShortcutActivity) とウィジェット、

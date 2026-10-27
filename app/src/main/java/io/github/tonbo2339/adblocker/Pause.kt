@@ -3,6 +3,7 @@ package io.github.tonbo2339.adblocker
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import io.github.tonbo2339.adblocker.data.Prefs
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**

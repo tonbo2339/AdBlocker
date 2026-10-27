@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.data
 
 import android.content.Context
 import androidx.core.content.edit

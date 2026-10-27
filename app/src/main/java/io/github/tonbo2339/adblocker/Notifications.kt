@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /**
  * 通知。種類ごとに設定 (Prefs.NotificationKind) でオン / オフできる。

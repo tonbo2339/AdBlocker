@@ -6,6 +6,7 @@ import android.os.Bundle
 import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.BlockListWorker
 import io.github.tonbo2339.adblocker.block.UserRules
+import io.github.tonbo2339.adblocker.data.Prefs
 import kotlin.concurrent.thread
 
 class AdBlockerApp : Application() {

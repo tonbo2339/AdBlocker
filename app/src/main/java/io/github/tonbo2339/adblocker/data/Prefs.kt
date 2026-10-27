@@ -1,8 +1,13 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.data
 
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.edit
+import io.github.tonbo2339.adblocker.DebugLog
+import io.github.tonbo2339.adblocker.Pause
+import io.github.tonbo2339.adblocker.QueryLog
+import io.github.tonbo2339.adblocker.QueryLogFiles
+import io.github.tonbo2339.adblocker.StatusSurfaces
 import io.github.tonbo2339.adblocker.block.BlockListSource
 import io.github.tonbo2339.adblocker.dns.CustomDns
 import io.github.tonbo2339.adblocker.dns.EncryptedDns

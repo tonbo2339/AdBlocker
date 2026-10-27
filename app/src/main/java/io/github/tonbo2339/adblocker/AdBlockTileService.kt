@@ -9,6 +9,7 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.util.Log
+import io.github.tonbo2339.adblocker.data.Prefs
 
 /** クイック設定パネルのタイル。タップで広告ブロックを ON / OFF する。 */
 class AdBlockTileService : TileService() {

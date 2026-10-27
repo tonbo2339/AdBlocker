@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import io.github.tonbo2339.adblocker.DebugLog
-import io.github.tonbo2339.adblocker.Prefs
+import io.github.tonbo2339.adblocker.data.Prefs
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
