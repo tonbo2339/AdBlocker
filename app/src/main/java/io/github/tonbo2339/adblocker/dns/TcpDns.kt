@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.dns
 
 import android.util.Log
 import java.io.DataInputStream

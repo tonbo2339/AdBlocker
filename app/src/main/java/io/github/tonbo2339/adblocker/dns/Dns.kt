@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.dns
 
 /** DNS メッセージの最初の質問。type は QTYPE (A = 1, AAAA = 28 など)、end は質問セクションの終わりの位置。 */
 class Question(val name: String, val type: Int, val end: Int)

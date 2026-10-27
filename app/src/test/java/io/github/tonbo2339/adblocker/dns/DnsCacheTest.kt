@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.dns
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

@@ -3,6 +3,9 @@ package io.github.tonbo2339.adblocker
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.edit
+import io.github.tonbo2339.adblocker.dns.CustomDns
+import io.github.tonbo2339.adblocker.dns.EncryptedDns
+import io.github.tonbo2339.adblocker.dns.EncryptedDnsMode
 
 /** 設定の保存先。 */
 object Prefs {

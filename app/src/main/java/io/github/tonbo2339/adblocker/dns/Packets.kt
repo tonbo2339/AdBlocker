@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.dns
 
 /** tun から読んだ UDP/53 宛ての DNS クエリ (IPv4 / IPv6)。 */
 class DnsQuery(

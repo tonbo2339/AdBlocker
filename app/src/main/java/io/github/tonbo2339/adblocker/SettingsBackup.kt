@@ -2,10 +2,13 @@ package io.github.tonbo2339.adblocker
 
 import android.content.Context
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
-import org.json.JSONArray
-import org.json.JSONObject
+import io.github.tonbo2339.adblocker.dns.CustomDns
+import io.github.tonbo2339.adblocker.dns.EncryptedDns
+import io.github.tonbo2339.adblocker.dns.EncryptedDnsMode
 import java.io.IOException
 import kotlin.concurrent.thread
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * 設定の書き出しと読み込み (端末の引っ越しや、入れ直したとき用)。

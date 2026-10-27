@@ -1,5 +1,7 @@
 package io.github.tonbo2339.adblocker
 
+import io.github.tonbo2339.adblocker.dns.Dns
+
 /** 問い合わせをどう扱ったか。 */
 enum class Verdict(val blocked: Boolean) {
     /** ブロックリストに当たった */

@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.dns
 
 /**
  * 転送先の応答を TTL の間だけ覚えておく小さなキャッシュ。同じ問い合わせを転送せずにすぐ答える。

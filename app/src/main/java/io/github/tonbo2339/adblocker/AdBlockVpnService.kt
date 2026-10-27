@@ -20,6 +20,16 @@ import android.system.OsConstants
 import android.system.StructPollfd
 import android.util.Log
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.dns.Dns
+import io.github.tonbo2339.adblocker.dns.DnsCache
+import io.github.tonbo2339.adblocker.dns.DnsDebugStats
+import io.github.tonbo2339.adblocker.dns.DnsQuery
+import io.github.tonbo2339.adblocker.dns.EncryptedDnsResolver
+import io.github.tonbo2339.adblocker.dns.Packets
+import io.github.tonbo2339.adblocker.dns.PublicDns
+import io.github.tonbo2339.adblocker.dns.Question
+import io.github.tonbo2339.adblocker.dns.TcpDns
+import io.github.tonbo2339.adblocker.dns.UpstreamDns
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.IOException

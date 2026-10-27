@@ -16,6 +16,9 @@ import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
 import io.github.tonbo2339.adblocker.databinding.DialogDnsServerBinding
+import io.github.tonbo2339.adblocker.dns.CustomDns
+import io.github.tonbo2339.adblocker.dns.EncryptedDns
+import io.github.tonbo2339.adblocker.dns.EncryptedDnsMode
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
