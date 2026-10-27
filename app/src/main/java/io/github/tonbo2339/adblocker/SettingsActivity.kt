@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 
 /**
  * 設定のトップ (ホームの右上の ≡ から開く)。iOS の設定アプリと同じく、項目ごとのページへの入り口だけを並べる。

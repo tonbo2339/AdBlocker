@@ -13,6 +13,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.vpn.Pause
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 
 /**
  * ホーム画面のウィジェット。全体をタップでオン / オフ、右のボタンで一時停止 / 再開 (どちらも ShortcutActivity が処理する)。

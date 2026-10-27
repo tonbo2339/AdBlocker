@@ -10,7 +10,10 @@ import android.provider.Settings
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.github.tonbo2339.adblocker.WifiNetworks.Permission
+import io.github.tonbo2339.adblocker.vpn.AdBlockVpnService
+import io.github.tonbo2339.adblocker.vpn.SsidMonitor
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks.Permission
 
 /**
  * 広告ブロックをしない Wi-Fi: 今の Wi-Fi の追加、名前での追加、一覧 (タップで削除)、位置情報の許可。

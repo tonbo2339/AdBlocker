@@ -8,6 +8,9 @@ import android.content.Context
 import android.content.Intent
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.data.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.vpn.Pause
+import io.github.tonbo2339.adblocker.vpn.ResumeReceiver
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 
 /**
  * 通知。種類ごとに設定 (Prefs.NotificationKind) でオン / オフできる。

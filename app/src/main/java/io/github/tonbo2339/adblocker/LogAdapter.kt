@@ -13,6 +13,7 @@ import io.github.tonbo2339.adblocker.databinding.ItemLogHeaderBinding
 import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.QueryLogFiles
 import io.github.tonbo2339.adblocker.log.logPeriodText
+import io.github.tonbo2339.adblocker.vpn.AppLabels
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date

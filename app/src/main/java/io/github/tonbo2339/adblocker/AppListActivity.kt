@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.databinding.ActivityAppListBinding
 import io.github.tonbo2339.adblocker.databinding.ItemAppBinding
+import io.github.tonbo2339.adblocker.vpn.AdBlockVpnService
 import java.text.Collator
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread

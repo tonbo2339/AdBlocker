@@ -11,6 +11,8 @@ import io.github.tonbo2339.adblocker.log.DebugLog
 import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.QueryLogFiles
 import io.github.tonbo2339.adblocker.update.AppUpdateWorker
+import io.github.tonbo2339.adblocker.vpn.Pause
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 import kotlin.concurrent.thread
 
 class AdBlockerApp : Application() {

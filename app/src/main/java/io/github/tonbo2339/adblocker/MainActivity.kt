@@ -35,6 +35,11 @@ import io.github.tonbo2339.adblocker.databinding.ActivityMainBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
 import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.SessionStats
+import io.github.tonbo2339.adblocker.vpn.AdBlockVpnService
+import io.github.tonbo2339.adblocker.vpn.AppLabels
+import io.github.tonbo2339.adblocker.vpn.Pause
+import io.github.tonbo2339.adblocker.vpn.PrivateDnsMonitor
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date

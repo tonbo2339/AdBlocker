@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.vpn
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -19,6 +19,9 @@ import android.system.Os
 import android.system.OsConstants
 import android.system.StructPollfd
 import android.util.Log
+import io.github.tonbo2339.adblocker.MainActivity
+import io.github.tonbo2339.adblocker.Notifications
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.Filter
 import io.github.tonbo2339.adblocker.block.Verdict

@@ -4,7 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import io.github.tonbo2339.adblocker.BlockingControl.Outcome
+import io.github.tonbo2339.adblocker.vpn.BlockingControl
+import io.github.tonbo2339.adblocker.vpn.BlockingControl.Outcome
 
 /**
  * ランチャーのショートカット (res/xml/shortcuts.xml) とウィジェットの動作。画面は出さず、結果をトーストで知らせて閉じる。

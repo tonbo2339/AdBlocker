@@ -1,8 +1,8 @@
 package io.github.tonbo2339.adblocker.block
 
-import io.github.tonbo2339.adblocker.Pause
-import io.github.tonbo2339.adblocker.WifiNetworks
 import io.github.tonbo2339.adblocker.dns.Dns
+import io.github.tonbo2339.adblocker.vpn.Pause
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 
 /** 問い合わせをどう扱ったか。 */
 enum class Verdict(val blocked: Boolean) {

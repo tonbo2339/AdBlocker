@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.vpn
 
 import android.Manifest
 import android.content.Context
@@ -13,6 +13,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import io.github.tonbo2339.adblocker.StatusSurfaces
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.log.DebugLog
 import java.util.concurrent.ConcurrentHashMap

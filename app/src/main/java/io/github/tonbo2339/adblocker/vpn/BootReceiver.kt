@@ -1,10 +1,11 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.vpn
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.util.Log
+import io.github.tonbo2339.adblocker.Notifications
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.log.DebugLog
 

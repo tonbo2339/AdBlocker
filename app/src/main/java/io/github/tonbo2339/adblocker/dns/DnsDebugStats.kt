@@ -1,7 +1,7 @@
 package io.github.tonbo2339.adblocker.dns
 
-import io.github.tonbo2339.adblocker.WifiNetworks
 import io.github.tonbo2339.adblocker.log.DebugLog
+import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 import java.io.IOException
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
