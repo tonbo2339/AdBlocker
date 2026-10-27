@@ -25,6 +25,7 @@ import io.github.tonbo2339.adblocker.dns.EncryptedDnsMode
 import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.QueryLogFiles
 import io.github.tonbo2339.adblocker.log.logPeriodText
+import io.github.tonbo2339.adblocker.update.AppUpdateWorker
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date

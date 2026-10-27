@@ -8,8 +8,8 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import io.github.tonbo2339.adblocker.Notifications
-import io.github.tonbo2339.adblocker.UpdateConstraints
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.update.UpdateConstraints
 
 /** ブロックリストを定期的に更新する。WorkManager が端末の再起動後も続けて実行する。 */
 class BlockListWorker(context: Context, params: WorkerParameters) : Worker(context, params) {

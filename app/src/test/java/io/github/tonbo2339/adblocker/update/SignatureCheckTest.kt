@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.update
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

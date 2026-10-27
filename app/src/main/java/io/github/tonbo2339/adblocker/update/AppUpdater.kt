@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.update
 
 import android.app.PendingIntent
 import android.content.Context
@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.content.pm.PackageInfoCompat
+import io.github.tonbo2339.adblocker.BuildConfig
 import io.github.tonbo2339.adblocker.log.DebugLog
 import java.io.File
 import java.io.IOException
