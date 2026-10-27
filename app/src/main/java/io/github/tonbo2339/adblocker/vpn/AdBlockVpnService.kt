@@ -16,39 +16,24 @@ import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.system.ErrnoException
 import android.system.Os
-import android.system.OsConstants
-import android.system.StructPollfd
 import android.util.Log
 import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.BlockList
-import io.github.tonbo2339.adblocker.block.Filter
-import io.github.tonbo2339.adblocker.block.Verdict
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.data.Prefs.NotificationKind
 import io.github.tonbo2339.adblocker.data.StatsStore
-import io.github.tonbo2339.adblocker.dns.Dns
 import io.github.tonbo2339.adblocker.dns.DnsCache
 import io.github.tonbo2339.adblocker.dns.DnsDebugStats
-import io.github.tonbo2339.adblocker.dns.DnsQuery
-import io.github.tonbo2339.adblocker.dns.EncryptedDnsResolver
-import io.github.tonbo2339.adblocker.dns.Packets
 import io.github.tonbo2339.adblocker.dns.PublicDns
-import io.github.tonbo2339.adblocker.dns.Question
-import io.github.tonbo2339.adblocker.dns.TcpDns
 import io.github.tonbo2339.adblocker.dns.UpstreamDns
 import io.github.tonbo2339.adblocker.log.DebugLog
-import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.QueryLogFiles
 import io.github.tonbo2339.adblocker.log.SessionStats
 import io.github.tonbo2339.adblocker.surface.Notifications
 import io.github.tonbo2339.adblocker.ui.MainActivity
 import java.io.FileDescriptor
-import java.io.FileOutputStream
 import java.io.IOException
-import java.net.DatagramPacket
-import java.net.DatagramSocket
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
@@ -65,7 +50,6 @@ class AdBlockVpnService : VpnService() {
     enum class State { STOPPED, STARTING, RUNNING }
 
     companion object {
-        private const val TAG = "AdBlockVpn"
         private const val ACTION_START = "io.github.tonbo2339.adblocker.START"
         private const val ACTION_REBUILD = "io.github.tonbo2339.adblocker.REBUILD"
         private const val ACTION_STOP = "io.github.tonbo2339.adblocker.STOP"
@@ -76,21 +60,12 @@ class AdBlockVpnService : VpnService() {
         private const val VPN_DNS4 = "10.111.222.2"
         private const val VPN_ADDR6 = "fd00:6164:626c:6f63::1"
         private const val VPN_DNS6 = "fd00:6164:626c:6f63::2"
-        private const val MTU = 16384
-        /** 通常の DNS で答えを待つ時間 (すべての転送先を合わせて)。 */
-        private const val UPSTREAM_TIMEOUT_MS = 3000
 
-        /** 答えが無ければ次の転送先にも送るまでの時間と、同時に送る台数の上限。 */
-        private const val STAGGER_MS = 400L
-        private const val MAX_PARALLEL = 3
         private const val FORWARD_THREADS = 8
         private const val STATS_FLUSH_INTERVAL_MS = 30_000L
         /** 何回目の保存ごとにデバッグログへ DNS の集計を書くか (30 秒 × 10 = 5 分)。 */
         private const val SUMMARY_EVERY = 10
         private const val PREVIOUS_WORKER_WAIT_MS = 3000L
-
-        /** tun に書ける DNS 応答の最大サイズ (MTU から IPv6 + UDP のヘッダー分を引く)。 */
-        private const val MAX_RESPONSE = MTU - 48
 
         /** 転送待ちの問い合わせの上限。回線が切れている間に再送が積み上がってメモリを使い続けないようにする。 */
         private const val MAX_PENDING_QUERIES = 256
@@ -123,7 +98,7 @@ class AdBlockVpnService : VpnService() {
                 start(context, rebuild = true)
                 true
             } catch (e: IllegalStateException) {
-                Log.w(TAG, "rebuild failed", e)
+                Log.w(VPN_TAG, "rebuild failed", e)
                 false
             }
         }
@@ -135,7 +110,7 @@ class AdBlockVpnService : VpnService() {
                     Intent(context, AdBlockVpnService::class.java).setAction(ACTION_STOP)
                 )
             } catch (e: IllegalStateException) {
-                Log.w(TAG, "stop failed", e)
+                Log.w(VPN_TAG, "stop failed", e)
             }
         }
 
@@ -153,25 +128,18 @@ class AdBlockVpnService : VpnService() {
             try {
                 context.startService(Intent(context, AdBlockVpnService::class.java).setAction(action))
             } catch (e: IllegalStateException) {
-                Log.w(TAG, "$action failed", e)
+                Log.w(VPN_TAG, "$action failed", e)
             }
         }
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private lateinit var upstream: UpstreamDns
-    private lateinit var apps: QueryOwners
+    private lateinit var forwarder: DnsForwarder
+    private lateinit var handler: QueryHandler
 
     /** 転送先の答えのキャッシュ。回線が変わったら消す。 */
     private val cache = DnsCache()
-
-    /** 暗号化 DNS のクライアント。設定が変わったら作り直す (VPN は作り直さない)。 */
-    @Volatile
-    private var encrypted: EncryptedDnsResolver? = null
-    private val encryptedLock = Any()
-
-    /** onDestroy() の後か (encryptedLock の中で読み書きする)。 */
-    private var destroyed = false
 
     /** 現在のワーカー。作り直しで置き換わった古いワーカーは、終了時に状態を書き換えない。 */
     @Volatile
@@ -212,14 +180,16 @@ class AdBlockVpnService : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
-        DebugLog.i(TAG, "service created")
+        DebugLog.i(VPN_TAG, "service created")
         Pause.addListener(statusListener)
         WifiNetworks.addListener(statusListener)
         locales = resources.configuration.locales
         // 回線の DNS が変わったら、覚えている答えと、暗号化 DNS の使い回し接続 (古い回線のもの) を捨てる
-        upstream = UpstreamDns(this) { cache.clear(); resetEncrypted() }.apply { start() }
+        upstream = UpstreamDns(this) { cache.clear(); forwarder.resetEncrypted() }
+        forwarder = DnsForwarder(this, upstream)
+        handler = QueryHandler(forwarder, cache, upstream, QueryOwners(this))
+        upstream.start() // 回線の DNS が変わった通知で forwarder を使うので、forwarder を作ったあとに始める
         ssidMonitor = SsidMonitor(this, logHidden = true) { WifiNetworks.setCurrent(this, it) }.apply { start() }
-        apps = QueryOwners(this)
         mainHandler.postDelayed(statsFlusher, STATS_FLUSH_INTERVAL_MS)
         registerReceiver(packageAdded, IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") })
     }
@@ -233,7 +203,7 @@ class AdBlockVpnService : VpnService() {
             if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
             val pkg = intent.data?.schemeSpecificPart ?: return
             if (state != State.STOPPED && pkg in Prefs.excluded(context)) {
-                DebugLog.i(TAG, "excluded app reinstalled: rebuilding")
+                DebugLog.i(VPN_TAG, "excluded app reinstalled: rebuilding")
                 restart()
             }
         }
@@ -246,7 +216,7 @@ class AdBlockVpnService : VpnService() {
             ssidMonitor.start()
             return START_STICKY
         }
-        if (intent?.action != ACTION_REFRESH_NOTIFICATION) DebugLog.i(TAG, "start command: ${intent?.action ?: "restarted by system"}")
+        if (intent?.action != ACTION_REFRESH_NOTIFICATION) DebugLog.i(VPN_TAG, "start command: ${intent?.action ?: "restarted by system"}")
         if (intent?.action == ACTION_STOP) {
             stopVpn()
             return START_NOT_STICKY
@@ -287,12 +257,12 @@ class AdBlockVpnService : VpnService() {
 
     override fun onRevoke() {
         // 別の VPN が有効になった、またはユーザーが設定から切断した
-        DebugLog.i(TAG, "VPN revoked")
+        DebugLog.i(VPN_TAG, "VPN revoked")
         stopVpn(notify = true)
     }
 
     override fun onDestroy() {
-        DebugLog.i(TAG, "service destroyed")
+        DebugLog.i(VPN_TAG, "service destroyed")
         unregisterReceiver(packageAdded)
         Pause.removeListener(statusListener)
         WifiNetworks.removeListener(statusListener)
@@ -304,11 +274,7 @@ class AdBlockVpnService : VpnService() {
         shutdown()
         state = State.STOPPED
         upstream.stop()
-        synchronized(encryptedLock) {
-            destroyed = true
-            encrypted?.close()
-            encrypted = null
-        }
+        forwarder.close()
         super.onDestroy()
     }
 
@@ -344,7 +310,7 @@ class AdBlockVpnService : VpnService() {
         try {
             Os.write(signal, byteArrayOf(1), 0, 1)
         } catch (e: ErrnoException) {
-            Log.w(TAG, "stop signal failed", e)
+            Log.w(VPN_TAG, "stop signal failed", e)
         }
         // 読み取り側はワーカーが終了時に閉じる
         closeQuietly(signal)
@@ -373,7 +339,7 @@ class AdBlockVpnService : VpnService() {
                 }
                 tun = buildInterface()
                 DebugLog.i(
-                    TAG,
+                    VPN_TAG,
                     if (tun != null) {
                         "VPN established (excluded apps ${Prefs.excluded(this).size}, capture public DNS ${Prefs.captureHardcodedDns(this)}, " +
                             "encrypted DNS ${Prefs.encryptedDns(this)?.id ?: "off"} ${Prefs.encryptedDnsMode(this).id})"
@@ -387,14 +353,14 @@ class AdBlockVpnService : VpnService() {
                 }
             }
             val fd = tun?.fileDescriptor ?: run {
-                Log.w(TAG, "establish() returned null (VPN permission missing?)")
+                Log.w(VPN_TAG, "establish() returned null (VPN permission missing?)")
                 return
             }
-            stoppedByRequest = loop(fd, stopFd, executor)
-            DebugLog.i(TAG, if (stoppedByRequest) "worker stopped" else "tun closed")
+            stoppedByRequest = runTunLoop(fd, stopFd, executor, handler)
+            DebugLog.i(VPN_TAG, if (stoppedByRequest) "worker stopped" else "tun closed")
         } catch (e: Exception) {
-            Log.e(TAG, "VPN loop stopped", e)
-            DebugLog.w(TAG, "VPN loop stopped", e)
+            Log.e(VPN_TAG, "VPN loop stopped", e)
+            DebugLog.w(VPN_TAG, "VPN loop stopped", e)
         } finally {
             executor.shutdownNow()
             try {
@@ -433,244 +399,6 @@ class AdBlockVpnService : VpnService() {
             }
         }
         return builder.establish()
-    }
-
-    /** tun からクエリを読み続ける。停止要求で抜けたら true、tun が閉じられたら false。 */
-    private fun loop(tunFd: FileDescriptor, stopFd: FileDescriptor, executor: ExecutorService): Boolean {
-        val out = FileOutputStream(tunFd)
-        val buf = ByteArray(MTU)
-        val tunPoll = StructPollfd().apply {
-            fd = tunFd
-            events = OsConstants.POLLIN.toShort()
-        }
-        val stopPoll = StructPollfd().apply {
-            fd = stopFd
-            events = OsConstants.POLLIN.toShort()
-        }
-        val fds = arrayOf(tunPoll, stopPoll)
-
-        while (true) {
-            try {
-                Os.poll(fds, -1)
-            } catch (e: ErrnoException) {
-                if (e.errno == OsConstants.EINTR) continue
-                throw e
-            }
-            if (stopPoll.revents.toInt() != 0) return true
-            val ev = tunPoll.revents.toInt()
-            if (ev and (OsConstants.POLLERR or OsConstants.POLLHUP or OsConstants.POLLNVAL) != 0) return false
-            if (ev and OsConstants.POLLIN == 0) continue
-
-            val n = try {
-                Os.read(tunFd, buf, 0, buf.size)
-            } catch (e: ErrnoException) {
-                if (e.errno == OsConstants.EAGAIN || e.errno == OsConstants.EINTR) continue
-                throw e
-            }
-            val query = Packets.parse(buf, n)
-            if (query == null) {
-                // 公開 DNS 宛ての TCP (DNS over HTTPS / TLS など) は、すぐ断ってアプリを待たせない
-                Packets.tcpReset(buf, n)?.let { writePacket(out, it) }
-                continue
-            }
-            handleQuery(query, out, executor)
-        }
-    }
-
-    /**
-     * どのアプリの問い合わせか (ログがオンのときだけ)。応答を返すとアプリがソケットを閉じて分からなくなるので、返す前に調べる。
-     * binder 呼び出しなので、tun の読み取りスレッドで呼ぶのは、その場で答えるとき (ブロック・キャッシュ) だけにする。
-     */
-    private fun ownerOf(query: DnsQuery): String? = if (QueryLog.enabled) apps.ownerOf(query) else null
-
-    private fun handleQuery(query: DnsQuery, out: FileOutputStream, executor: ExecutorService) {
-        val question = Dns.parseQuestion(query.dns)
-        if (question == null) {
-            // 質問を読めない問い合わせ。黙って捨てるとアプリがタイムアウトまで待つので、FORMERR で知らせる (応答は無視)
-            Dns.formerr(query.dns)?.let { writePacket(out, Packets.buildResponse(query, it)) }
-            return
-        }
-        val verdict = Filter.decide(question.name)
-        DnsDebugStats.query(verdict.blocked)
-        if (verdict.blocked) {
-            record(question.name, verdict, app = ownerOf(query))
-            writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
-            return
-        }
-        // 覚えている答えがあれば、転送せずにすぐ返す (答えの中身による判定はルールが変わることがあるので毎回行う)
-        val key = Dns.cacheKey(query.dns, question)
-        cache.get(query.dns, question, key)?.let { cached ->
-            DnsDebugStats.cached()
-            SessionStats.recordCacheHit()
-            answer(query, question, verdict, cached, ownerOf(query), out, QueryLog.FROM_CACHE)
-            return
-        }
-        executor.execute {
-            // 転送する間、アプリは答えを待ってソケットを開けたままなので、読み取りスレッドの外で調べてよい
-            val app = ownerOf(query)
-            val started = System.nanoTime()
-            val response = forward(query.dns)
-            if (response == null) {
-                DnsDebugStats.failed { upstream.servers() }
-                // 転送先が 1 つも答えなかった。何も返さないとアプリはタイムアウトまで待つので、すぐ失敗を知らせる
-                SessionStats.recordNoAnswer()
-                record(question.name, verdict, app = app, ms = QueryLog.NO_ANSWER)
-                writePacket(out, Packets.buildResponse(query, Dns.servfail(query.dns, question)))
-                return@execute
-            }
-            val ms = (System.nanoTime() - started) / 1_000_000
-            DnsDebugStats.forwarded(ms)
-            SessionStats.recordForwarded(ms)
-            cache.put(query.dns, question, response, key)
-            answer(query, question, verdict, response, app, out, ms.toInt())
-        }
-    }
-
-    /** 転送先 (またはキャッシュ) の答えを返す。答えの中身 (CNAME 隠し・IP) でブロックすることもある。 */
-    private fun answer(query: DnsQuery, question: Question, verdict: Verdict, response: ByteArray, app: String?, out: FileOutputStream, ms: Int) {
-        if (verdict == Verdict.PASS) {
-            Filter.checkResponse(response)?.let { block ->
-                record(question.name, block.verdict, block.via, app, ms)
-                writePacket(out, Packets.buildResponse(query, Dns.blocked(query.dns, question)))
-                return
-            }
-        }
-        record(question.name, verdict, app = app, ms = ms)
-        writePacket(out, Packets.buildResponse(query, response))
-    }
-
-    private fun record(name: String, verdict: Verdict, via: String? = null, app: String? = null, ms: Int = QueryLog.NO_TIME) {
-        StatsStore.record(verdict.blocked)
-        QueryLog.add(name, verdict, via, app, ms)
-        if (verdict.blocked && QueryLog.enabled) {
-            SessionStats.recordBlocked(name)
-            if (app != null) SessionStats.recordBlockedApp(app)
-        }
-    }
-
-    /** 暗号化 DNS の使い回し接続を閉じる (次の問い合わせで作り直す)。回線が替わったときに呼ぶ。 */
-    private fun resetEncrypted() {
-        synchronized(encryptedLock) {
-            encrypted?.close()
-            encrypted = null
-        }
-    }
-
-    /** 設定に合った暗号化 DNS のクライアント (オフなら null)。 */
-    private fun encryptedClient(): EncryptedDnsResolver? {
-        val server = Prefs.encryptedDns(this)
-        val mode = Prefs.encryptedDnsMode(this)
-        val current = encrypted
-        if (current?.server == server && (current == null || current.mode == mode)) return current
-        // VPN の作り直しと同じロック (this) を使うと、tun を作っている間の問い合わせが待たされる
-        synchronized(encryptedLock) {
-            // 終了後に残った転送が新しいクライアントを作ると、その接続は誰も閉じない
-            if (destroyed) return null
-            val again = encrypted
-            if (again?.server == server && (again == null || again.mode == mode)) return again
-            again?.close()
-            return server?.let { EncryptedDnsResolver(this, it, mode) }.also { encrypted = it }
-        }
-    }
-
-    /**
-     * 本物の DNS サーバーに問い合わせる。暗号化 DNS がオンならそれを使い、失敗したときだけ通常の DNS にする。
-     * protect() でこのソケット自体は VPN を通らないようにする。
-     */
-    private fun forward(dns: ByteArray): ByteArray? {
-        // tun に書けるのは MTU まで。DoT (TCP) の応答はそれより大きいことがある。さらに、問い合わせた側が受け取れる UDP の大きさ
-        // (EDNS が無ければ 512) を超える答えは、切り捨てられて名前解決に失敗しうる。どちらもそのときは UDP で取り直す
-        // (UDP の転送先は、問い合わせの EDNS の大きさに合わせて答えるので、大きすぎるときは切り詰め (TC) の答えが返る)
-        val client = encryptedClient()
-        if (client != null) {
-            val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
-            client.query(dns)?.takeIf { it.size <= limit }?.let {
-                DnsDebugStats.answeredOverEncrypted()
-                return it
-            }
-        }
-        val udp = forwardUdp(dns) ?: return null
-        if (!Dns.isTruncated(udp.response)) return udp.response
-        // 切り詰められた (TC) 答えは、アプリが tun 越しに TCP で取り直せない。同じ転送先から TCP で完全な答えを取り、
-        // 問い合わせた側が受け取れる大きさに収まるときだけ使う (収まらなければ切り詰めた答えのまま返す)
-        val limit = minOf(MAX_RESPONSE, Dns.maxUdpSize(dns))
-        return TcpDns.query(::protect, udp.server, dns, limit)?.also { DnsDebugStats.retriedOverTcp() } ?: udp.response
-    }
-
-    /** UDP で届いた答えと、答えた転送先。 */
-    private class UdpAnswer(val response: ByteArray, val server: java.net.InetAddress)
-
-    /**
-     * 通常の DNS (UDP) で問い合わせる。1 台目に送り、STAGGER_MS 待っても答えが無ければ 2 台目にも送る、というふうに
-     * 最大 MAX_PARALLEL 台まで重ねて送り、最初に届いた答えを使う。応答しないサーバーがあっても、そのタイムアウトを待たない。
-     */
-    private fun forwardUdp(dns: ByteArray): UdpAnswer? {
-        // 回線の DNS が多くても、最後の予備 (公開 DNS) を 1 台は残す
-        val all = upstream.servers()
-        val servers = if (all.size > MAX_PARALLEL) all.take(MAX_PARALLEL - 1) + all.last() else all
-        if (servers.isEmpty() || dns.size < 2) return null
-        try {
-            DatagramSocket().use { socket ->
-                // 保護できないと、送った問い合わせが自分の tun に戻って、また転送してしまう (公開 DNS も捕まえる設定のとき)
-                if (!protect(socket)) {
-                    DebugLog.w(TAG, "protect(socket) failed: not forwarding")
-                    return null
-                }
-                val sent = HashSet<java.net.InetAddress>()
-                val rb = ByteArray(MAX_RESPONSE)
-                val rp = DatagramPacket(rb, rb.size)
-                val deadline = System.currentTimeMillis() + UPSTREAM_TIMEOUT_MS
-                var next = 0
-                while (true) {
-                    if (next < servers.size) {
-                        val server = servers[next++]
-                        try {
-                            socket.send(DatagramPacket(dns, dns.size, server, 53))
-                            sent += server
-                        } catch (e: IOException) {
-                            // その回線では届かないアドレス (IPv6 が無い等)。待たずに次へ
-                            Log.d(TAG, "send to $server failed: $e")
-                            DnsDebugStats.sendFailed(server, e)
-                            continue
-                        }
-                    }
-                    if (sent.isEmpty()) return null // どこにも送れなかった
-                    val waitUntil = if (next < servers.size) minOf(System.currentTimeMillis() + STAGGER_MS, deadline) else deadline
-                    while (true) {
-                        val remaining = waitUntil - System.currentTimeMillis()
-                        if (remaining <= 0) break
-                        socket.soTimeout = remaining.toInt()
-                        // 前の受信で長さが縮んでいるので、毎回バッファ全体に戻す
-                        rp.setLength(rb.size)
-                        try {
-                            socket.receive(rp)
-                        } catch (_: java.net.SocketTimeoutException) {
-                            break
-                        }
-                        // 送った相手からの、同じ ID の答えだけを受け取る (ほかからのパケットは無視)
-                        if (rp.address in sent && rp.length >= 12 && rb[0] == dns[0] && rb[1] == dns[1]) {
-                            upstream.markWorking(rp.address)
-                            return UdpAnswer(rb.copyOf(rp.length), rp.address)
-                        }
-                    }
-                    if (System.currentTimeMillis() >= deadline) return null
-                }
-            }
-        } catch (e: IOException) {
-            Log.d(TAG, "upstream query failed: $e")
-            return null
-        }
-    }
-
-    private fun writePacket(out: FileOutputStream, packet: ByteArray) {
-        synchronized(out) {
-            try {
-                out.write(packet)
-            } catch (e: IOException) {
-                Log.d(TAG, "tun write failed: $e")
-                if (DebugLog.enabled) DebugLog.w(TAG, "tun write failed (${packet.size} bytes)", e)
-            }
-        }
     }
 
     private fun closeQuietly(fd: FileDescriptor) {
