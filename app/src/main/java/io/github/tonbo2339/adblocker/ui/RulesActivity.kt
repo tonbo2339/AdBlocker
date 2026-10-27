@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.ui
 
 import android.net.Uri
 import android.os.Bundle
@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.RuleText
 import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.databinding.ActivityRulesBinding

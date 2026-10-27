@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.ui
 
 import android.app.Activity
 import android.content.ClipData
@@ -14,6 +14,7 @@ import android.view.Gravity
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.DomainCheck
 import io.github.tonbo2339.adblocker.block.UserRules

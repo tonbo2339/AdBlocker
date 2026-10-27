@@ -1,10 +1,11 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.ui
 
 import android.app.Activity
 import android.content.DialogInterface
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.databinding.DialogRuleBinding
 
 /**

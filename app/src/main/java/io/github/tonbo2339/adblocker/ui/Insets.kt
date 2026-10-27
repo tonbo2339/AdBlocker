@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.ui
 
 import android.view.View
 import androidx.core.view.ViewCompat

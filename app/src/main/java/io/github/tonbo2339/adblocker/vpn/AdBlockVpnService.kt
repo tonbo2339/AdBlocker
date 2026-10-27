@@ -19,7 +19,6 @@ import android.system.Os
 import android.system.OsConstants
 import android.system.StructPollfd
 import android.util.Log
-import io.github.tonbo2339.adblocker.MainActivity
 import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.block.BlockList
 import io.github.tonbo2339.adblocker.block.Filter
@@ -42,6 +41,7 @@ import io.github.tonbo2339.adblocker.log.QueryLog
 import io.github.tonbo2339.adblocker.log.QueryLogFiles
 import io.github.tonbo2339.adblocker.log.SessionStats
 import io.github.tonbo2339.adblocker.surface.Notifications
+import io.github.tonbo2339.adblocker.ui.MainActivity
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.IOException

@@ -24,7 +24,7 @@
             android:text="@string/app_name" />
 
         <!-- プライベート DNS の警告 (「ホスト名を指定」のときだけ) -->
-        <io.github.tonbo2339.adblocker.CardLayout
+        <io.github.tonbo2339.adblocker.ui.CardLayout
             android:id="@+id/privateDnsCard"
             style="@style/Card"
             android:layout_marginTop="12dp"
@@ -79,10 +79,10 @@
 
                 <ImageView style="@style/Chevron" />
             </LinearLayout>
-        </io.github.tonbo2339.adblocker.CardLayout>
+        </io.github.tonbo2339.adblocker.ui.CardLayout>
 
         <!-- 状態 -->
-        <io.github.tonbo2339.adblocker.CardLayout
+        <io.github.tonbo2339.adblocker.ui.CardLayout
             style="@style/Card"
             android:layout_marginTop="12dp"
             android:gravity="center_horizontal"
@@ -115,9 +115,9 @@
                 android:gravity="center"
                 android:textColor="@color/label_secondary"
                 android:textSize="15sp" />
-        </io.github.tonbo2339.adblocker.CardLayout>
+        </io.github.tonbo2339.adblocker.ui.CardLayout>
 
-        <io.github.tonbo2339.adblocker.CardLayout
+        <io.github.tonbo2339.adblocker.ui.CardLayout
             style="@style/Card"
             android:layout_marginTop="20dp">
 
@@ -163,7 +163,7 @@
                     style="@style/RowValue"
                     android:fontFeatureSettings="tnum" />
             </LinearLayout>
-        </io.github.tonbo2339.adblocker.CardLayout>
+        </io.github.tonbo2339.adblocker.ui.CardLayout>
 
         <!-- 今日 -->
         <TextView
@@ -172,7 +172,7 @@
             android:layout_height="wrap_content"
             android:text="@string/section_today" />
 
-        <io.github.tonbo2339.adblocker.CardLayout
+        <io.github.tonbo2339.adblocker.ui.CardLayout
             android:id="@+id/todayCard"
             style="@style/Card"
             android:orientation="horizontal"
@@ -215,7 +215,7 @@
                     style="@style/StatLabel"
                     android:text="@string/stat_queries" />
             </LinearLayout>
-        </io.github.tonbo2339.adblocker.CardLayout>
+        </io.github.tonbo2339.adblocker.ui.CardLayout>
 
         <TextView
             style="@style/SectionFooter"

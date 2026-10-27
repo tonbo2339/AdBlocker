@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.ui
 
 import android.content.Context
 import android.graphics.Canvas
@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import io.github.tonbo2339.adblocker.R
 
 /** 日ごとの棒グラフ。灰色の棒が問い合わせ、その上に重ねた緑の棒がブロック。 */
 class BarChartView @JvmOverloads constructor(

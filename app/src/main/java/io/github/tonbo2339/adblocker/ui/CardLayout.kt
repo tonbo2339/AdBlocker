@@ -1,9 +1,10 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.ui
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import io.github.tonbo2339.adblocker.R
 
 /**
  * 角丸カード (iOS の inset grouped セクション)。

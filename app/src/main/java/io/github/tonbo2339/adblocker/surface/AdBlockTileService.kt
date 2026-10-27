@@ -9,9 +9,9 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.util.Log
-import io.github.tonbo2339.adblocker.MainActivity
 import io.github.tonbo2339.adblocker.R
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.ui.MainActivity
 import io.github.tonbo2339.adblocker.vpn.AdBlockVpnService
 import io.github.tonbo2339.adblocker.vpn.Pause
 import io.github.tonbo2339.adblocker.vpn.WifiNetworks

@@ -5,13 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import androidx.core.view.isVisible
-import io.github.tonbo2339.adblocker.AppListActivity
 import io.github.tonbo2339.adblocker.BuildConfig
 import io.github.tonbo2339.adblocker.R
-import io.github.tonbo2339.adblocker.RulesActivity
 import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.data.Prefs
+import io.github.tonbo2339.adblocker.ui.AppListActivity
+import io.github.tonbo2339.adblocker.ui.RulesActivity
 import io.github.tonbo2339.adblocker.vpn.WifiNetworks
 
 /**

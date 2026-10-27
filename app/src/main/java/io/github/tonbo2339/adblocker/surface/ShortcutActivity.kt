@@ -4,8 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import io.github.tonbo2339.adblocker.MainActivity
 import io.github.tonbo2339.adblocker.R
+import io.github.tonbo2339.adblocker.ui.MainActivity
 import io.github.tonbo2339.adblocker.vpn.BlockingControl
 import io.github.tonbo2339.adblocker.vpn.BlockingControl.Outcome
 

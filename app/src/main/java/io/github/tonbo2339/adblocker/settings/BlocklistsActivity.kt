@@ -18,7 +18,7 @@ import io.github.tonbo2339.adblocker.block.BlockListUpdater
 import io.github.tonbo2339.adblocker.block.BlockListWorker
 import io.github.tonbo2339.adblocker.data.Prefs
 import io.github.tonbo2339.adblocker.databinding.ItemSourceRowBinding
-import io.github.tonbo2339.adblocker.showInputDialog
+import io.github.tonbo2339.adblocker.ui.showInputDialog
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
