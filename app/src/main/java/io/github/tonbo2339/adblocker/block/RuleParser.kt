@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.block
 
 /** ブロックリストの 1 行を解釈した結果。 */
 sealed interface Rule {

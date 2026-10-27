@@ -14,6 +14,9 @@ import android.view.Gravity
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.block.BlockList
+import io.github.tonbo2339.adblocker.block.DomainCheck
+import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.databinding.DialogDomainBinding
 import kotlin.concurrent.thread
 

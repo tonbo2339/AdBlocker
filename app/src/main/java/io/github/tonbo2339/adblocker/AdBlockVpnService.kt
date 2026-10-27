@@ -20,6 +20,9 @@ import android.system.OsConstants
 import android.system.StructPollfd
 import android.util.Log
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.block.BlockList
+import io.github.tonbo2339.adblocker.block.Filter
+import io.github.tonbo2339.adblocker.block.Verdict
 import io.github.tonbo2339.adblocker.dns.Dns
 import io.github.tonbo2339.adblocker.dns.DnsCache
 import io.github.tonbo2339.adblocker.dns.DnsDebugStats

@@ -3,11 +3,13 @@ package io.github.tonbo2339.adblocker
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.tonbo2339.adblocker.block.RuleText
+import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.databinding.ActivityRulesBinding
 import io.github.tonbo2339.adblocker.databinding.ItemValueRowBinding
 import java.io.IOException

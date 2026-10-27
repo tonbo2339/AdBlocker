@@ -1,8 +1,10 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.block
 
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import io.github.tonbo2339.adblocker.DebugLog
+import io.github.tonbo2339.adblocker.Prefs
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection

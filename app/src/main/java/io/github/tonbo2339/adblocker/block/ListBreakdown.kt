@@ -1,6 +1,7 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.block
 
 import android.content.Context
+import io.github.tonbo2339.adblocker.SessionStats
 
 /**
  * 今回ブロックしたドメインが、どのリストに載っているかの内訳 (統計の「リスト別」)。

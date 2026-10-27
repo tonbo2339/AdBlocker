@@ -2,6 +2,7 @@ package io.github.tonbo2339.adblocker
 
 import android.content.Context
 import android.util.Log
+import io.github.tonbo2339.adblocker.block.Verdict
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream

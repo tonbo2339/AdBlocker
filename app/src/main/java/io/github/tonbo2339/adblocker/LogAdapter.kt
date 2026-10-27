@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
+import io.github.tonbo2339.adblocker.block.Verdict
 import io.github.tonbo2339.adblocker.databinding.ItemLogBinding
 import io.github.tonbo2339.adblocker.databinding.ItemLogHeaderBinding
 import java.text.NumberFormat

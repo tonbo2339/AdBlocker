@@ -8,6 +8,9 @@ import android.text.format.Formatter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import io.github.tonbo2339.adblocker.block.BlockList
+import io.github.tonbo2339.adblocker.block.BlockListUpdater
+import io.github.tonbo2339.adblocker.block.UserRules
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date

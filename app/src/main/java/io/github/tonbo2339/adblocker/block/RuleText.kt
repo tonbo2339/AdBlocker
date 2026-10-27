@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.block
 
 /**
  * 自分のルールのテキスト形式 (書き出しと読み込み)。1 行に 1 つ。

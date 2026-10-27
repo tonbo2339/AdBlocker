@@ -1,5 +1,7 @@
 package io.github.tonbo2339.adblocker
 
+import io.github.tonbo2339.adblocker.block.ListBreakdown
+import io.github.tonbo2339.adblocker.block.Verdict
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong

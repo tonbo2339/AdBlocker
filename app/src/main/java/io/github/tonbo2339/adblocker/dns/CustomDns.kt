@@ -1,6 +1,6 @@
 package io.github.tonbo2339.adblocker.dns
 
-import io.github.tonbo2339.adblocker.IpRule
+import io.github.tonbo2339.adblocker.block.IpRule
 
 /**
  * 自分で指定する暗号化 DNS のサーバーの入力を読む。

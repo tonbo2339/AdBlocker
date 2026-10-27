@@ -2,6 +2,9 @@ package io.github.tonbo2339.adblocker
 
 import android.content.Context
 import io.github.tonbo2339.adblocker.Prefs.NotificationKind
+import io.github.tonbo2339.adblocker.block.BlockListUpdater
+import io.github.tonbo2339.adblocker.block.BlockListWorker
+import io.github.tonbo2339.adblocker.block.UserRules
 import io.github.tonbo2339.adblocker.dns.CustomDns
 import io.github.tonbo2339.adblocker.dns.EncryptedDns
 import io.github.tonbo2339.adblocker.dns.EncryptedDnsMode

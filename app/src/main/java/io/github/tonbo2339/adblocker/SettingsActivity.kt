@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import androidx.core.view.isVisible
+import io.github.tonbo2339.adblocker.block.BlockListUpdater
+import io.github.tonbo2339.adblocker.block.UserRules
 
 /**
  * 設定のトップ (ホームの右上の ≡ から開く)。iOS の設定アプリと同じく、項目ごとのページへの入り口だけを並べる。

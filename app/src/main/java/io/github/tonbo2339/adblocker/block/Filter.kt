@@ -1,5 +1,7 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.block
 
+import io.github.tonbo2339.adblocker.Pause
+import io.github.tonbo2339.adblocker.WifiNetworks
 import io.github.tonbo2339.adblocker.dns.Dns
 
 /** 問い合わせをどう扱ったか。 */

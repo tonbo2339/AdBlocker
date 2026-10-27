@@ -1,4 +1,4 @@
-package io.github.tonbo2339.adblocker
+package io.github.tonbo2339.adblocker.block
 
 /**
  * ドメイン名の集合。64bit ハッシュのソート済み配列で持つので、文字列の HashSet よりずっと省メモリ
